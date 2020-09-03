@@ -46,6 +46,14 @@ public:
 class octree_t
 {
 public:
+	using iterator = octree_iterator_t;
+	using const_iterator = octree_iterator_t const;
+	using value_type = point_t;
+	using reference = value_type&;
+	using const_reference = value_type const&;
+	using pointer = value_type*;
+	using const_pointer = value_type const*;
+
 	explicit octree_t(octree_parameters_t const& params)
 		:
 		root_(params),
@@ -60,6 +68,10 @@ public:
 		root_(params),
 		size_(root_.insert(begin, end))
 	{}
+
+	std::size_t size() const { return size_; }
+	const_iterator cbegin() const { return octree_iterator_t(&root_); }
+	const_iterator cend()   const { return octree_iterator_t{}; }
 
 	template <class ForwardIter>
 	std::size_t insert(ForwardIter begin, ForwardIter end)
@@ -119,8 +131,6 @@ public:
 		root_.range_search(range, points_in_range);
 		return points_in_range;
 	}
-
-	std::size_t size() const { return size_; }
 
 private:
 	octree_node_t root_;

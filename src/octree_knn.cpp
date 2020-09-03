@@ -3,10 +3,13 @@
 #include <octree.hpp>
 
 SCENARIO("KNN searches on the octree", "[octree]") {
-	GIVEN("a hand constructed octree of node capacity = 1 with 1 point in each octant") {
+	auto node_capacity = GENERATE(1u, 2u, 3u, 4u);
+	auto max_depth     = GENERATE(1u, 3u, 21u);
+
+	GIVEN("an octree with 1 point in each octant") {
 		octree_parameters_t params;
-		params.node_capacity = 1u;
-		params.max_depth = 21u;
+		params.node_capacity = node_capacity;
+		params.max_depth = max_depth;
 		params.voxel_grid = axis_aligned_bounding_box_t
 		{
 			point_t{ -1.f, -1.f, -1.f },
@@ -65,11 +68,11 @@ SCENARIO("KNN searches on the octree", "[octree]") {
 		}
 	}
 
-	GIVEN("a hand constructed octree of node capacity=4 with "
-		"1 point in 7 octants and 4 points in the other octant") {
+	GIVEN("an octree with 1 point in 7 octants "
+		  "and 4 points in the other octant") {
 		octree_parameters_t params;
-		params.node_capacity = 4u;
-		params.max_depth = 21u;
+		params.node_capacity = node_capacity;
+		params.max_depth = max_depth;
 		params.voxel_grid = axis_aligned_bounding_box_t
 		{
 			point_t{ -1.f, -1.f, -1.f },
@@ -135,8 +138,8 @@ SCENARIO("KNN searches on the octree", "[octree]") {
 		std::uniform_int_distribution<>       k_distribution(1u, 10u);
 
 		octree_parameters_t params;
-		params.node_capacity = 4u;
-		params.max_depth = 21u;
+		params.node_capacity = node_capacity;
+		params.max_depth = max_depth;
 		params.voxel_grid = axis_aligned_bounding_box_t
 		{
 			point_t{ -2.f, -2.f, -2.f },

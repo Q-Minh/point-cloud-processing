@@ -11,6 +11,7 @@ INTERFACE
     include/axis_aligned_bounding_box.hpp
     include/intersections.hpp
     include/octree.hpp
+    include/octree_iterator.hpp
     include/octree_node.hpp
     include/point.hpp
     include/sphere.hpp
@@ -28,6 +29,7 @@ target_sources(tests
 PRIVATE
     src/main.cpp
     src/octree_insertion.cpp
+    src/octree_iterator.cpp
     src/octree_knn.cpp
     src/octree_range_search.cpp
 )
