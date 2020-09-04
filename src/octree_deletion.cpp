@@ -2,12 +2,19 @@
 
 #include <octree.hpp>
 
-SCENARIO("octree size is coherent with insertion", "[octree]") {
+SCENARIO("octree deletion", "[octree]") {
+	auto node_capacity = GENERATE(1u, 2u, 3u, 4u);
+	auto max_depth = GENERATE(1u, 2u, 21u);
+
 	GIVEN("an empty octree and a range of points") {
 		std::vector<point_t> points{};
 
+		point_t const first_point_to_remove{ 0.1f, 0.1f, 0.1f };
+		point_t const second_point_to_remove{ 0.1f, -0.1f, 0.1f };
+		point_t const third_point_to_remove{ 0.1f, -0.1f, -0.1f };
+
 		// points in +x,+y,+z octant
-		points.push_back({ 0.1f, 0.1f, 0.1f });
+		points.push_back(first_point_to_remove);
 		points.push_back({ 0.2f, 0.2f, 0.2f });
 		points.push_back({ 0.3f, 0.3f, 0.3f });
 		points.push_back({ 0.4f, 0.4f, 0.4f });
@@ -27,7 +34,7 @@ SCENARIO("octree size is coherent with insertion", "[octree]") {
 		points.push_back({ -0.8f, 0.8f, 0.8f });
 		points.push_back({ -0.9f, 0.9f, 0.9f });
 		// points in +x,-y,+z octant
-		points.push_back({ 0.1f, -0.1f, 0.1f });
+		points.push_back(second_point_to_remove);
 		points.push_back({ 0.2f, -0.2f, 0.2f });
 		points.push_back({ 0.3f, -0.3f, 0.3f });
 		points.push_back({ 0.4f, -0.4f, 0.4f });
@@ -37,7 +44,7 @@ SCENARIO("octree size is coherent with insertion", "[octree]") {
 		points.push_back({ 0.8f, -0.8f, 0.8f });
 		points.push_back({ 0.9f, -0.9f, 0.9f });
 		// points in +x,-y,-z octant
-		points.push_back({ 0.1f, -0.1f, -0.1f });
+		points.push_back(third_point_to_remove);
 		points.push_back({ 0.2f, -0.2f, -0.2f });
 		points.push_back({ 0.3f, -0.3f, -0.3f });
 		points.push_back({ 0.4f, -0.4f, -0.4f });
@@ -53,7 +60,77 @@ SCENARIO("octree size is coherent with insertion", "[octree]") {
 			point_t{ -1.f, -1.f, -1.f },
 			point_t{  1.f,  1.f,  1.f}
 		};
+		params.node_capacity = node_capacity;
+		params.max_depth = max_depth;
 
+		octree_t octree(points.cbegin(), points.cend(), params);
 
+		WHEN("removing existing points one at a time") {
+			auto const is_first_point_to_remove = [&first_point_to_remove](point_t const& p) 
+			{ 
+				return p == first_point_to_remove; 
+			};
+			auto const is_second_point_to_remove = [&second_point_to_remove](point_t const& p)
+			{
+				return p == second_point_to_remove;
+			};
+			auto const is_third_point_to_remove = [&third_point_to_remove](point_t const& p)
+			{
+				return p == third_point_to_remove;
+			};
+
+			auto it = std::find_if(
+				octree.cbegin(), octree.cend(),
+				is_first_point_to_remove
+			);
+
+			auto next = octree.erase(it);
+
+			it = std::find_if(
+				octree.cbegin(), octree.cend(),
+				is_second_point_to_remove
+			);
+
+			next = octree.erase(it);
+
+			it = std::find_if(
+				octree.cbegin(), octree.cend(),
+				is_third_point_to_remove
+			);
+
+			next = octree.erase(it);
+
+			THEN("octree is resized accordingly") {
+				REQUIRE(octree.size() == points.size() - 3u);
+			}
+			THEN("points are removed from the octree") {
+				REQUIRE(std::none_of(
+					octree.cbegin(), octree.cend(),
+					is_first_point_to_remove
+				));
+				REQUIRE(std::none_of(
+					octree.cbegin(), octree.cend(),
+					is_second_point_to_remove
+				));
+				REQUIRE(std::none_of(
+					octree.cbegin(), octree.cend(),
+					is_third_point_to_remove
+				));
+				REQUIRE(next != octree.cend());
+			}
+		}
+		WHEN("removing all points") {
+			auto it = octree.cbegin();
+			while ((it = octree.erase(it)) != octree.cend());
+			THEN("octree is empty") {
+				REQUIRE(octree.empty());
+				WHEN("adding new points") {
+					octree.insert(points.cbegin(), points.cend());
+					THEN("octree now contains the new points") {
+						REQUIRE(octree.size() == points.size());
+					}
+				}
+			}
+		}
 	}
 }

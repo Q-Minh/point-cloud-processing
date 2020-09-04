@@ -2,7 +2,7 @@
 
 #include <octree.hpp>
 
-SCENARIO("octree size is coherent with insertion", "[octree]") {
+SCENARIO("octree insertion", "[octree]") {
 	GIVEN("an empty octree and a range of points") {
 		std::vector<point_t> points{};
 

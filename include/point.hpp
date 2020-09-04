@@ -26,11 +26,11 @@ struct point_t
 
 	bool operator==(point_t const& p) const
 	{
-		float constexpr e = 1e-5;
-		auto const dx = std::abs(x - p.x);
-		auto const dy = std::abs(y - p.y);
-		auto const dz = std::abs(z - p.z);
-		auto const equals = (dx < e) && (dy < e) && (dz < e);
+		float constexpr e = static_cast<float>(1e-5);
+		float const dx = std::abs(x - p.x);
+		float const dy = std::abs(y - p.y);
+		float const dz = std::abs(z - p.z);
+		bool const equals = (dx < e) && (dy < e) && (dz < e);
 		return equals;
 	};
 

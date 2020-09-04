@@ -70,6 +70,7 @@ public:
 	{}
 
 	std::size_t size() const { return size_; }
+	bool empty() const { return size() == 0u; }
 	const_iterator cbegin() const { return octree_iterator_t(&root_); }
 	const_iterator cend()   const { return octree_iterator_t{}; }
 
@@ -96,6 +97,18 @@ public:
 			++size_;
 
 		return inserted; 
+	}
+
+	/*
+	* Removes the point pointed-to by iterator pos.
+	* 
+	* @param pos Iterator to the point to remove. Must be in the range [cbegin(), cend()).
+	* @return Iterator to the next point or cend()
+	*/
+	const_iterator erase(const_iterator pos)
+	{
+		--size_;
+		return root_.erase(pos);
 	}
 
 	/*

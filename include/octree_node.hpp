@@ -11,9 +11,9 @@
 
 struct octree_parameters_t
 {
-	std::size_t                 node_capacity;
-	std::uint8_t                max_depth;
-	axis_aligned_bounding_box_t voxel_grid;
+	std::size_t                 node_capacity = 1u;
+	std::uint8_t                max_depth     = 21;
+	axis_aligned_bounding_box_t voxel_grid{};
 };
 
 class octree_iterator_t;
@@ -237,86 +237,7 @@ public:
 		return octant->insert(p);
 	}
 
-	const_iterator erase(const_iterator it)
-	{
-		iterator next = it;
-
-		/*
-		* Get the octree node that the iterator currently
-		* resides in.
-		*/
-		octree_node_t* octree_node = const_cast<octree_node_t*>(next.octree_node_);
-
-		/*
-		* If the point to erase actually exists, then 
-		* we erase it and set the iterator's point to
-		* the next point in the sequence.
-		*/
-		if (next.it_ != octree_node->points_.cend())
-			const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
-
-		/*
-		* If after erasing the point, we still have other
-		* points in this node, then simply return the next
-		* iterator which already resides in the right octree
-		* node and which already points to the next point in 
-		* the sequence.
-		*/
-		if (!octree_node->points_.empty())
-			return next;
-
-		/*
-		* If this is an internal node, then it will succeed in 
-		* taking a point from one of its children.
-		*/
-		if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
-		{
-			next.it_ = octree_node->points_.cbegin();
-			return next;
-		}
-
-		/*
-		* Return end() iterator if this is the root node
-		* (which happens to be a leaf node) and there 
-		* are no points left.
-		*/
-		if (next.ancestor_octree_nodes_.empty())
-		{
-			next = octree_iterator_t{};
-		}
-
-		/*
-		* If this is a leaf node, then we simply move the iterator
-		* to the next node, and we remove this leaf from its parent
-		* since the leaf is empty.
-		*/
-		auto* parent = const_cast<octree_node_t*>(next.ancestor_octree_nodes_.top());
-
-		/*
-		* Move the iterator to the next point before we change the structure 
-		* of the tree by releasing the leaf. The next iterator used to reside
-		* in the leaf node that we are about to delete, so we must move the
-		* iterator before the deletion.
-		*/
-		next.move_to_next_node();
-
-		auto const is_same_octant = [octree_node](std::unique_ptr<octree_node_t> const& octant) -> bool
-		{ 
-			return octant.get() == octree_node; 
-		};
-
-		/*
-		* Find the leaf and release/delete it.
-		*/
-		auto octant_it = std::find_if(
-			parent->octants_.begin(),
-			parent->octants_.end(),
-			is_same_octant
-		);
-		octant_it->release();
-
-		return next;
-	}
+	const_iterator erase(const_iterator it);
 
 	std::vector<point_t> nearest_neighbours(point_t const& reference, std::size_t k) const
 	{
@@ -712,3 +633,84 @@ private:
 	std::stack<octree_node_t const*> ancestor_octree_nodes_;
 	const_point_iterator it_;
 };
+
+inline octree_node_t::const_iterator octree_node_t::erase(const_iterator it)
+{
+	iterator next = it;
+
+	/*
+	* Get the octree node that the iterator currently
+	* resides in.
+	*/
+	octree_node_t* octree_node = const_cast<octree_node_t*>(next.octree_node_);
+
+	/*
+	* If the point to erase actually exists, then
+	* we erase it and set the iterator's point to
+	* the next point in the sequence.
+	*/
+	if (next.it_ != octree_node->points_.cend())
+		const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
+
+	/*
+	* If after erasing the point, we still have other
+	* points in this node, then simply return the next
+	* iterator which already resides in the right octree
+	* node and which already points to the next point in
+	* the sequence.
+	*/
+	if (!octree_node->points_.empty())
+		return next;
+
+	/*
+	* If this is an internal node, then it will succeed in
+	* taking a point from one of its children.
+	*/
+	if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
+	{
+		next.it_ = octree_node->points_.cbegin();
+		return next;
+	}
+
+	/*
+	* Return end() iterator if this is the root node
+	* (which happens to be a leaf node) and there
+	* are no points left.
+	*/
+	if (next.ancestor_octree_nodes_.empty())
+	{
+		return octree_iterator_t{};
+	}
+
+	/*
+	* If this is a leaf node, then we simply move the iterator
+	* to the next node, and we remove this leaf from its parent
+	* since the leaf is empty.
+	*/
+	auto* parent = const_cast<octree_node_t*>(next.ancestor_octree_nodes_.top());
+
+	/*
+	* Move the iterator to the next point before we change the structure
+	* of the tree by releasing the leaf. The next iterator used to reside
+	* in the leaf node that we are about to delete, so we must move the
+	* iterator before the deletion.
+	*/
+	next.move_to_next_node();
+
+	auto const is_same_octant = [octree_node](std::unique_ptr<octree_node_t> const& octant) -> bool
+	{
+		return octant.get() == octree_node;
+	};
+
+	/*
+	* Find the leaf and release/delete it.
+	*/
+	auto octant_it = std::find_if(
+		parent->octants_.begin(),
+		parent->octants_.end(),
+		is_same_octant
+	);
+	octant_it->release();
+
+	return next;
+}
