@@ -42,9 +42,9 @@ public:
 		assert(capacity_ > 0u);
 		assert(max_depth_ > 0u);
 		assert(
-			voxel_grid_.min.x < voxel_grid_.max.x&&
-			voxel_grid_.min.y < voxel_grid_.max.y&&
-			voxel_grid_.min.z < voxel_grid_.max.z
+			(voxel_grid_.min.x < voxel_grid_.max.x) &&
+			(voxel_grid_.min.y < voxel_grid_.max.y) &&
+			(voxel_grid_.min.z < voxel_grid_.max.z)
 		);
 		points_.reserve(params.node_capacity);
 	}
@@ -237,6 +237,87 @@ public:
 		return octant->insert(p);
 	}
 
+	const_iterator erase(const_iterator it)
+	{
+		iterator next = it;
+
+		/*
+		* Get the octree node that the iterator currently
+		* resides in.
+		*/
+		octree_node_t* octree_node = const_cast<octree_node_t*>(next.octree_node_);
+
+		/*
+		* If the point to erase actually exists, then 
+		* we erase it and set the iterator's point to
+		* the next point in the sequence.
+		*/
+		if (next.it_ != octree_node->points_.cend())
+			const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
+
+		/*
+		* If after erasing the point, we still have other
+		* points in this node, then simply return the next
+		* iterator which already resides in the right octree
+		* node and which already points to the next point in 
+		* the sequence.
+		*/
+		if (!octree_node->points_.empty())
+			return next;
+
+		/*
+		* If this is an internal node, then it will succeed in 
+		* taking a point from one of its children.
+		*/
+		if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
+		{
+			next.it_ = octree_node->points_.cbegin();
+			return next;
+		}
+
+		/*
+		* Return end() iterator if this is the root node
+		* (which happens to be a leaf node) and there 
+		* are no points left.
+		*/
+		if (next.ancestor_octree_nodes_.empty())
+		{
+			next = octree_iterator_t{};
+		}
+
+		/*
+		* If this is a leaf node, then we simply move the iterator
+		* to the next node, and we remove this leaf from its parent
+		* since the leaf is empty.
+		*/
+		auto* parent = const_cast<octree_node_t*>(next.ancestor_octree_nodes_.top());
+
+		/*
+		* Move the iterator to the next point before we change the structure 
+		* of the tree by releasing the leaf. The next iterator used to reside
+		* in the leaf node that we are about to delete, so we must move the
+		* iterator before the deletion.
+		*/
+		next.move_to_next_node();
+
+		auto const is_same_octant = [octree_node](std::unique_ptr<octree_node_t> const& octant) -> bool
+		{ 
+			return octant.get() == octree_node; 
+		};
+
+		/*
+		* Find the leaf and release/delete it.
+		*/
+		auto octant_it = std::find_if(
+			parent->octants_.begin(),
+			parent->octants_.end(),
+			is_same_octant
+		);
+		octant_it->release();
+
+		return next;
+	}
+
 	std::vector<point_t> nearest_neighbours(point_t const& reference, std::size_t k) const
 	{
 		if (k <= 0u)
@@ -415,6 +496,66 @@ private:
 	using points_type = std::vector<point_t>;
 	using octants_type = std::array<std::unique_ptr<octree_node_t>, 8>;
 
+	typename octants_type::const_iterator take_point_from_first_nonempty_octant()
+	{
+		auto const exists = [](std::unique_ptr<octree_node_t> const& o)
+		{
+			return static_cast<bool>(o);
+		};
+
+		/*
+		* Look for first non-null octant of this octree.
+		*/
+		auto octree_child_node_it = std::find_if(
+			octants_.begin(), octants_.end(),
+			exists
+		);
+
+		/*
+		* If this octree has no octant, then we can't
+		* take points from any of its children, so 
+		* just return the octants' end() iterator.
+		*/
+		if (octree_child_node_it == octants_.cend())
+			return octants_.cend();
+
+		auto& octree_child_node = *octree_child_node_it;
+
+		/*
+		* Steal a point from this child octant.
+		*/
+		points_.push_back(octree_child_node->points_.back());
+		octree_child_node->points_.pop_back();
+
+		/*
+		* If the octree's child octant still has points left,
+		* we don't need to touch the octree anymore.
+		*/
+		if (!octree_child_node->points_.empty())
+			return octree_child_node_it;
+
+		/*
+		* If we've stolen the octree's child octant's last point,
+		* then we tell it to steal a point from its own children
+		* recursively.
+		* 
+		* If it can't manage to steal any, though, it means this
+		* octree's child octant can't fill itself up with a point
+		* anymore. In that case, we have to destroy this child.
+		*/
+		if (octree_child_node->take_point_from_first_nonempty_octant() ==
+			octree_child_node->octants_.cend())
+		{
+			octree_child_node.release();
+		}
+
+		/*
+		* Return the octree's child octant that we have stolen
+		* a point from.
+		*/
+		return octree_child_node_it;
+	}
+
 	std::size_t capacity_;
 	std::uint8_t max_depth_;
 	axis_aligned_bounding_box_t voxel_grid_;
@@ -441,6 +582,8 @@ private:
 	using octant_iterator = typename octree_node_t::octants_type::iterator;
 	using const_octant_iterator = typename octree_node_t::octants_type::const_iterator;
 public:
+	friend class octree_node_t;
+
 	octree_iterator_t()
 		:
 		octree_node_(nullptr),
@@ -486,34 +629,11 @@ public:
 		}
 
 		/*
-		* If we've exhausted all points of this octree node,
-		* then it's time to go back to our parent and look
-		* for the next point from there.
+		* If there are no more points in this octree node,
+		* but there are still points remaining in the tree,
+		* we move to the next node in the sequence.
 		*/
-		auto const& parent = ancestor_octree_nodes_.top();
-		ancestor_octree_nodes_.pop();
-
-		auto const is_same_octant = [target = octree_node_](std::iterator_traits<const_octant_iterator>::reference octant) -> bool
-		{
-			return octant.get() == target;
-		};
-
-		/*
-		* Find our next non-null sibling
-		*/
-		const_octant_iterator next_octant = std::find_if(
-			parent->octants_.cbegin(), parent->octants_.cend(),
-			is_same_octant
-		);
-
-		octree_node_ = get_next_node(parent, ++next_octant);
-
-		/*
-		* Once we've found the next octree node in the
-		* sequence, we initialize our internal iterator
-		* to the first point of that octree node.
-		*/
-		it_ = octree_node_->points_.cbegin();
+		move_to_next_node();
 		return *this;
 	}
 
@@ -553,6 +673,39 @@ private:
 		}
 
 		return octree;
+	}
+
+	void move_to_next_node()
+	{
+		/*
+		* If we've exhausted all points of this octree node,
+		* then it's time to go back to our parent and look
+		* for the next point from there.
+		*/
+		auto const* parent = ancestor_octree_nodes_.top();
+		ancestor_octree_nodes_.pop();
+
+		auto const is_same_octant = [target = octree_node_](std::iterator_traits<const_octant_iterator>::reference octant) -> bool
+		{
+			return octant.get() == target;
+		};
+
+		/*
+		* Find our next non-null sibling
+		*/
+		const_octant_iterator next_octant = std::find_if(
+			parent->octants_.cbegin(), parent->octants_.cend(),
+			is_same_octant
+		);
+
+		octree_node_ = get_next_node(parent, ++next_octant);
+
+		/*
+		* Once we've found the next octree node in the
+		* sequence, we initialize our internal iterator
+		* to the first point of that octree node.
+		*/
+		it_ = octree_node_->points_.cbegin();
 	}
 
 	octree_node_t const* octree_node_;
