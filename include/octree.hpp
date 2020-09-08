@@ -71,6 +71,7 @@ public:
 
 	std::size_t size() const { return size_; }
 	bool empty() const { return size() == 0u; }
+	void clear() { root_.clear(); }
 	const_iterator cbegin() const { return octree_iterator_t(&root_); }
 	const_iterator cend()   const { return octree_iterator_t{}; }
 
@@ -97,6 +98,17 @@ public:
 			++size_;
 
 		return inserted; 
+	}
+
+	/*
+	* Returns an iterator to the point p in the octree if it exists.
+	* 
+	* @param p Point to search for in the octree
+	* @return iterator to the found point in the octree, or end iterator if it was not found
+	*/
+	const_iterator find(point_t const& p) const 
+	{
+		return root_.find(p);
 	}
 
 	/*

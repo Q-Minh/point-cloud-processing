@@ -28,6 +28,8 @@ set_target_properties(tests PROPERTIES FOLDER tests)
 target_sources(tests
 PRIVATE
     src/main.cpp
+    src/octree_deletion.cpp
+    src/octree_find.cpp
     src/octree_insertion.cpp
     src/octree_iterator.cpp
     src/octree_knn.cpp

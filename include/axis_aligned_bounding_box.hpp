@@ -10,9 +10,9 @@ struct axis_aligned_bounding_box_t
 
 	bool contains(point_t const& p) const
 	{
-		auto const greater_than = [](point_t const& p1, point_t const& p2) -> bool
+		auto const greater_than_or_equal = [](point_t const& p1, point_t const& p2) -> bool
 		{
-			return p1.x > p2.x && p1.y > p2.y && p1.z > p2.z;
+			return p1.x >= p2.x && p1.y >= p2.y && p1.z >= p2.z;
 		};
 
 		auto const less_than_or_equal = [](point_t const& p1, point_t const& p2) -> bool
@@ -20,7 +20,7 @@ struct axis_aligned_bounding_box_t
 			return p1.x <= p2.x && p1.y <= p2.y && p1.z <= p2.z;
 		};
 
-		return greater_than(p, min) && less_than_or_equal(p, max);
+		return greater_than_or_equal(p, min) && less_than_or_equal(p, max);
 	}
 
 	point_t center() const
