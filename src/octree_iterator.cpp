@@ -25,23 +25,28 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 	points.push_back({ -(offset + 0.2f), -(offset + 0.2f), -(offset + 0.2f) });
 	points.push_back({ -(offset + 0.1f), -(offset + 0.1f), -(offset + 0.1f) });
 	points.push_back({   offset + 0.1f ,   offset + 0.1f ,   offset + 0.1f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
-	points.push_back({   offset + 0.2f ,   offset + 0.2f ,   offset + 0.2f  });
+
+	point_t const test_point{ offset + 0.2f, offset + 0.2f ,offset + 0.2f };
+	auto test_point_count = points.size();
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	points.push_back(test_point);
+	test_point_count = points.size() - test_point_count;
+
 	points.push_back({   offset + 0.9f ,   offset + 0.9f ,   offset + 0.9f  });
 
 	octree_parameters_t params;
@@ -129,6 +134,8 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 				REQUIRE(maxvpy == maxopy);
 				REQUIRE(minvpz == minopz);
 				REQUIRE(maxvpz == maxopz);
+
+				REQUIRE(std::count(begin, end, test_point) == test_point_count);
 			}
 		}
 	}

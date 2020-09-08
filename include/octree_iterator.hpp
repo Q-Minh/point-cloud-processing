@@ -43,6 +43,28 @@ public:
 
 	octree_iterator_t& operator=(octree_iterator_t const& other) = default;
 
+	octree_node_t const* root() const
+	{
+		using stack_type = decltype(ancestor_octree_nodes_);
+
+		decltype(ancestor_octree_nodes_) copy;
+		while (!ancestor_octree_nodes_.empty())
+		{
+			copy.push(ancestor_octree_nodes_.top());
+			const_cast<stack_type&>(ancestor_octree_nodes_).pop();
+		}
+
+		auto const* root = copy.top();
+
+		while (!copy.empty())
+		{
+			const_cast<stack_type&>(ancestor_octree_nodes_).push(copy.top());
+			copy.pop();
+		}
+
+		return root;
+	}
+
 	const_reference operator*() const { return *it_; }
 
 	octree_iterator_t& operator++()

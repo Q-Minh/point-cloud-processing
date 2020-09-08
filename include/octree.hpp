@@ -161,3 +161,32 @@ private:
 	octree_node_t root_;
 	std::size_t   size_;
 };
+
+/*
+* Overload STL algorithms to optimize certain operations
+*/
+namespace std {
+
+template <>
+inline octree_t::const_iterator find<octree_t::const_iterator, point_t>(
+	octree_t::const_iterator first, 
+	octree_t::const_iterator last, 
+	point_t const& value)
+{
+	auto const* root = first.root();
+	return root->find(value);
+}
+
+template <>
+inline auto count<octree_t::const_iterator, point_t>(
+	octree_t::const_iterator first,
+	octree_t::const_iterator last,
+	point_t const& value) -> iterator_traits<octree_t::const_iterator>::difference_type
+{
+	auto const* root = first.root();
+	std::vector<point_t> points;
+	root->range_search(axis_aligned_bounding_box_t{ value, value }, points);
+	return points.size();
+}
+
+}

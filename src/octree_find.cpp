@@ -52,6 +52,7 @@ SCENARIO("octree find", "[octree]") {
 			
 			THEN("the corresponding iterator is returned") {
 				REQUIRE(it != octree.cend());
+				REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
 				REQUIRE(*it == p);
 			}
 		}
@@ -62,6 +63,7 @@ SCENARIO("octree find", "[octree]") {
 
 			THEN("the end iterator is returned") {
 				REQUIRE(it == octree.cend());
+				REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
 			}
 		}
 		WHEN("searching for a point that is not contained in the octree's voxel grid") {
@@ -70,6 +72,7 @@ SCENARIO("octree find", "[octree]") {
 
 			THEN("the end iterator is returned") {
 				REQUIRE(it == octree.cend());
+				REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
 			}
 		}
 	}
