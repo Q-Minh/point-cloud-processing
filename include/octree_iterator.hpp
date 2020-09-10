@@ -119,6 +119,9 @@ public:
 	point_t const* operator->() const { return &(*it_); }
 
 private:
+	/*
+	* Returns the next node in post-order sequence.
+	*/
 	octree_node_t const* get_next_node(octree_node_t const* octree, const_octant_iterator begin)
 	{
 		auto const end = octree->octants_.cend();
@@ -133,6 +136,11 @@ private:
 			return get_next_node(octree_child_node.get(), octree_child_node->octants_.begin());
 		}
 
+		/*
+		* If there were no more children to visit from this octree, 
+		* it means this octree node is the next node to visit in 
+		* post-order sequence.
+		*/
 		return octree;
 	}
 
