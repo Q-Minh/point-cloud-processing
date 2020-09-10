@@ -65,3 +65,5 @@ $ ./build/Release/benchmarks --benchmark_format=json --benchmark_out=benchmarks.
 # to plot the benchmark results
 $ ./scripts/visualize.py --in ./build/Release/benchmarks.json
 ```
+
+![Octree vs Vector benchmark results](./doc/plots.PNG)
