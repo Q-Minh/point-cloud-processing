@@ -29,7 +29,7 @@ def get_benchmark(args: dict) -> dict:
 def from_nanoseconds_to_seconds(duration: int) -> int:
     return duration / 1000000000
 
-def plot(benchmark: dict) -> dict:
+def plot(benchmark: dict):
     # execution_time(number_of_searches, number_of_points) = 
     #   construction_time(number_of_points) + number_of_searches*search_time(number_of_points)
     fig: plt.Figure = plt.figure()
@@ -75,7 +75,7 @@ def plot(benchmark: dict) -> dict:
     range_search_ax.set_xlabel("Number of points")
     knn_search_ax.set_xlabel("Number of points")
     range_search_ax.set_ylabel("Number of searches")
-    knn_search_ax.set_zlabel("Number of searches")
+    knn_search_ax.set_ylabel("Number of searches")
     range_search_ax.set_zlabel("Execution time (s)")
     knn_search_ax.set_zlabel("Execution time (s)")
 
