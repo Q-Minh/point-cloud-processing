@@ -10,9 +10,12 @@ target_sources(${PROJECT_NAME}
 INTERFACE
     include/axis_aligned_bounding_box.hpp
     include/intersections.hpp
+    include/obj.hpp
     include/octree.hpp
     include/octree_iterator.hpp
     include/octree_node.hpp
+    include/normal.hpp
+    include/ply.hpp
     include/point.hpp
     include/sphere.hpp
 )
