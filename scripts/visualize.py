@@ -85,7 +85,7 @@ def plot(benchmark: dict):
 
 if __name__ == "__main__":
     parser = argparse.ArgumentParser(description="Plot benchmark results")
-    parser.add_argument("--in", dest="in", help="csv file of benchmark ouput")
+    parser.add_argument("--in", dest="in", help="json file of benchmark ouput")
 
     args = parser.parse_args()
     args = vars(args)
