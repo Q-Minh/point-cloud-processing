@@ -9,6 +9,7 @@ target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
 target_sources(${PROJECT_NAME}
 INTERFACE
     include/axis_aligned_bounding_box.hpp
+    include/endianness.hpp
     include/intersections.hpp
     include/obj.hpp
     include/octree.hpp
@@ -18,6 +19,7 @@ INTERFACE
     include/ply.hpp
     include/point.hpp
     include/sphere.hpp
+    include/tokenize.hpp
 )
 
 target_include_directories(${PROJECT_NAME}
@@ -31,12 +33,15 @@ set_target_properties(tests PROPERTIES FOLDER tests)
 target_sources(tests
 PRIVATE
     src/main.cpp
+    src/obj.cpp
     src/octree_deletion.cpp
     src/octree_find.cpp
     src/octree_insertion.cpp
     src/octree_iterator.cpp
     src/octree_knn.cpp
     src/octree_range_search.cpp
+    src/ply.cpp
+    src/tokenize.cpp
 )
 
 target_link_libraries(tests PRIVATE ${PROJECT_NAME} Catch2::Catch2)

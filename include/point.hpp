@@ -1,12 +1,13 @@
 #pragma once
 
-struct point_t
+template <class T /* point coordinates' type */>
+struct basic_point_t
 {
-	float x = 0.f, y = 0.f, z = 0.f;
+	T x = 0., y = 0., z = 0.;
 
-	friend point_t operator*(float k, point_t p)
+	friend basic_point_t operator*(T k, basic_point_t p)
 	{
-		return point_t
+		return basic_point_t
 		{
 			k * p.x,
 			k * p.y,
@@ -14,9 +15,9 @@ struct point_t
 		};
 	}
 
-	friend point_t operator/(point_t p, float k)
+	friend basic_point_t operator/(basic_point_t p, T k)
 	{
-		return point_t
+		return basic_point_t
 		{
 			p.x / k,
 			p.y / k,
@@ -24,24 +25,31 @@ struct point_t
 		};
 	}
 
-	bool operator==(point_t const& p) const
+	bool operator==(basic_point_t const& p) const
 	{
-		float constexpr e = static_cast<float>(1e-5);
-		float const dx = std::abs(x - p.x);
-		float const dy = std::abs(y - p.y);
-		float const dz = std::abs(z - p.z);
-		bool const equals = (dx < e) && (dy < e) && (dz < e);
-		return equals;
+		if constexpr (std::is_integral_v<T>)
+		{
+			return p.x == x && p.y == y && p.z == z;
+		}
+		else
+		{
+			T constexpr e = static_cast<T>(1e-5);
+			T const dx = std::abs(x - p.x);
+			T const dy = std::abs(y - p.y);
+			T const dz = std::abs(z - p.z);
+			bool const equals = (dx < e) && (dy < e) && (dz < e);
+			return equals;
+		}
 	};
 
-	bool operator!=(point_t const& p) const
+	bool operator!=(basic_point_t const& p) const
 	{
 		return !(*this == p);
 	}
 
-	point_t operator+(point_t const& other) const
+	basic_point_t operator+(basic_point_t const& other) const
 	{
-		return point_t
+		return basic_point_t
 		{
 			x + other.x,
 			y + other.y,
@@ -49,9 +57,9 @@ struct point_t
 		};
 	}
 
-	point_t operator-(point_t const& other) const
+	basic_point_t operator-(basic_point_t const& other) const
 	{
-		return point_t
+		return basic_point_t
 		{
 			x - other.x,
 			y - other.y,
@@ -59,3 +67,5 @@ struct point_t
 		};
 	}
 };
+
+using point_t = basic_point_t<float>;
