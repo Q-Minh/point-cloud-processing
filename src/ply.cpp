@@ -97,10 +97,20 @@ SCENARIO("ply file manipulation", "[ply]") {
 				}
 			}
 			WHEN("writing in binary_little_endian format") {
-
+				ply::write_ply<float, float>(oss, vertices, {}, ply::format_t::binary_little_endian);
+				THEN("the resulting ply file is valid and encodes all points") {
+					std::string const truth = get_binary_little_endian_ply_file(num_points, false);
+					std::string const ply = oss.str();
+					REQUIRE(ply == truth);
+				}
 			}
 			WHEN("writing in binary_big_endian format") {
-
+				ply::write_ply<float, float>(oss, vertices, {}, ply::format_t::binary_big_endian);
+				THEN("the resulting ply file is valid and encodes all points") {
+					std::string const truth = get_binary_big_endian_ply_file(num_points, false);
+					std::string const ply = oss.str();
+					REQUIRE(ply == truth);
+				}
 			}
 		}
 		GIVEN("a vector of normals") {
