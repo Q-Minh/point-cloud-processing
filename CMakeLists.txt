@@ -1,56 +1,92 @@
 cmake_minimum_required(VERSION 3.14)
-project(octree)
+project(pcp VERSION 0.0.1 LANGUAGES CXX)
 
+option(BUILD_TESTS "build tests (requires catch2)" ON)
+option(BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
-add_library(${PROJECT_NAME} INTERFACE)
-target_compile_features(${PROJECT_NAME} INTERFACE cxx_std_17)
+add_library(pcp INTERFACE)
+add_library(pcp::pcp ALIAS pcp)
+target_compile_features(pcp INTERFACE cxx_std_17)
 
-target_sources(${PROJECT_NAME}
+target_sources(pcp
 INTERFACE
-    include/axis_aligned_bounding_box.hpp
-    include/endianness.hpp
-    include/intersections.hpp
-    include/obj.hpp
-    include/octree.hpp
-    include/octree_iterator.hpp
-    include/octree_node.hpp
-    include/normal.hpp
-    include/ply.hpp
-    include/point.hpp
-    include/sphere.hpp
-    include/tokenize.hpp
+    $<BUILD_INTERFACE:
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/axis_aligned_bounding_box.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/endianness.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/intersections.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/obj.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_iterator.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_node.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/normal.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/ply.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/tokenize.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
+    >
 )
 
-target_include_directories(${PROJECT_NAME}
+target_include_directories(pcp
 INTERFACE
-    include/
+    $<INSTALL_INTERFACE:include>
+    $<BUILD_INTERFACE:${CMAKE_CURRENT_SOURCE_DIR}/include>
 )
 
-find_package(Catch2 CONFIG REQUIRED)
-add_executable(tests)
-set_target_properties(tests PROPERTIES FOLDER tests)
-target_sources(tests
-PRIVATE
-    src/main.cpp
-    src/obj.cpp
-    src/octree_deletion.cpp
-    src/octree_find.cpp
-    src/octree_insertion.cpp
-    src/octree_iterator.cpp
-    src/octree_knn.cpp
-    src/octree_range_search.cpp
-    src/ply.cpp
-    src/tokenize.cpp
+include(GNUInstallDirs)
+
+install(
+    TARGETS pcp
+    EXPORT pcp_targets
+    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
-target_link_libraries(tests PRIVATE ${PROJECT_NAME} Catch2::Catch2)
-
-find_package(benchmark CONFIG REQUIRED)
-add_executable(benchmarks)
-set_target_properties(benchmarks PROPERTIES FOLDER benchmarks)
-target_sources(benchmarks
-PRIVATE
-    src/benchmark.cpp
+install(
+    DIRECTORY include/ 
+    DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
-target_link_libraries(benchmarks PRIVATE ${PROJECT_NAME} benchmark::benchmark benchmark::benchmark_main)
+
+install(
+    EXPORT pcp_targets
+    FILE pcpTargets.cmake
+    NAMESPACE pcp::
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+)
+
+include(CMakePackageConfigHelpers)
+write_basic_package_version_file(
+    ${CMAKE_CURRENT_BINARY_DIR}/pcpConfigVersion.cmake
+    VERSION ${PROJECT_VERSION}
+    COMPATIBILITY SameMajorVersion
+)
+
+configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/pcpConfig.cmake.in
+    ${CMAKE_CURRENT_BINARY_DIR}/pcpConfig.cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+)
+
+install(
+    FILES
+        ${CMAKE_CURRENT_BINARY_DIR}/pcpConfig.cmake
+        ${CMAKE_CURRENT_BINARY_DIR}/pcpConfigVersion.cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+)
+
+export(
+    EXPORT pcp_targets
+    FILE ${CMAKE_CURRENT_BINARY_DIR}/pcpTargets.cmake
+    NAMESPACE pcp::
+)
+
+export(PACKAGE pcp)
+
+if (BUILD_TESTS)
+    add_subdirectory(test)
+endif()
+
+if (BUILD_BENCHMARKS)
+    add_subdirectory(benchmark)
+endif()

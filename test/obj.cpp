@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include <obj.hpp>
+#include <pcp/obj.hpp>
 
 SCENARIO("obj file manipulation", "[obj]") {
 	GIVEN("a valid point cloud with normals obj file") {

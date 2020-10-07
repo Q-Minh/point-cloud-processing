@@ -1,6 +1,6 @@
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
-#include <octree.hpp>
+#include <pcp/octree.hpp>
 
 SCENARIO("octree insertion", "[octree]") {
 	GIVEN("an empty octree and a range of points") {

@@ -1,0 +1,7 @@
+@PACKAGE_INIT@
+
+include(CMakeFindDependencyMacro)
+
+if (NOT TARGET pcp::pcp)
+    include("${CMAKE_CURRENT_LIST_DIR}/pcpTargets.cmake")
+endif()

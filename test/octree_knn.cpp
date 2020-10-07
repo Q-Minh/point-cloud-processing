@@ -1,6 +1,6 @@
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
-#include <octree.hpp>
+#include <pcp/octree.hpp>
 
 SCENARIO("KNN searches on the octree", "[octree]") {
 	auto node_capacity = GENERATE(1u, 2u, 3u, 4u);

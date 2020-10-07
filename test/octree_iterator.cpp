@@ -1,6 +1,6 @@
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
-#include <octree.hpp>
+#include <pcp/octree.hpp>
 
 SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 	auto offset = GENERATE(1.f, 2.f);

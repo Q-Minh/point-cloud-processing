@@ -72,7 +72,7 @@ public:
 	{
 		return std::accumulate(
 			begin, end,
-			0u,
+			static_cast<std::size_t>(0u),
 			[this](std::size_t const count, point_t const& p)
 		{
 			return this->insert(p) ? count + 1 : count;

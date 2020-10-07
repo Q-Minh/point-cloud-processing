@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 
-#include <ply.hpp>
+#include <pcp/ply.hpp>
 
 float const x = 1.1f, y = 2.2f, z = 3.3f;
 float const nx = 1.f, ny = 0.f, nz = 0.f;

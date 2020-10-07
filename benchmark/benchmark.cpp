@@ -1,13 +1,13 @@
 #include <benchmark/benchmark.h>
 
-#include <octree.hpp>
+#include <pcp/octree.hpp>
 
 #include <random>
 
 float constexpr min = -100.f;
 float constexpr max =  100.f;
 
-static std::vector<point_t> get_vector_of_points(
+static std::vector<pcp::point_t> get_vector_of_points(
 	std::uint64_t num_points,
 	float const min,
 	float const max)
@@ -17,12 +17,12 @@ static std::vector<point_t> get_vector_of_points(
 
 	std::uniform_real_distribution<float> coordinate_distribution(min, max);
 
-	std::vector<point_t> points;
+	std::vector<pcp::point_t> points;
 	std::uint64_t const size = num_points;
 	points.reserve(size);
 	for (std::uint64_t i = 0; i < size; ++i)
 	{
-		points.push_back(point_t
+		points.push_back(pcp::point_t
 			{
 				coordinate_distribution(gen),
 				coordinate_distribution(gen),
@@ -33,7 +33,7 @@ static std::vector<point_t> get_vector_of_points(
 	return points;
 }
 
-static axis_aligned_bounding_box_t get_range(float const min, float const max)
+static pcp::axis_aligned_bounding_box_t get_range(float const min, float const max)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
@@ -46,15 +46,15 @@ static axis_aligned_bounding_box_t get_range(float const min, float const max)
 	auto const y = coordinate_distribution(gen);
 	auto const z = coordinate_distribution(gen);
 
-	return axis_aligned_bounding_box_t
+	return pcp::axis_aligned_bounding_box_t
 	{
-		point_t
+		pcp::point_t
 		{ 
 			min_bound(gen) + x,
 			min_bound(gen) + y,
 			min_bound(gen) + z
 		},
-		point_t
+		pcp::point_t
 		{
 			max_bound(gen) + x,
 			max_bound(gen) + y,
@@ -63,13 +63,13 @@ static axis_aligned_bounding_box_t get_range(float const min, float const max)
 	};
 }
 
-static point_t get_reference_point(float const min, float const max)
+static pcp::point_t get_reference_point(float const min, float const max)
 {
 	std::random_device rd;
 	std::mt19937 gen(rd());
 
 	std::uniform_real_distribution<float> coordinate_distribution(min, max);
-	return point_t
+	return pcp::point_t
 	{
 		coordinate_distribution(gen),
 		coordinate_distribution(gen),
@@ -79,40 +79,40 @@ static point_t get_reference_point(float const min, float const max)
 
 static void bm_vector_construction(benchmark::State& state)
 {
-	std::vector<point_t> const points = get_vector_of_points(state.range(0), min, max);
+	std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
 	for (auto _ : state)
 	{
-		std::vector<point_t> v(points.cbegin(), points.cend());
+		std::vector<pcp::point_t> v(points.cbegin(), points.cend());
 		benchmark::DoNotOptimize(points.data());
 	}
 }
 
 static void bm_octree_construction(benchmark::State& state)
 {
-	std::vector<point_t> const points = get_vector_of_points(state.range(0), min, max);
-	octree_parameters_t params;
-	params.voxel_grid = axis_aligned_bounding_box_t
+	std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
+	pcp::octree_parameters_t params;
+	params.voxel_grid = pcp::axis_aligned_bounding_box_t
 	{
-		point_t{ min, min, min },
-		point_t{ max, max, max }
+		pcp::point_t{ min, min, min },
+		pcp::point_t{ max, max, max }
 	};
 	params.node_capacity = state.range(1);
-	params.max_depth = state.range(2);
+	params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
 
 	for (auto _ : state)
 	{
-		octree_t octree(points.cbegin(), points.cend(), params);
+		pcp::octree_t octree(points.cbegin(), points.cend(), params);
 		benchmark::DoNotOptimize(octree.size());
 	}
 }
 
 static void bm_vector_range_search(benchmark::State& state)
 {
-	std::vector<point_t> points = get_vector_of_points(state.range(0), min, max);
+	std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 	for (auto _ : state)
 	{
-		axis_aligned_bounding_box_t range = get_range(min, max);
-		std::vector<point_t> found_points;
+		pcp::axis_aligned_bounding_box_t range = get_range(min, max);
+		std::vector<pcp::point_t> found_points;
 		for (auto const& p : points)
 		{
 			if (range.contains(p))
@@ -124,71 +124,71 @@ static void bm_vector_range_search(benchmark::State& state)
 
 static void bm_octree_range_search(benchmark::State& state) 
 {
-	std::vector<point_t> points = get_vector_of_points(state.range(0), min, max);
+	std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
-	octree_parameters_t params;
-	params.voxel_grid = axis_aligned_bounding_box_t
+	pcp::octree_parameters_t params;
+	params.voxel_grid = pcp::axis_aligned_bounding_box_t
 	{
-		point_t{ min, min, min },
-		point_t{ max, max, max }
+		pcp::point_t{ min, min, min },
+		pcp::point_t{ max, max, max }
 	};
 	params.node_capacity = state.range(1);
-	params.max_depth = state.range(2);
-	octree_t octree(points.cbegin(), points.cend(), params);
+	params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
+	pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
 	for (auto _ : state)
 	{
-		axis_aligned_bounding_box_t range = get_range(min, max);
-		std::vector<point_t> found_points = octree.range_search(range);
+		pcp::axis_aligned_bounding_box_t range = get_range(min, max);
+		std::vector<pcp::point_t> found_points = octree.range_search(range);
 		benchmark::DoNotOptimize(found_points.data());
 	}
 }
 
 static void bm_vector_knn_search(benchmark::State& state)
 {
-	std::vector<point_t> points = get_vector_of_points(state.range(0), min, max);
+	std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 	std::uint64_t const k = state.range(1);
 	for (auto _ : state)
 	{
-		point_t const reference = get_reference_point(min, max);
+		pcp::point_t const reference = get_reference_point(min, max);
 
-		auto const distance = [](point_t const& p1, point_t const& p2) -> float
+		auto const distance = [](pcp::point_t const& p1, pcp::point_t const& p2) -> float
 		{
 			auto const dx = p2.x - p1.x;
 			auto const dy = p2.y - p1.y;
 			auto const dz = p2.z - p1.z;
 			return dx * dx + dy * dy + dz * dz;
 		};
-		auto const less_than = [reference, distance](point_t const& p1, point_t const& p2) -> bool
+		auto const less_than = [reference, distance](pcp::point_t const& p1, pcp::point_t const& p2) -> bool
 		{
 			return distance(p1, reference) < distance(p2, reference);
 		};
 
 		std::sort(points.begin(), points.end(), less_than);
-		std::vector<point_t> knn(points.cbegin(), points.cbegin() + k);
+		std::vector<pcp::point_t> knn(points.cbegin(), points.cbegin() + k);
 		benchmark::DoNotOptimize(knn.data());
 	}
 }
 
 static void bm_octree_knn_search(benchmark::State& state) 
 {
-	std::vector<point_t> points = get_vector_of_points(state.range(0), min, max);
+	std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
-	octree_parameters_t params;
-	params.voxel_grid = axis_aligned_bounding_box_t
+	pcp::octree_parameters_t params;
+	params.voxel_grid = pcp::axis_aligned_bounding_box_t
 	{
-		point_t{ min, min, min },
-		point_t{ max, max, max }
+		pcp::point_t{ min, min, min },
+		pcp::point_t{ max, max, max }
 	};
 	params.node_capacity = state.range(1);
-	params.max_depth = state.range(2);
+	params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
 
-	octree_t octree(points.cbegin(), points.cend(), params);
+	pcp::octree_t octree(points.cbegin(), points.cend(), params);
 	std::uint64_t const k = state.range(3);
 	for (auto _ : state)
 	{
-		point_t const reference = get_reference_point(min, max);
-		std::vector<point_t> knn = octree.nearest_neighbours(reference, k);
+		pcp::point_t const reference = get_reference_point(min, max);
+		std::vector<pcp::point_t> knn = octree.nearest_neighbours(reference, k);
 		benchmark::DoNotOptimize(knn.data());
 	}
 }

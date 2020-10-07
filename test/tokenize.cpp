@@ -1,6 +1,6 @@
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 
-#include <tokenize.hpp>
+#include <pcp/tokenize.hpp>
 
 SCENARIO("string tokenization", "[tokenization]") {
 	GIVEN("identical sentences with different spacing and a newline") {
