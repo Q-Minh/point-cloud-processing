@@ -28,30 +28,16 @@ enum class coordinate_type_t
 
 struct ply_parameters_t
 {
-	format_t format;
+	format_t format = format_t::ascii;
 	std::size_t vertex_count = 0u;
 	std::size_t normal_count = 0u;
-	coordinate_type_t vertex_component_type;
-	coordinate_type_t normal_component_type;
+	coordinate_type_t vertex_component_type = coordinate_type_t::single_precision;
+	coordinate_type_t normal_component_type = coordinate_type_t::single_precision;
 	std::size_t end_header_offset = 0u;
 };
 
-//inline auto read_ply(std::filesystem::path const& path)
-//	-> std::tuple<std::vector<point_t>, std::vector<normal_t>>
-//{
-//	if (!path.has_extension() || path.extension() != "ply")
-//		return {};
-//
-//	if (!std::filesystem::exists(path))
-//		return {};
-//
-//	std::ifstream fs{ path.c_str() };
-//
-//	if (!fs.is_open())
-//		return {};
-//
-//	return read_ply(static_cast<std::istream&>(fs));
-//}
+inline auto read_ply(std::istream& is)
+	-> std::tuple<std::vector<point_t>, std::vector<normal_t>>;
 
 template <class T /* vertex coordinates' type */, class U /* normal components' type */>
 inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
@@ -68,6 +54,23 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
 template <class T /* vertex coordinates' type */, class U /* normal components' type */>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
 	-> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;;
+
+inline auto read_ply(std::filesystem::path const& path)
+	-> std::tuple<std::vector<point_t>, std::vector<normal_t>>
+{
+	if (!path.has_extension() || path.extension() != "ply")
+		return {};
+
+	if (!std::filesystem::exists(path))
+		return {};
+
+	std::ifstream fs{ path.c_str() };
+
+	if (!fs.is_open())
+		return {};
+
+	return read_ply(fs);
+}
 
 inline auto read_ply(std::istream& is)
 	-> std::tuple<std::vector<point_t>, std::vector<normal_t>>
