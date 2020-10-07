@@ -7,11 +7,11 @@ SCENARIO("octree deletion", "[octree]") {
 	auto max_depth = GENERATE(1u, 2u, 21u);
 
 	GIVEN("an empty octree and a range of points") {
-		std::vector<point_t> points{};
+		std::vector<pcp::point_t> points{};
 
-		point_t const first_point_to_remove{ 0.1f, 0.1f, 0.1f };
-		point_t const second_point_to_remove{ 0.1f, -0.1f, 0.1f };
-		point_t const third_point_to_remove{ 0.1f, -0.1f, -0.1f };
+		pcp::point_t const first_point_to_remove{ 0.1f, 0.1f, 0.1f };
+		pcp::point_t const second_point_to_remove{ 0.1f, -0.1f, 0.1f };
+		pcp::point_t const third_point_to_remove{ 0.1f, -0.1f, -0.1f };
 
 		// points in +x,+y,+z octant
 		points.push_back(first_point_to_remove);
@@ -54,27 +54,27 @@ SCENARIO("octree deletion", "[octree]") {
 		points.push_back({ 0.8f, -0.8f, -0.8f });
 		points.push_back({ 0.9f, -0.9f, -0.9f });
 
-		octree_parameters_t params;
-		params.voxel_grid = axis_aligned_bounding_box_t
+		pcp::octree_parameters_t params;
+		params.voxel_grid = pcp::axis_aligned_bounding_box_t
 		{
-			point_t{ -1.f, -1.f, -1.f },
-			point_t{  1.f,  1.f,  1.f}
+			pcp::point_t{ -1.f, -1.f, -1.f },
+			pcp::point_t{  1.f,  1.f,  1.f}
 		};
 		params.node_capacity = node_capacity;
 		params.max_depth = max_depth;
 
-		octree_t octree(points.cbegin(), points.cend(), params);
+		pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
 		WHEN("removing existing points one at a time") {
-			auto const is_first_point_to_remove = [&first_point_to_remove](point_t const& p) 
+			auto const is_first_point_to_remove = [&first_point_to_remove](pcp::point_t const& p)
 			{ 
 				return p == first_point_to_remove; 
 			};
-			auto const is_second_point_to_remove = [&second_point_to_remove](point_t const& p)
+			auto const is_second_point_to_remove = [&second_point_to_remove](pcp::point_t const& p)
 			{
 				return p == second_point_to_remove;
 			};
-			auto const is_third_point_to_remove = [&third_point_to_remove](point_t const& p)
+			auto const is_third_point_to_remove = [&third_point_to_remove](pcp::point_t const& p)
 			{
 				return p == third_point_to_remove;
 			};

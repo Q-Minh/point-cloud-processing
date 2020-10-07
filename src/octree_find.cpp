@@ -10,11 +10,11 @@ SCENARIO("octree find", "[octree]") {
 		float const min = -1000.f;
 		float const max =  1000.f;
 
-		octree_parameters_t params;
+		pcp::octree_parameters_t params;
 		params.voxel_grid =
 		{
-			point_t{ min, min, min },
-			point_t{ max, max, max }
+			pcp::point_t{ min, min, min },
+			pcp::point_t{ max, max, max }
 		};
 		params.node_capacity = node_capacity;
 		params.max_depth     = max_depth;
@@ -30,10 +30,10 @@ SCENARIO("octree find", "[octree]") {
 			size - 1u
 		);
 
-		std::vector<point_t> points;
+		std::vector<pcp::point_t> points;
 		for (std::uint32_t i = 0u; i < size; ++i)
 		{
-			points.emplace_back(point_t
+			points.emplace_back(pcp::point_t
 			{
 				coordinate_distribution(gen),
 				coordinate_distribution(gen),
@@ -41,7 +41,7 @@ SCENARIO("octree find", "[octree]") {
 			});
 		}
 
-		octree_t octree(points.cbegin(), points.cend(), params);
+		pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
 		REQUIRE(octree.size() == points.size());
 
@@ -58,7 +58,7 @@ SCENARIO("octree find", "[octree]") {
 		}
 		WHEN("searching for a point that is contained in the "
 			 "octree's voxel grid but that was not inserted in the octree") {
-			point_t const p{ min, max, min };
+			pcp::point_t const p{ min, max, min };
 			auto const it = octree.find(p);
 
 			THEN("the end iterator is returned") {
@@ -67,7 +67,7 @@ SCENARIO("octree find", "[octree]") {
 			}
 		}
 		WHEN("searching for a point that is not contained in the octree's voxel grid") {
-			point_t const p{ min - 1.f, min - 1.f, min - 1.f };
+			pcp::point_t const p{ min - 1.f, min - 1.f, min - 1.f };
 			auto const it = octree.find(p);
 
 			THEN("the end iterator is returned") {

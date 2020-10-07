@@ -4,6 +4,8 @@
 
 #include <array>
 
+namespace pcp {
+
 struct axis_aligned_bounding_box_t
 {
 	point_t min{}, max{};
@@ -67,3 +69,5 @@ struct axis_aligned_bounding_box_t
 		return nearest_point;
 	}
 };
+
+} // pcp

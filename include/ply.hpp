@@ -14,25 +14,26 @@
 #include "tokenize.hpp"
 #include "endianness.hpp"
 
-namespace ply {
+namespace pcp {
+namespace io {
 
-enum class format_t
+enum class ply_format_t
 {
 	ascii, binary_little_endian, binary_big_endian
 };
 
-enum class coordinate_type_t
+enum class ply_coordinate_type_t
 {
 	single_precision, double_precision
 };
 
 struct ply_parameters_t
 {
-	format_t format = format_t::ascii;
+	ply_format_t format = ply_format_t::ascii;
 	std::size_t vertex_count = 0u;
 	std::size_t normal_count = 0u;
-	coordinate_type_t vertex_component_type = coordinate_type_t::single_precision;
-	coordinate_type_t normal_component_type = coordinate_type_t::single_precision;
+	ply_coordinate_type_t vertex_component_type = ply_coordinate_type_t::single_precision;
+	ply_coordinate_type_t normal_component_type = ply_coordinate_type_t::single_precision;
 	std::size_t end_header_offset = 0u;
 };
 
@@ -79,35 +80,35 @@ inline auto read_ply(std::istream& is)
 
 	ply_parameters_t ply_params;
 
-	auto const string_to_format = [](std::string const& s) -> format_t
+	auto const string_to_format = [](std::string const& s) -> ply_format_t
 	{
-		format_t format = format_t::ascii;
+		ply_format_t format = ply_format_t::ascii;
 		if (s == "ascii")
-			format = format_t::ascii;
+			format = ply_format_t::ascii;
 		if (s == "binary_little_endian")
-			format = format_t::binary_little_endian;
+			format = ply_format_t::binary_little_endian;
 		if (s == "binary_big_endian")
-			format = format_t::binary_big_endian;
+			format = ply_format_t::binary_big_endian;
 		return format;
 	};
 
-	auto const string_to_coordinate_type = [](std::string const& s) -> coordinate_type_t
+	auto const string_to_coordinate_type = [](std::string const& s) -> ply_coordinate_type_t
 	{
-		coordinate_type_t type = coordinate_type_t::single_precision;
+		ply_coordinate_type_t type = ply_coordinate_type_t::single_precision;
 		if (s == "float")
-			type = coordinate_type_t::single_precision;
+			type = ply_coordinate_type_t::single_precision;
 		if (s == "double")
-			type = coordinate_type_t::double_precision;
+			type = ply_coordinate_type_t::double_precision;
 		return type;
 	};
 
 	auto const has_valid_vertex_properties = [string_to_coordinate_type](
 		std::istream& is,
 		std::array<std::string, 3> const& property_names,
-		coordinate_type_t& coordinate_type) -> bool
+		ply_coordinate_type_t& coordinate_type) -> bool
 	{
 		std::array<std::string, 3> nxyz;
-		std::array<coordinate_type_t, 3> types;
+		std::array<ply_coordinate_type_t, 3> types;
 		std::string line;
 		for (std::uint8_t i = 0; i < 3u; ++i)
 		{
@@ -129,7 +130,7 @@ inline auto read_ply(std::istream& is)
 
 		bool const are_components_of_same_type =
 			std::all_of(std::cbegin(types), std::cend(types),
-				[coordinate_type](coordinate_type_t const& t) { return coordinate_type == t; });
+				[coordinate_type](ply_coordinate_type_t const& t) { return coordinate_type == t; });
 
 		bool const are_components_well_named =
 			nxyz[0] == property_names[0] &&
@@ -201,20 +202,20 @@ inline auto read_ply(std::istream& is)
 	// can only support float component types for both vertex and normal
 	auto const parse_ply_ascii = [](std::istream& is, ply_parameters_t const& params) -> return_type
 	{
-		if (params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+		if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return read_ply_ascii<float, float>(is, params);
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::double_precision)
+			params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::double_precision)
 		{
 			return {};
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::double_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+			params.vertex_component_type == ply_coordinate_type_t::double_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return {};
 		}
@@ -227,20 +228,20 @@ inline auto read_ply(std::istream& is)
 	// can only support float component types for both vertex and normal
 	auto const parse_ply_binary_little_endian = [](std::istream& is, ply_parameters_t const& params) -> return_type
 	{
-		if (params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+		if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return read_ply_binary_little_endian<float, float>(is, params);
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::double_precision)
+			params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::double_precision)
 		{
 			return {};
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::double_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+			params.vertex_component_type == ply_coordinate_type_t::double_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return {};
 		}
@@ -253,20 +254,20 @@ inline auto read_ply(std::istream& is)
 	// can only support float component types for both vertex and normal
 	auto const parse_ply_binary_big_endian = [](std::istream& is, ply_parameters_t const& params) -> return_type
 	{
-		if (params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+		if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return read_ply_binary_big_endian<float, float>(is, params);
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::single_precision &&
-			params.normal_component_type == coordinate_type_t::double_precision)
+			params.vertex_component_type == ply_coordinate_type_t::single_precision &&
+			params.normal_component_type == ply_coordinate_type_t::double_precision)
 		{
 			return {};
 		}
 		else if (
-			params.vertex_component_type == coordinate_type_t::double_precision &&
-			params.normal_component_type == coordinate_type_t::single_precision)
+			params.vertex_component_type == ply_coordinate_type_t::double_precision &&
+			params.normal_component_type == ply_coordinate_type_t::single_precision)
 		{
 			return {};
 		}
@@ -278,11 +279,11 @@ inline auto read_ply(std::istream& is)
 
 	switch (ply_params.format)
 	{
-	case format_t::ascii:
+	case ply_format_t::ascii:
 		return parse_ply_ascii(is, ply_params);
-	case format_t::binary_little_endian:
+	case ply_format_t::binary_little_endian:
 		return parse_ply_binary_little_endian(is, ply_params);
-	case format_t::binary_big_endian:
+	case ply_format_t::binary_big_endian:
 		return parse_ply_binary_big_endian(is, ply_params);
 	default:
 		return {};
@@ -297,7 +298,7 @@ inline void write_ply(
 	std::ostream& os, 
 	std::vector<basic_point_t<T>> const& vertices, 
 	std::vector<basic_normal_t<U>> const& normals, 
-	format_t format = format_t::ascii)
+	ply_format_t format = ply_format_t::ascii)
 {
 	using point_type = basic_point_t<T>;
 	using normal_type = basic_normal_t<U>;
@@ -311,11 +312,11 @@ inline void write_ply(
 	std::ostringstream header_stream{};
 	header_stream << "ply\n";
 
-	if (format == format_t::ascii)
+	if (format == ply_format_t::ascii)
 		header_stream << "format ascii 1.0\n";
-	if (format == format_t::binary_little_endian)
+	if (format == ply_format_t::binary_little_endian)
 		header_stream << "format binary_little_endian 1.0\n";
-	if (format == format_t::binary_big_endian)
+	if (format == ply_format_t::binary_big_endian)
 		header_stream << "format binary_big_endian 1.0\n";
 
 	header_stream
@@ -332,7 +333,7 @@ inline void write_ply(
 	std::string const header = header_stream.str();
 	os << header;
 
-	if (format == format_t::ascii)
+	if (format == ply_format_t::ascii)
 	{
 		for (point_type const& v : vertices)
 		{
@@ -371,7 +372,7 @@ inline void write_ply(
 		});
 	};
 
-	if (format == format_t::binary_little_endian)
+	if (format == ply_format_t::binary_little_endian)
 	{
 		if (!is_machine_little_endian())
 		{
@@ -386,7 +387,7 @@ inline void write_ply(
 		}
 	}
 
-	if (format == format_t::binary_big_endian)
+	if (format == ply_format_t::binary_big_endian)
 	{
 		if (!is_machine_big_endian())
 		{
@@ -531,3 +532,4 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
 }
 
 } // ply
+} // pcp

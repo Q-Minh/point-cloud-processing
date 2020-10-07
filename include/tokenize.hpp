@@ -4,6 +4,8 @@
 #include <sstream>
 #include <vector>
 
+namespace pcp {
+
 inline auto tokenize(std::string const& s) -> std::vector<std::string>
 {
 	std::istringstream iss(s);
@@ -12,3 +14,5 @@ inline auto tokenize(std::string const& s) -> std::vector<std::string>
 	};
 	return tokens;
 };
+
+} // pcp

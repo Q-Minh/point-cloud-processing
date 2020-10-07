@@ -2,6 +2,8 @@
 
 #include "octree_node.hpp"
 
+namespace pcp {
+
 /*
 * Read-only forward iterator for points in the octree
 */
@@ -181,3 +183,5 @@ private:
 	std::stack<octree_node_t const*> ancestor_octree_nodes_;
 	const_point_iterator it_;
 };
+
+} // pcp

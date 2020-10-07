@@ -3,6 +3,7 @@
 #include "axis_aligned_bounding_box.hpp"
 #include "sphere.hpp"
 
+namespace pcp {
 namespace intersections {
 
 static inline float squared_distance(point_t const& p1, point_t const& p2)
@@ -58,3 +59,4 @@ inline bool intersects(sphere_t const& s, axis_aligned_bounding_box_t const& b)
 }
 
 } // intersections
+} // pcp

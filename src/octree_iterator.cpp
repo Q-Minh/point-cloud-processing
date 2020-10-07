@@ -7,7 +7,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 	auto node_capacity = GENERATE(1u, 2u, 4u);
 	auto max_depth = GENERATE(1u, 2u, 21u);
 
-	std::vector<point_t> points{};
+	std::vector<pcp::point_t> points{};
 
 	points.push_back({ -(offset + 0.9f), -(offset + 0.9f), -(offset + 0.9f) });
 	points.push_back({ -(offset + 0.2f), -(offset + 0.2f), -(offset + 0.2f) });
@@ -26,7 +26,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 	points.push_back({ -(offset + 0.1f), -(offset + 0.1f), -(offset + 0.1f) });
 	points.push_back({   offset + 0.1f ,   offset + 0.1f ,   offset + 0.1f  });
 
-	point_t const test_point{ offset + 0.2f, offset + 0.2f ,offset + 0.2f };
+	pcp::point_t const test_point{ offset + 0.2f, offset + 0.2f ,offset + 0.2f };
 	auto test_point_count = points.size();
 	points.push_back(test_point);
 	points.push_back(test_point);
@@ -49,17 +49,17 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 
 	points.push_back({   offset + 0.9f ,   offset + 0.9f ,   offset + 0.9f  });
 
-	octree_parameters_t params;
-	params.voxel_grid = axis_aligned_bounding_box_t
+	pcp::octree_parameters_t params;
+	params.voxel_grid = pcp::axis_aligned_bounding_box_t
 	{
-		point_t{ -(offset + 1.f), -(offset + 1.f), -(offset + 1.f) },
-		point_t{   offset + 1.f ,   offset + 1.f ,   offset + 1.f }
+		pcp::point_t{ -(offset + 1.f), -(offset + 1.f), -(offset + 1.f) },
+		pcp::point_t{   offset + 1.f ,   offset + 1.f ,   offset + 1.f }
 	};
 	params.node_capacity = node_capacity;
 	params.max_depth     = max_depth;
 
 	GIVEN("an octree") {
-		octree_t octree(points.cbegin(), points.cend(), params);
+		pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
 		WHEN("using its octree iterators") {
 			auto const begin = octree.cbegin();
@@ -73,20 +73,20 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]") {
 			THEN("non-modifying sequence operations from stl algorithms are valid") {
 				float const erroneous_coordinate = 100.f;
 				REQUIRE(
-					std::none_of(begin, end, [t = erroneous_coordinate](point_t const& p) { return p.x == t || p.y == t || p.z == t; })
+					std::none_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) { return p.x == t || p.y == t || p.z == t; })
 				);
 				REQUIRE(
-					std::all_of(begin, end, [t = erroneous_coordinate](point_t const& p) { return p.x < t&& p.y < t&& p.z < t; })
+					std::all_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) { return p.x < t&& p.y < t&& p.z < t; })
 				);
 
-				auto const vector_sum = std::accumulate(points.cbegin(), points.cend(), point_t{ 0.f, });
-				auto const octree_sum = std::accumulate(begin, end, point_t{ 0.f, });
+				auto const vector_sum = std::accumulate(points.cbegin(), points.cend(), pcp::point_t{ 0.f, });
+				auto const octree_sum = std::accumulate(begin, end, pcp::point_t{ 0.f, });
 
 				REQUIRE(vector_sum == octree_sum);
 
-				auto const xless = [](point_t const& p1, point_t const& p2) -> bool { return p1.x < p2.x; };
-				auto const yless = [](point_t const& p1, point_t const& p2) -> bool { return p1.y < p2.y; };
-				auto const zless = [](point_t const& p1, point_t const& p2) -> bool { return p1.z < p2.z; };
+				auto const xless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool { return p1.x < p2.x; };
+				auto const yless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool { return p1.y < p2.y; };
+				auto const zless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool { return p1.z < p2.z; };
 
 				auto const vector_minmax_point_x = std::minmax_element(
 					points.cbegin(), points.cend(), 

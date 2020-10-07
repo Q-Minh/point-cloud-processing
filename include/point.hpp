@@ -1,5 +1,7 @@
 #pragma once
 
+namespace pcp {
+
 template <class T /* point coordinates' type */>
 struct basic_point_t
 {
@@ -69,3 +71,5 @@ struct basic_point_t
 };
 
 using point_t = basic_point_t<float>;
+
+} // pcp

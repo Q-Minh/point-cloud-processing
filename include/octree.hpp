@@ -2,6 +2,7 @@
 
 #include "octree_node.hpp"
 
+namespace pcp {
 namespace detail {
 
 template <class T>
@@ -162,31 +163,33 @@ private:
 	std::size_t   size_;
 };
 
+} // pcp
+
 /*
 * Overload STL algorithms to optimize certain operations
 */
 namespace std {
 
 template <>
-inline octree_t::const_iterator find<octree_t::const_iterator, point_t>(
-	octree_t::const_iterator first, 
-	octree_t::const_iterator last, 
-	point_t const& value)
+inline pcp::octree_t::const_iterator find<pcp::octree_t::const_iterator, pcp::point_t>(
+	pcp::octree_t::const_iterator first, 
+	pcp::octree_t::const_iterator last, 
+	pcp::point_t const& value)
 {
 	auto const* root = first.root();
 	return root->find(value);
 }
 
 template <>
-inline auto count<octree_t::const_iterator, point_t>(
-	octree_t::const_iterator first,
-	octree_t::const_iterator last,
-	point_t const& value) -> iterator_traits<octree_t::const_iterator>::difference_type
+inline auto count<pcp::octree_t::const_iterator, pcp::point_t>(
+	pcp::octree_t::const_iterator first,
+	pcp::octree_t::const_iterator last,
+	pcp::point_t const& value) -> iterator_traits<pcp::octree_t::const_iterator>::difference_type
 {
 	auto const* root = first.root();
-	std::vector<point_t> points;
-	root->range_search(axis_aligned_bounding_box_t{ value, value }, points);
+	std::vector<pcp::point_t> points;
+	root->range_search(pcp::axis_aligned_bounding_box_t{ value, value }, points);
 	return points.size();
 }
 
-}
+} // std

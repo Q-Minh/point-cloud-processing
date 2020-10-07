@@ -9,9 +9,9 @@ SCENARIO("string tokenization", "[tokenization]") {
 		std::string const s3 = "  octrees are  very   fast \n";
 
 		WHEN("tokenizing sentences") {
-			auto const tokens1 = tokenize(s1);
-			auto const tokens2 = tokenize(s2);
-			auto const tokens3 = tokenize(s3);
+			auto const tokens1 = pcp::tokenize(s1);
+			auto const tokens2 = pcp::tokenize(s2);
+			auto const tokens3 = pcp::tokenize(s3);
 			THEN("tokenization yields the same tokens") {
 				std::vector<std::string> truth = { "octrees", "are", "very", "fast" };
 

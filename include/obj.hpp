@@ -10,6 +10,9 @@
 #include "point.hpp"
 #include "normal.hpp"
 
+namespace pcp {
+namespace io {
+
 template <class T /* vertex component type */, class U /* normal component type */>
 inline auto read_obj(std::filesystem::path const& path) 
 	-> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
@@ -108,3 +111,6 @@ inline void write_obj(std::vector<basic_point_t<T>> const& points, std::vector<b
 		os << vn;
 	}
 }
+
+} // io
+} // pcp

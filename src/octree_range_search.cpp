@@ -7,16 +7,16 @@ SCENARIO("range searches on the octree", "[octree]") {
 	auto max_depth = GENERATE(1u, 3u, 21u);
 
 	GIVEN("an octree with 1 point in each octant") {
-		octree_parameters_t params;
+		pcp::octree_parameters_t params;
 		params.node_capacity = node_capacity;
 		params.max_depth = max_depth;
-		params.voxel_grid = axis_aligned_bounding_box_t
+		params.voxel_grid = pcp::axis_aligned_bounding_box_t
 		{
-			point_t{ -1.f, -1.f, -1.f },
-			point_t{  1.f,  1.f,  1.f }
+			pcp::point_t{ -1.f, -1.f, -1.f },
+			pcp::point_t{  1.f,  1.f,  1.f }
 		};
 
-		octree_t octree(params);
+		pcp::octree_t octree(params);
 		octree.insert({ -.5f, -.5f, -.5f }); // 000
 		octree.insert({  .5f, -.5f, -.5f }); // 100
 		octree.insert({  .5f,  .5f, -.5f }); // 110
@@ -35,14 +35,14 @@ SCENARIO("range searches on the octree", "[octree]") {
 		octree.insert({  .4f,  .3f,  .6f }); // 111
 		octree.insert({ -.4f,  .3f,  .6f }); // 011
 
-		auto const test = octree.range_search(axis_aligned_bounding_box_t
+		auto const test = octree.range_search(pcp::axis_aligned_bounding_box_t
 			{
-				point_t{ .5f, .5f, .5f },
-				point_t{ .5f, .5f, .5f }
+				pcp::point_t{ .5f, .5f, .5f },
+				pcp::point_t{ .5f, .5f, .5f }
 			});
 
 		WHEN("searching for points that are not contained in the queried sphere") {
-			sphere_t sphere;
+			pcp::sphere_t sphere;
 			sphere.position = { 0.f, 0.f, 0.f };
 			sphere.radius = 0.1f;
 
@@ -52,19 +52,19 @@ SCENARIO("range searches on the octree", "[octree]") {
 			}
 		}
 		WHEN("searching for points that are contained in the queried sphere") {
-			sphere_t sphere;
+			pcp::sphere_t sphere;
 			sphere.position = { .9f, .9f, .9f };
 			sphere.radius = 1.f;
 
 			auto const points_in_range = octree.range_search(sphere);
 			THEN("the points in the range are returned") {
 				REQUIRE(points_in_range.size() == 2u);
-				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), point_t{ .5f, .5f, .5f }) == 1u);
-				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), point_t{ .4f, .3f, .6f }) == 1u);
+				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), pcp::point_t{ .5f, .5f, .5f }) == 1u);
+				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), pcp::point_t{ .4f, .3f, .6f }) == 1u);
 			}
 		}
 		WHEN("searching for points that are not contained in the queried aabb") {
-			axis_aligned_bounding_box_t aabb;
+			pcp::axis_aligned_bounding_box_t aabb;
 			aabb.min = { 1.05f, 1.05f, 1.05f };
 			aabb.max = { 2.f, 2.f, 2.f };
 
@@ -74,15 +74,15 @@ SCENARIO("range searches on the octree", "[octree]") {
 			}
 		}
 		WHEN("searching for points that are in the queried aabb") {
-			axis_aligned_bounding_box_t aabb;
+			pcp::axis_aligned_bounding_box_t aabb;
 			aabb.min = { -2.f, -2.f, -2.f };
 			aabb.max = { 0.f, 0.f, 0.f };
 
 			auto const points_in_range = octree.range_search(aabb);
 			THEN("the points in the range are returned") {
 				REQUIRE(points_in_range.size() == 2u);
-				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), point_t{ -.5f, -.5f, -.5f }) == 1u);
-				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), point_t{ -.4f, -.3f, -.6f }) == 1u);
+				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), pcp::point_t{ -.5f, -.5f, -.5f }) == 1u);
+				REQUIRE(std::count(points_in_range.cbegin(), points_in_range.cend(), pcp::point_t{ -.4f, -.3f, -.6f }) == 1u);
 			}
 		}
 	}

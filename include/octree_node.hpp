@@ -9,10 +9,12 @@
 #include <numeric>
 #include <cassert>
 
+namespace pcp {
+
 struct octree_parameters_t
 {
 	std::size_t                 node_capacity = 1u;
-	std::uint8_t                max_depth     = 21;
+	std::uint8_t                max_depth = 21;
 	axis_aligned_bounding_box_t voxel_grid{};
 };
 
@@ -389,7 +391,7 @@ public:
 
 	template <class Range>
 	void range_search(
-		Range const& range, 
+		Range const& range,
 		std::vector<point_t>& points_in_range
 	) const
 	{
@@ -446,7 +448,7 @@ private:
 
 		/*
 		* If this octree has no octant, then we can't
-		* take points from any of its children, so 
+		* take points from any of its children, so
 		* just return the octants' end() iterator.
 		*/
 		if (octree_child_node_it == octants_.cend())
@@ -471,7 +473,7 @@ private:
 		* If we've stolen the octree's child octant's last point,
 		* then we tell it to steal a point from its own children
 		* recursively.
-		* 
+		*
 		* If it can't manage to steal any, though, it means this
 		* octree's child octant can't fill itself up with a point
 		* anymore. In that case, we have to destroy this child.
@@ -496,7 +498,11 @@ private:
 	points_type points_;
 };
 
+} // pcp
+
 #include "octree_iterator.hpp"
+
+namespace pcp {
 
 inline octree_node_t::const_iterator octree_node_t::find(point_t const& p) const
 {
@@ -617,3 +623,5 @@ inline octree_node_t::const_iterator octree_node_t::erase(const_iterator it)
 
 	return next;
 }
+
+} // pcp

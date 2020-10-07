@@ -2,6 +2,8 @@
 
 #include "point.hpp"
 
+namespace pcp {
+
 struct sphere_t
 {
 	point_t position{ 0.f, };
@@ -28,3 +30,5 @@ struct sphere_t
 		return distance(position, p) <= radius * radius;
 	}
 };
+
+} // pcp

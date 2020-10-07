@@ -23,7 +23,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 		auto const validate_vertices = [=](std::istream& is)
 		{
 			WHEN("parsing the ply's vertices") {
-				auto [vertices, normals] = ply::read_ply(is);
+				auto [vertices, normals] = pcp::io::read_ply(is);
 				THEN("the correct vertices are recovered") {
 					REQUIRE(normals.empty());
 					REQUIRE(vertices.size() == num_points);
@@ -39,7 +39,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 		auto const validate_vertices_and_normals = [=](std::istream& is)
 		{
 			WHEN("parsing the ply's vertices and normals") {
-				auto [vertices, normals] = ply::read_ply(is);
+				auto [vertices, normals] = pcp::io::read_ply(is);
 				THEN("the correct vertices and normals are recovered") {
 					REQUIRE(vertices.size() == num_points);
 					REQUIRE(normals.size() == num_points);
@@ -84,12 +84,12 @@ SCENARIO("ply file manipulation", "[ply]") {
 		}
 	}
 	GIVEN("a vector of points") {
-		std::vector<point_t> vertices(num_points, point_t{ x, y, z });
+		std::vector<pcp::point_t> vertices(num_points, pcp::point_t{ x, y, z });
 		std::ostringstream oss{};
 
 		WHEN("writing the vector of points as a ply file") {
 			WHEN("writing in ascii format") {
-				ply::write_ply<float, float>(oss, vertices, {}, ply::format_t::ascii);
+				pcp::io::write_ply<float, float>(oss, vertices, {}, pcp::io::ply_format_t::ascii);
 				THEN("the resulting ply file is valid and encodes all points") {
 					std::string const truth = get_ascii_ply_file(num_points, false);
 					std::string const ply = oss.str();
@@ -97,7 +97,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 				}
 			}
 			WHEN("writing in binary_little_endian format") {
-				ply::write_ply<float, float>(oss, vertices, {}, ply::format_t::binary_little_endian);
+				pcp::io::write_ply<float, float>(oss, vertices, {}, pcp::io::ply_format_t::binary_little_endian);
 				THEN("the resulting ply file is valid and encodes all points") {
 					std::string const truth = get_binary_little_endian_ply_file(num_points, false);
 					std::string const ply = oss.str();
@@ -105,7 +105,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 				}
 			}
 			WHEN("writing in binary_big_endian format") {
-				ply::write_ply<float, float>(oss, vertices, {}, ply::format_t::binary_big_endian);
+				pcp::io::write_ply<float, float>(oss, vertices, {}, pcp::io::ply_format_t::binary_big_endian);
 				THEN("the resulting ply file is valid and encodes all points") {
 					std::string const truth = get_binary_big_endian_ply_file(num_points, false);
 					std::string const ply = oss.str();
@@ -114,10 +114,10 @@ SCENARIO("ply file manipulation", "[ply]") {
 			}
 		}
 		GIVEN("a vector of normals") {
-			std::vector<normal_t> normals(num_points, normal_t{ nx, ny, nz });
+			std::vector<pcp::normal_t> normals(num_points, pcp::normal_t{ nx, ny, nz });
 			WHEN("writing the vector of points and normals as a ply file") {
 				WHEN("writing in ascii format") {
-					ply::write_ply<float, float>(oss, vertices, normals, ply::format_t::ascii);
+					pcp::io::write_ply<float, float>(oss, vertices, normals, pcp::io::ply_format_t::ascii);
 					THEN("the resulting ply file is valid and encodes all points") {
 						std::string const truth = get_ascii_ply_file(num_points, true);
 						std::string const ply = oss.str();
@@ -125,7 +125,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 					}
 				}
 				WHEN("writing in binary_little_endian format") {
-					ply::write_ply<float, float>(oss, vertices, normals, ply::format_t::binary_little_endian);
+					pcp::io::write_ply<float, float>(oss, vertices, normals, pcp::io::ply_format_t::binary_little_endian);
 					THEN("the resulting ply file is valid and encodes all points") {
 						std::string const truth = get_binary_little_endian_ply_file(num_points, true);
 						std::string const ply = oss.str();
@@ -133,7 +133,7 @@ SCENARIO("ply file manipulation", "[ply]") {
 					}
 				}
 				WHEN("writing in binary_big_endian format") {
-					ply::write_ply<float, float>(oss, vertices, normals, ply::format_t::binary_big_endian);
+					pcp::io::write_ply<float, float>(oss, vertices, normals, pcp::io::ply_format_t::binary_big_endian);
 					THEN("the resulting ply file is valid and encodes all points") {
 						std::string const truth = get_binary_big_endian_ply_file(num_points, true);
 						std::string const ply = oss.str();
@@ -193,7 +193,7 @@ static std::string get_binary_little_endian_ply_file(
 
 	auto const reverse_endianness_if_needed = [](float v)
 	{
-		return !is_machine_little_endian() ? reverse_endianness(v) : v;
+		return !pcp::is_machine_little_endian() ? pcp::reverse_endianness(v) : v;
 	};
 	for (auto i = 0; i < num_points; ++i)
 	{
@@ -241,7 +241,7 @@ static std::string get_binary_big_endian_ply_file(
 
 	auto const reverse_endianness_if_needed = [](float v)
 	{
-		return !is_machine_big_endian() ? reverse_endianness(v) : v;
+		return !pcp::is_machine_big_endian() ? pcp::reverse_endianness(v) : v;
 	};
 	for (auto i = 0; i < num_points; ++i)
 	{

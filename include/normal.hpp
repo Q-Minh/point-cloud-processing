@@ -1,5 +1,7 @@
 #pragma once
 
+namespace pcp {
+
 template <class T>
 struct basic_normal_t
 {
@@ -69,3 +71,5 @@ struct basic_normal_t
 };
 
 using normal_t = basic_normal_t<float>;
+
+} // pcp

@@ -2,6 +2,8 @@
 
 #include <cstddef>
 
+namespace pcp {
+
 inline bool const is_machine_little_endian()
 {
 	unsigned int i = 1;
@@ -67,3 +69,5 @@ double reverse_endianness(double value)
 
 	return dest.value;
 }
+
+} // pcp
