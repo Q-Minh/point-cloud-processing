@@ -20,7 +20,7 @@ static std::string get_binary_little_endian_ply_file(
 SCENARIO("ply file manipulation", "[ply]") {
 	auto const num_points = 3u;
 	GIVEN("a valid point cloud ply file") {
-		auto const validate_vertices = [=](std::istream& is, bool const switch_endianness = false)
+		auto const validate_vertices = [=](std::istream& is)
 		{
 			WHEN("parsing the ply's vertices") {
 				auto [vertices, normals] = ply::read_ply(is);
@@ -29,23 +29,14 @@ SCENARIO("ply file manipulation", "[ply]") {
 					REQUIRE(vertices.size() == num_points);
 					for (auto i = 0; i < 3; ++i)
 					{
-						if (switch_endianness)
-						{
-							REQUIRE(reverse_endianness(vertices[i].x) == x);
-							REQUIRE(reverse_endianness(vertices[i].y) == y);
-							REQUIRE(reverse_endianness(vertices[i].z) == z);
-						}
-						else
-						{
-							REQUIRE(vertices[i].x == x);
-							REQUIRE(vertices[i].y == y);
-							REQUIRE(vertices[i].z == z);
-						}
+						REQUIRE(vertices[i].x == x);
+						REQUIRE(vertices[i].y == y);
+						REQUIRE(vertices[i].z == z);
 					}
 				}
 			}
 		};
-		auto const validate_vertices_and_normals = [=](std::istream& is, bool const switch_endianness = false)
+		auto const validate_vertices_and_normals = [=](std::istream& is)
 		{
 			WHEN("parsing the ply's vertices and normals") {
 				auto [vertices, normals] = ply::read_ply(is);
@@ -54,24 +45,12 @@ SCENARIO("ply file manipulation", "[ply]") {
 					REQUIRE(normals.size() == num_points);
 					for (auto i = 0; i < 3; ++i)
 					{
-						if (switch_endianness)
-						{
-							REQUIRE(reverse_endianness(vertices[i].x) == x);
-							REQUIRE(reverse_endianness(vertices[i].y) == y);
-							REQUIRE(reverse_endianness(vertices[i].z) == z);
-							REQUIRE(reverse_endianness(normals[i].x) == nx);
-							REQUIRE(reverse_endianness(normals[i].y) == ny);
-							REQUIRE(reverse_endianness(normals[i].z) == nz);
-						}
-						else
-						{
-							REQUIRE(vertices[i].x == x);
-							REQUIRE(vertices[i].y == y);
-							REQUIRE(vertices[i].z == z);
-							REQUIRE(normals[i].x == nx);
-							REQUIRE(normals[i].y == ny);
-							REQUIRE(normals[i].z == nz);
-						}
+						REQUIRE(vertices[i].x == x);
+						REQUIRE(vertices[i].y == y);
+						REQUIRE(vertices[i].z == z);
+						REQUIRE(normals[i].x == nx);
+						REQUIRE(normals[i].y == ny);
+						REQUIRE(normals[i].z == nz);
 					}
 				}
 			}
@@ -83,11 +62,11 @@ SCENARIO("ply file manipulation", "[ply]") {
 		}
 		GIVEN("the file is in binary little endian format") {
 			std::istringstream iss{ get_binary_little_endian_ply_file(num_points, false) };
-			validate_vertices(iss, !is_machine_little_endian());
+			validate_vertices(iss);
 		}
 		GIVEN("the file is in binary big endian format") {
 			std::istringstream iss{ get_binary_big_endian_ply_file(num_points, false) };
-			validate_vertices(iss, !is_machine_big_endian());
+			validate_vertices(iss);
 		}
 		GIVEN("vertex normals in the ply file") {
 			GIVEN("the file is in ascii format") {
@@ -96,11 +75,11 @@ SCENARIO("ply file manipulation", "[ply]") {
 			}
 			GIVEN("the file is in binary little endian format") {
 				std::istringstream iss{ get_binary_little_endian_ply_file(num_points, true) };
-				validate_vertices_and_normals(iss, !is_machine_little_endian());
+				validate_vertices_and_normals(iss);
 			}
 			GIVEN("the file is in binary big endian format") {
 				std::istringstream iss{ get_binary_big_endian_ply_file(num_points, true) };
-				validate_vertices_and_normals(iss, !is_machine_big_endian());
+				validate_vertices_and_normals(iss);
 			}
 		}
 	}

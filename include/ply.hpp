@@ -253,7 +253,7 @@ inline auto read_ply(std::istream& is)
 		if (params.vertex_component_type == coordinate_type_t::single_precision &&
 			params.normal_component_type == coordinate_type_t::single_precision)
 		{
-			return read_ply_binary_little_endian<float, float>(is, params);
+			return read_ply_binary_big_endian<float, float>(is, params);
 		}
 		else if (
 			params.vertex_component_type == coordinate_type_t::single_precision &&
