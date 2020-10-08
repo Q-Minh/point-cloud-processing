@@ -74,4 +74,4 @@ $ ./build/Release/benchmarks --benchmark_format=json --benchmark_out=benchmarks.
 
 ## Documentation
 
-See [docs](./docs/)
+See [docs](./doc/)
