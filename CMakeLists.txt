@@ -53,7 +53,7 @@ install(
     EXPORT pcp_targets
     FILE pcpTargets.cmake
     NAMESPACE pcp::
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pcp
 )
 
 include(CMakePackageConfigHelpers)
@@ -65,14 +65,14 @@ write_basic_package_version_file(
 
 configure_package_config_file(${CMAKE_CURRENT_LIST_DIR}/cmake/pcpConfig.cmake.in
     ${CMAKE_CURRENT_BINARY_DIR}/pcpConfig.cmake
-    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+    INSTALL_DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pcp
 )
 
 install(
     FILES
         ${CMAKE_CURRENT_BINARY_DIR}/pcpConfig.cmake
         ${CMAKE_CURRENT_BINARY_DIR}/pcpConfigVersion.cmake
-    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}/cmake/pcp
 )
 
 export(
@@ -80,8 +80,6 @@ export(
     FILE ${CMAKE_CURRENT_BINARY_DIR}/pcpTargets.cmake
     NAMESPACE pcp::
 )
-
-export(PACKAGE pcp)
 
 if (BUILD_TESTS)
     add_subdirectory(test)
