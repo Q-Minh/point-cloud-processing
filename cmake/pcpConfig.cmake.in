@@ -2,6 +2,8 @@
 
 include(CMakeFindDependencyMacro)
 
+find_dependency(Eigen3)
+
 if (NOT TARGET pcp::pcp)
     include("${CMAKE_CURRENT_LIST_DIR}/pcpTargets.cmake")
 endif()

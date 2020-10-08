@@ -1,4 +1,3 @@
-find_package(Catch2 CONFIG REQUIRED)
 add_executable(tests)
 set_target_properties(tests PROPERTIES FOLDER tests)
 target_sources(tests
@@ -15,15 +14,21 @@ PRIVATE
     tokenize.cpp
 )
 
+include(FetchContent)
+FetchContent_Declare(
+  Catch2
+  GIT_REPOSITORY https://github.com/catchorg/Catch2.git
+  GIT_TAG        v2.13.2
+)
+FetchContent_MakeAvailable(Catch2)
+
 target_link_libraries(tests PRIVATE pcp::pcp Catch2::Catch2)
 
 include(GNUInstallDirs)
 
 install(
     TARGETS tests
-    # EXPORT tests_targets
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
-    PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )

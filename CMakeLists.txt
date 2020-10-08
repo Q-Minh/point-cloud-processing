@@ -1,13 +1,22 @@
 cmake_minimum_required(VERSION 3.14)
 project(pcp VERSION 0.0.1 LANGUAGES CXX)
 
-option(BUILD_TESTS "build tests (requires catch2)" ON)
-option(BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
+option(PCP_BUILD_TESTS "build tests (requires catch2)" ON)
+option(PCP_BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+
+include(FetchContent)
+FetchContent_Declare(
+  eigen3
+  GIT_REPOSITORY https://gitlab.com/libeigen/eigen
+  GIT_TAG        3.3.8
+)
+FetchContent_MakeAvailable(eigen3)
 
 add_library(pcp INTERFACE)
 add_library(pcp::pcp ALIAS pcp)
 target_compile_features(pcp INTERFACE cxx_std_17)
+target_link_libraries(pcp INTERFACE eigen)
 
 target_sources(pcp
 INTERFACE
@@ -42,6 +51,7 @@ install(
     LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
     ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
     PUBLIC_HEADER DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
+    INCLUDES DESTINATION ${CMAKE_INSTALL_INCLUDEDIR}
 )
 
 install(
@@ -81,10 +91,10 @@ export(
     NAMESPACE pcp::
 )
 
-if (BUILD_TESTS)
+if (PCP_BUILD_TESTS)
     add_subdirectory(test)
 endif()
 
-if (BUILD_BENCHMARKS)
+if (PCP_BUILD_BENCHMARKS)
     add_subdirectory(benchmark)
 endif()
