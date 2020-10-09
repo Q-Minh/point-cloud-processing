@@ -9,8 +9,7 @@ struct basic_normal_t
 
     friend basic_normal_t operator*(T k, basic_normal_t p)
     {
-        return basic_normal_t
-        {
+        return basic_normal_t{
             k * p.x,
             k * p.y,
             k * p.z,
@@ -19,12 +18,7 @@ struct basic_normal_t
 
     friend basic_normal_t operator/(basic_normal_t p, T k)
     {
-        return basic_normal_t
-        {
-            p.x / k,
-            p.y / k,
-            p.z / k
-        };
+        return basic_normal_t{p.x / k, p.y / k, p.z / k};
     }
 
     bool operator==(basic_normal_t const& p) const
@@ -35,41 +29,28 @@ struct basic_normal_t
         }
         else
         {
-            T constexpr e = static_cast<T>(1e-5);
-            T const dx = std::abs(x - p.x);
-            T const dy = std::abs(y - p.y);
-            T const dz = std::abs(z - p.z);
+            T constexpr e     = static_cast<T>(1e-5);
+            T const dx        = std::abs(x - p.x);
+            T const dy        = std::abs(y - p.y);
+            T const dz        = std::abs(z - p.z);
             bool const equals = (dx < e) && (dy < e) && (dz < e);
             return equals;
         }
     };
 
-    bool operator!=(basic_normal_t const& p) const
-    {
-        return !(*this == p);
-    }
+    bool operator!=(basic_normal_t const& p) const { return !(*this == p); }
 
     basic_normal_t operator+(basic_normal_t const& other) const
     {
-        return basic_normal_t
-        {
-            x + other.x,
-            y + other.y,
-            z + other.z
-        };
+        return basic_normal_t{x + other.x, y + other.y, z + other.z};
     }
 
     basic_normal_t operator-(basic_normal_t const& other) const
     {
-        return basic_normal_t
-        {
-            x - other.x,
-            y - other.y,
-            z - other.z
-        };
+        return basic_normal_t{x - other.x, y - other.y, z - other.z};
     }
 };
 
 using normal_t = basic_normal_t<float>;
 
-} // pcp
+} // namespace pcp

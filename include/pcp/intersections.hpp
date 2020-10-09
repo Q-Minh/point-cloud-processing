@@ -17,9 +17,8 @@ static inline float squared_distance(point_t const& p1, point_t const& p2)
 
 inline bool intersects(axis_aligned_bounding_box_t const& b1, axis_aligned_bounding_box_t const& b2)
 {
-    return
-        (b1.max.x >= b2.min.x && b1.max.y >= b2.min.y && b1.max.z >= b2.min.z) &&
-        (b1.min.x <= b2.max.x && b1.min.y <= b2.max.y && b1.min.z <= b2.max.z);
+    return (b1.max.x >= b2.min.x && b1.max.y >= b2.min.y && b1.max.z >= b2.min.z) &&
+           (b1.min.x <= b2.max.x && b1.min.y <= b2.max.y && b1.min.z <= b2.max.z);
 }
 
 inline bool intersects(sphere_t const& s1, sphere_t const& s2)
@@ -28,7 +27,7 @@ inline bool intersects(sphere_t const& s1, sphere_t const& s2)
     auto const c2 = s2.center();
 
     auto const maximum_distance_between_spheres = (s1.radius + s2.radius);
-    auto const maximum_squared_distance_between_spheres = 
+    auto const maximum_squared_distance_between_spheres =
         maximum_distance_between_spheres * maximum_distance_between_spheres;
 
     return squared_distance(c1, c2) <= maximum_squared_distance_between_spheres;
@@ -38,13 +37,10 @@ inline bool intersects(axis_aligned_bounding_box_t const& b, sphere_t const& s)
 {
     point_t const center = s.center();
 
-    bool const is_center_in_box =
-        center.x >= b.min.x &&
-        center.y >= b.min.y &&
-        center.z >= b.min.z &&
-        center.x <= b.max.x &&
-        center.y <= b.max.y &&
-        center.z <= b.max.z;
+    bool const is_center_in_box_x = center.x >= b.min.x && center.x <= b.max.x;
+    bool const is_center_in_box_y = center.y >= b.min.y && center.y <= b.max.y;
+    bool const is_center_in_box_z = center.z >= b.min.z && center.z <= b.max.z;
+    bool const is_center_in_box   = is_center_in_box_x && is_center_in_box_y && is_center_in_box_y;
 
     if (is_center_in_box)
         return true;
@@ -58,5 +54,5 @@ inline bool intersects(sphere_t const& s, axis_aligned_bounding_box_t const& b)
     return intersects(b, s);
 }
 
-} // intersections
-} // pcp
+} // namespace intersections
+} // namespace pcp

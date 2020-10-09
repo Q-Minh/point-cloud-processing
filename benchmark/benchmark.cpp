@@ -1,16 +1,12 @@
 #include <benchmark/benchmark.h>
-
 #include <pcp/octree.hpp>
-
 #include <random>
 
 float constexpr min = -100.f;
-float constexpr max =  100.f;
+float constexpr max = 100.f;
 
-static std::vector<pcp::point_t> get_vector_of_points(
-    std::uint64_t num_points,
-    float const min,
-    float const max)
+static std::vector<pcp::point_t>
+get_vector_of_points(std::uint64_t num_points, float const min, float const max)
 {
     std::random_device rd;
     std::mt19937 gen(rd());
@@ -22,12 +18,10 @@ static std::vector<pcp::point_t> get_vector_of_points(
     points.reserve(size);
     for (std::uint64_t i = 0; i < size; ++i)
     {
-        points.push_back(pcp::point_t
-            {
-                coordinate_distribution(gen),
-                coordinate_distribution(gen),
-                coordinate_distribution(gen)
-            });
+        points.push_back(pcp::point_t{
+            coordinate_distribution(gen),
+            coordinate_distribution(gen),
+            coordinate_distribution(gen)});
     }
 
     return points;
@@ -46,21 +40,9 @@ static pcp::axis_aligned_bounding_box_t get_range(float const min, float const m
     auto const y = coordinate_distribution(gen);
     auto const z = coordinate_distribution(gen);
 
-    return pcp::axis_aligned_bounding_box_t
-    {
-        pcp::point_t
-        { 
-            min_bound(gen) + x,
-            min_bound(gen) + y,
-            min_bound(gen) + z
-        },
-        pcp::point_t
-        {
-            max_bound(gen) + x,
-            max_bound(gen) + y,
-            max_bound(gen) + z
-        }
-    };
+    return pcp::axis_aligned_bounding_box_t{
+        pcp::point_t{min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z},
+        pcp::point_t{max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z}};
 }
 
 static pcp::point_t get_reference_point(float const min, float const max)
@@ -69,12 +51,10 @@ static pcp::point_t get_reference_point(float const min, float const max)
     std::mt19937 gen(rd());
 
     std::uniform_real_distribution<float> coordinate_distribution(min, max);
-    return pcp::point_t
-    {
+    return pcp::point_t{
         coordinate_distribution(gen),
         coordinate_distribution(gen),
-        coordinate_distribution(gen)
-    };
+        coordinate_distribution(gen)};
 }
 
 static void bm_vector_construction(benchmark::State& state)
@@ -91,13 +71,10 @@ static void bm_octree_construction(benchmark::State& state)
 {
     std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
     pcp::octree_parameters_t params;
-    params.voxel_grid = pcp::axis_aligned_bounding_box_t
-    {
-        pcp::point_t{ min, min, min },
-        pcp::point_t{ max, max, max }
-    };
+    params.voxel_grid =
+        pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
     params.node_capacity = state.range(1);
-    params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
+    params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
     for (auto _ : state)
     {
@@ -122,18 +99,15 @@ static void bm_vector_range_search(benchmark::State& state)
     }
 }
 
-static void bm_octree_range_search(benchmark::State& state) 
+static void bm_octree_range_search(benchmark::State& state)
 {
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
     pcp::octree_parameters_t params;
-    params.voxel_grid = pcp::axis_aligned_bounding_box_t
-    {
-        pcp::point_t{ min, min, min },
-        pcp::point_t{ max, max, max }
-    };
+    params.voxel_grid =
+        pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
     params.node_capacity = state.range(1);
-    params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
+    params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
     pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
     for (auto _ : state)
@@ -147,20 +121,19 @@ static void bm_octree_range_search(benchmark::State& state)
 static void bm_vector_knn_search(benchmark::State& state)
 {
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
-    std::uint64_t const k = state.range(1);
+    std::uint64_t const k            = state.range(1);
     for (auto _ : state)
     {
         pcp::point_t const reference = get_reference_point(min, max);
 
-        auto const distance = [](pcp::point_t const& p1, pcp::point_t const& p2) -> float
-        {
+        auto const distance = [](pcp::point_t const& p1, pcp::point_t const& p2) -> float {
             auto const dx = p2.x - p1.x;
             auto const dy = p2.y - p1.y;
             auto const dz = p2.z - p1.z;
             return dx * dx + dy * dy + dz * dz;
         };
-        auto const less_than = [reference, distance](pcp::point_t const& p1, pcp::point_t const& p2) -> bool
-        {
+        auto const less_than = [reference,
+                                distance](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
             return distance(p1, reference) < distance(p2, reference);
         };
 
@@ -170,73 +143,65 @@ static void bm_vector_knn_search(benchmark::State& state)
     }
 }
 
-static void bm_octree_knn_search(benchmark::State& state) 
+static void bm_octree_knn_search(benchmark::State& state)
 {
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
     pcp::octree_parameters_t params;
-    params.voxel_grid = pcp::axis_aligned_bounding_box_t
-    {
-        pcp::point_t{ min, min, min },
-        pcp::point_t{ max, max, max }
-    };
+    params.voxel_grid =
+        pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
     params.node_capacity = state.range(1);
-    params.max_depth = static_cast<decltype(params.max_depth)>(state.range(2));
+    params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
     pcp::octree_t octree(points.cbegin(), points.cend(), params);
     std::uint64_t const k = state.range(3);
     for (auto _ : state)
     {
-        pcp::point_t const reference = get_reference_point(min, max);
+        pcp::point_t const reference  = get_reference_point(min, max);
         std::vector<pcp::point_t> knn = octree.nearest_neighbours(reference, k);
         benchmark::DoNotOptimize(knn.data());
     }
 }
 
 BENCHMARK(bm_vector_construction)
-->Args({ 1 << 12 })
-->Args({ 1 << 16 })
-->Args({ 1 << 20 })
-->Args({ 1 << 24 })
-;
+    ->Args({1 << 12})
+    ->Args({1 << 16})
+    ->Args({1 << 20})
+    ->Args({1 << 24});
 BENCHMARK(bm_octree_construction)
-->Args({ 1 << 12, 4u, 11u })
-->Args({ 1 << 16, 4u, 11u })
-->Args({ 1 << 20, 4u, 11u })
-->Args({ 1 << 24, 4u, 11u })
-->Args({ 1 << 12, 4u, 21u })
-->Args({ 1 << 16, 4u, 21u })
-->Args({ 1 << 20, 4u, 21u })
-->Args({ 1 << 24, 4u, 21u })
-;
+    ->Args({1 << 12, 4u, 11u})
+    ->Args({1 << 16, 4u, 11u})
+    ->Args({1 << 20, 4u, 11u})
+    ->Args({1 << 24, 4u, 11u})
+    ->Args({1 << 12, 4u, 21u})
+    ->Args({1 << 16, 4u, 21u})
+    ->Args({1 << 20, 4u, 21u})
+    ->Args({1 << 24, 4u, 21u});
 BENCHMARK(bm_vector_range_search)
-->Args({ 1 << 12 })
-->Args({ 1 << 16 })
-->Args({ 1 << 20 })
-->Args({ 1 << 24 })
-;
+    ->Args({1 << 12})
+    ->Args({1 << 16})
+    ->Args({1 << 20})
+    ->Args({1 << 24});
 BENCHMARK(bm_octree_range_search)
-->Args({ 1 << 12, 4u, 21u })
-->Args({ 1 << 16, 4u, 21u })
-->Args({ 1 << 20, 4u, 21u })
-->Args({ 1 << 24, 4u, 21u })
-;
+    ->Args({1 << 12, 4u, 21u})
+    ->Args({1 << 16, 4u, 21u})
+    ->Args({1 << 20, 4u, 21u})
+    ->Args({1 << 24, 4u, 21u});
 BENCHMARK(bm_vector_knn_search)
-->Args({ 1 << 12, 10u })
-->Args({ 1 << 16, 10u })
-->Args({ 1 << 20, 10u })
-->Args({ 1 << 24, 10u })
-;
+    ->Args({1 << 12, 10u})
+    ->Args({1 << 16, 10u})
+    ->Args({1 << 20, 10u})
+    ->Args({1 << 24, 10u});
 BENCHMARK(bm_octree_knn_search)
-->Args({ 1 << 12, 4u, 21u, 10u })
-->Args({ 1 << 16, 4u, 21u, 10u })
-->Args({ 1 << 20, 4u, 21u, 10u })
-->Args({ 1 << 24, 4u, 21u, 10u })
-;
+    ->Args({1 << 12, 4u, 21u, 10u})
+    ->Args({1 << 16, 4u, 21u, 10u})
+    ->Args({1 << 20, 4u, 21u, 10u})
+    ->Args({1 << 24, 4u, 21u, 10u});
 
-int main(int argc, char** argv) 
+int main(int argc, char** argv)
 {
     ::benchmark::Initialize(&argc, argv);
-    if (::benchmark::ReportUnrecognizedArguments(argc, argv)) return 1;
+    if (::benchmark::ReportUnrecognizedArguments(argc, argv))
+        return 1;
     ::benchmark::RunSpecifiedBenchmarks();
 }

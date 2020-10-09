@@ -7,7 +7,7 @@ namespace pcp {
 inline bool const is_machine_little_endian()
 {
     unsigned int i = 1;
-    char* c = reinterpret_cast<char*>(&i);
+    char* c        = reinterpret_cast<char*>(&i);
     return static_cast<bool>(*c);
 }
 
@@ -41,10 +41,10 @@ float reverse_endianness(float value)
         std::byte u8[sizeof(float)];
     } source, dest;
     source.value = value;
-    dest.u8[0] = source.u8[3];
-    dest.u8[1] = source.u8[2];
-    dest.u8[2] = source.u8[1];
-    dest.u8[3] = source.u8[0];
+    dest.u8[0]   = source.u8[3];
+    dest.u8[1]   = source.u8[2];
+    dest.u8[2]   = source.u8[1];
+    dest.u8[3]   = source.u8[0];
 
     return dest.value;
 }
@@ -58,16 +58,16 @@ double reverse_endianness(double value)
         std::byte u8[sizeof(double)];
     } source, dest;
     source.value = value;
-    dest.u8[0] = source.u8[7];
-    dest.u8[1] = source.u8[6];
-    dest.u8[2] = source.u8[5];
-    dest.u8[3] = source.u8[4];
-    dest.u8[4] = source.u8[3];
-    dest.u8[5] = source.u8[2];
-    dest.u8[6] = source.u8[1];
-    dest.u8[7] = source.u8[0];
+    dest.u8[0]   = source.u8[7];
+    dest.u8[1]   = source.u8[6];
+    dest.u8[2]   = source.u8[5];
+    dest.u8[3]   = source.u8[4];
+    dest.u8[4]   = source.u8[3];
+    dest.u8[5]   = source.u8[2];
+    dest.u8[6]   = source.u8[1];
+    dest.u8[7]   = source.u8[0];
 
     return dest.value;
 }
 
-} // pcp
+} // namespace pcp
