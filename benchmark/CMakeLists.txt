@@ -2,7 +2,7 @@ add_executable(benchmarks)
 set_target_properties(benchmarks PROPERTIES FOLDER benchmarks)
 target_sources(benchmarks
 PRIVATE
-    benchmark.cpp
+  benchmark.cpp
 )
 
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
@@ -19,8 +19,8 @@ target_link_libraries(benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark
 include(GNUInstallDirs)
 
 install(
-    TARGETS benchmarks
-    LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
-    RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+  TARGETS benchmarks
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
 )
