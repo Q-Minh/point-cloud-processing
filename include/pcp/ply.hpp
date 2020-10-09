@@ -39,18 +39,15 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
 
 template <class T /* vertex coordinates' type */, class U /* normal components' type */>
 inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
-;
+    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
 
 template <class T /* vertex coordinates' type */, class U /* normal components' type */>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
-;
+    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
 
 template <class T /* vertex coordinates' type */, class U /* normal components' type */>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
-;
+    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
 
 inline auto read_ply(std::filesystem::path const& path)
     -> std::tuple<std::vector<point_t>, std::vector<normal_t>>
