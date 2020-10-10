@@ -27,38 +27,6 @@ struct axis_aligned_bounding_box_t
 
     point_t nearest_point_from(point_t const& p) const
     {
-        /*
-         * The faces are indexed in this fashion:
-         * 0: front face of cube
-         * 1: right face of cube
-         * 2: back face of cube
-         * 3: left face of cube
-         * 4: bottom face of cube
-         * 5: top face of cube
-         */
-        std::array<float, 6> distances_to_box_faces{
-            0.f,
-        };
-
-        /*
-         * Here, we calculate shortest distances squared from point p
-         * to each face of this axis-aligned bounding box.
-         */
-        distances_to_box_faces[0] = (min.y - p.y) * (min.y - p.y);
-        distances_to_box_faces[1] = (max.x - p.x) * (max.x - p.x);
-        distances_to_box_faces[2] = (max.y - p.y) * (max.y - p.y);
-        distances_to_box_faces[3] = (min.x - p.x) * (min.x - p.x);
-        distances_to_box_faces[4] = (min.z - p.z) * (min.z - p.z);
-        distances_to_box_faces[5] = (max.z - p.z) * (max.z - p.z);
-
-        /*
-         * Find the index of the closest face of this axis-aligned
-         * bounding box to the point p.
-         */
-        auto const it =
-            std::min_element(distances_to_box_faces.cbegin(), distances_to_box_faces.cend());
-        auto const index = std::distance(distances_to_box_faces.cbegin(), it);
-
         point_t nearest_point = p;
         nearest_point.x       = std::clamp(nearest_point.x, min.x, max.x);
         nearest_point.y       = std::clamp(nearest_point.y, min.y, max.y);

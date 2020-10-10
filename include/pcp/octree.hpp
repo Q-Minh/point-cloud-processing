@@ -78,7 +78,7 @@ class octree_t
     std::size_t insert(ForwardIter begin, ForwardIter end)
     {
         static_assert(
-            std::is_same_v<std::iterator_traits<ForwardIter>::value_type, point_t>,
+            std::is_same_v<typename std::iterator_traits<ForwardIter>::value_type, point_t>,
             "Iterators must have value_type of point_t");
 
         auto const inserted = root_.insert(begin, end);
@@ -121,12 +121,12 @@ class octree_t
      *
      * @param k         The number of neighbors to return that are nearest to the specified point
      * for all points of the octree
-     * @param reference The reference point for which we want the k nearest neighbors
+     * @param target    The reference point for which we want the k nearest neighbors
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
-    std::vector<point_t> nearest_neighbours(point_t const& reference, std::size_t k) const
+    std::vector<point_t> nearest_neighbours(point_t const& target, std::size_t k) const
     {
-        return root_.nearest_neighbours(reference, k);
+        return root_.nearest_neighbours(target, k);
     }
 
     /*
@@ -168,6 +168,9 @@ inline pcp::octree_t::const_iterator find<pcp::octree_t::const_iterator, pcp::po
     pcp::octree_t::const_iterator last,
     pcp::point_t const& value)
 {
+    if (first == last)
+        return last;
+
     auto const* root = first.root();
     return root->find(value);
 }
@@ -178,6 +181,9 @@ inline auto count<pcp::octree_t::const_iterator, pcp::point_t>(
     pcp::octree_t::const_iterator last,
     pcp::point_t const& value) -> iterator_traits<pcp::octree_t::const_iterator>::difference_type
 {
+    if (first == last)
+        return 0u;
+
     auto const* root = first.root();
     std::vector<pcp::point_t> points;
     root->range_search(pcp::axis_aligned_bounding_box_t{value, value}, points);

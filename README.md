@@ -4,6 +4,11 @@
 
 `pcp` is a toolkit of common point cloud processing algorithms.
 
+## Prerequisites
+
+- [CMake](https://cmake.org/)
+- [C++17](https://en.cppreference.com/w/cpp/17)
+
 ## Configuring
 
 | CMake Option | Help |

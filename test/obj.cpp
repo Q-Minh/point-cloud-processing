@@ -3,6 +3,8 @@
 
 SCENARIO("obj file manipulation", "[obj]")
 {
+    pcp::point_t const point_truth{1.1f, 2.2f, 3.3f};
+    pcp::normal_t const normal_truth{1.f, 0.f, 0.f};
     GIVEN("a valid point cloud with normals obj file")
     {
         std::ostringstream oss{};
@@ -21,14 +23,10 @@ SCENARIO("obj file manipulation", "[obj]")
             {
                 REQUIRE(vertices.size() == 3u);
                 REQUIRE(normals.size() == 3u);
-                for (auto i = 0; i < 3; ++i)
+                for (std::size_t i = 0; i < 3u; ++i)
                 {
-                    REQUIRE(vertices[i].x == 1.1f);
-                    REQUIRE(vertices[i].y == 2.2f);
-                    REQUIRE(vertices[i].z == 3.3f);
-                    REQUIRE(normals[i].x == 1.0f);
-                    REQUIRE(normals[i].y == 0.0f);
-                    REQUIRE(normals[i].z == 0.0f);
+                    REQUIRE(vertices[i] == point_truth);
+                    REQUIRE(normals[i] == normal_truth);
                 }
             }
         }
@@ -48,11 +46,9 @@ SCENARIO("obj file manipulation", "[obj]")
             {
                 REQUIRE(vertices.size() == 3u);
                 REQUIRE(normals.empty());
-                for (auto i = 0; i < 3; ++i)
+                for (std::size_t i = 0; i < 3u; ++i)
                 {
-                    REQUIRE(vertices[i].x == 1.1f);
-                    REQUIRE(vertices[i].y == 2.2f);
-                    REQUIRE(vertices[i].z == 3.3f);
+                    REQUIRE(vertices[i] == point_truth);
                 }
             }
         }
@@ -69,7 +65,7 @@ SCENARIO("obj file manipulation", "[obj]")
             THEN("the resulting obj file is valid and encodes all points")
             {
                 std::ostringstream truth_stream{};
-                for (auto i = 0; i < num_points; ++i)
+                for (unsigned int i = 0; i < num_points; ++i)
                 {
                     truth_stream << "v " << std::to_string(1.f) << " " << std::to_string(1.f) << " "
                                  << std::to_string(1.f) << "\n";
@@ -89,7 +85,7 @@ SCENARIO("obj file manipulation", "[obj]")
                 THEN("the resulting obj file is valid and encodes all points with normals")
                 {
                     std::ostringstream truth_stream{};
-                    for (auto i = 0; i < num_points; ++i)
+                    for (unsigned int i = 0; i < num_points; ++i)
                     {
                         truth_stream << "v " << std::to_string(1.f) << " " << std::to_string(1.f)
                                      << " " << std::to_string(1.f) << "\n";

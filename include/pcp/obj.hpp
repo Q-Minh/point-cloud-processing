@@ -13,24 +13,6 @@
 namespace pcp {
 namespace io {
 
-template <class T /* vertex component type */, class U /* normal component type */>
-inline auto read_obj(std::filesystem::path const& path)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
-{
-    if (!path.has_extension() || path.extension() != "obj")
-        return {};
-
-    if (!std::filesystem::exists(path))
-        return {};
-
-    std::ifstream ifs{path.c_str()};
-
-    if (!ifs.is_open())
-        return {};
-
-    return read_obj(ifs);
-}
-
 template <class T, class U>
 inline auto read_obj(std::istream& is)
     -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
@@ -67,6 +49,27 @@ inline auto read_obj(std::istream& is)
     }
 
     return std::make_tuple(points, normals);
+}
+
+template <class T /* vertex component type */, class U /* normal component type */>
+inline auto read_obj(std::filesystem::path const& path)
+    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+{
+    if (!path.has_filename())
+        return {};
+
+    if (!path.has_extension() || path.extension() != "obj")
+        return {};
+
+    if (!std::filesystem::exists(path))
+        return {};
+
+    std::ifstream ifs{path.c_str()};
+
+    if (!ifs.is_open())
+        return {};
+
+    return read_obj<T, U>(ifs);
 }
 
 template <class T, class U>

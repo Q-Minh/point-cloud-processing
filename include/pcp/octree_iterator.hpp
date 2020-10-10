@@ -97,7 +97,7 @@ class octree_iterator_t
 
     octree_iterator_t const& operator++() const { return ++(*this); }
 
-    octree_iterator_t& operator++(int)
+    octree_iterator_t operator++(int)
     {
         octree_iterator_t previous{*this};
         ++(*this);

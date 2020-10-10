@@ -54,7 +54,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
         pcp::point_t{-(offset + 1.f), -(offset + 1.f), -(offset + 1.f)},
         pcp::point_t{offset + 1.f, offset + 1.f, offset + 1.f}};
     params.node_capacity = node_capacity;
-    params.max_depth     = max_depth;
+    params.max_depth     = static_cast<std::uint8_t>(max_depth);
 
     GIVEN("an octree")
     {
@@ -75,7 +75,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
             {
                 float const erroneous_coordinate = 100.f;
                 REQUIRE(std::none_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
-                    return p.x == t || p.y == t || p.z == t;
+                    return p == pcp::point_t{t, t, t};
                 }));
                 REQUIRE(std::all_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
                     return p.x < t && p.y < t && p.z < t;

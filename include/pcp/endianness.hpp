@@ -4,14 +4,14 @@
 
 namespace pcp {
 
-inline bool const is_machine_little_endian()
+inline bool is_machine_little_endian()
 {
     unsigned int i = 1;
     char* c        = reinterpret_cast<char*>(&i);
     return static_cast<bool>(*c);
 }
 
-inline bool const is_machine_big_endian()
+inline bool is_machine_big_endian()
 {
     return !is_machine_little_endian();
 }

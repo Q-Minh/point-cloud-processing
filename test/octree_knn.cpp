@@ -10,7 +10,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
     {
         pcp::octree_parameters_t params;
         params.node_capacity = node_capacity;
-        params.max_depth     = max_depth;
+        params.max_depth     = static_cast<std::uint8_t>(max_depth);
         params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
@@ -63,7 +63,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
     {
         pcp::octree_parameters_t params;
         params.node_capacity = node_capacity;
-        params.max_depth     = max_depth;
+        params.max_depth     = static_cast<std::uint8_t>(max_depth);
         params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
@@ -125,12 +125,12 @@ SCENARIO("KNN searches on the octree", "[octree]")
         std::uniform_real_distribution<float> coordinate_distribution(-0.95f, 0.95f);
         std::uniform_real_distribution<float> near_coordinate_distribution(-1.f, -0.96f);
         std::uniform_real_distribution<float> far_coordinate_distribution(0.96f, 1.f);
-        std::uniform_int_distribution<> size_distribution(1'000, 100'000);
-        std::uniform_int_distribution<> k_distribution(1u, 10u);
+        std::uniform_int_distribution<std::size_t> size_distribution(1'000, 100'000);
+        std::uniform_int_distribution<std::size_t> k_distribution(1u, 10u);
 
         pcp::octree_parameters_t params;
         params.node_capacity = node_capacity;
-        params.max_depth     = max_depth;
+        params.max_depth     = static_cast<std::uint8_t>(max_depth);
         params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
             pcp::point_t{-2.f, -2.f, -2.f},
             pcp::point_t{2.f, 2.f, 2.f}};
@@ -138,7 +138,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
         pcp::octree_t octree(params);
 
         auto const size = size_distribution(gen);
-        for (auto i = 0; i < size; ++i)
+        for (std::size_t i = 0; i < size; ++i)
         {
             octree.insert(pcp::point_t{
                 coordinate_distribution(gen),
@@ -154,7 +154,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
             std::vector<pcp::point_t> k_inserted_points;
 
             auto const k = k_distribution(gen);
-            for (auto i = 0; i < k; ++i)
+            for (std::size_t i = 0; i < k; ++i)
             {
                 k_inserted_points.push_back(pcp::point_t{
                     near_coordinate_distribution(gen),

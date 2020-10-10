@@ -52,13 +52,16 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
 inline auto read_ply(std::filesystem::path const& path)
     -> std::tuple<std::vector<point_t>, std::vector<normal_t>>
 {
+    if (!path.has_filename())
+        return {};
+
     if (!path.has_extension() || path.extension() != "ply")
         return {};
 
     if (!std::filesystem::exists(path))
         return {};
 
-    std::ifstream fs{path.c_str()};
+    std::ifstream fs{path.filename()};
 
     if (!fs.is_open())
         return {};
@@ -92,8 +95,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
         return type;
     };
 
-    auto const has_valid_vertex_properties = [string_to_coordinate_type](
-                                                 std::istream& is,
+    auto const has_valid_vertex_properties = [string_to_coordinate_type, &is](
                                                  std::array<std::string, 3> const& property_names,
                                                  ply_coordinate_type_t& coordinate_type) -> bool {
         std::array<std::string, 3> nxyz;
@@ -157,7 +159,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
             ply_params.vertex_count = std::stoull(tokens.back());
 
             bool const is_vertex_valid =
-                has_valid_vertex_properties(is, {"x", "y", "z"}, ply_params.vertex_component_type);
+                has_valid_vertex_properties({"x", "y", "z"}, ply_params.vertex_component_type);
 
             if (!is_vertex_valid)
                 return {};
@@ -169,10 +171,8 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
         {
             ply_params.normal_count = std::stoull(tokens.back());
 
-            bool const is_normal_valid = has_valid_vertex_properties(
-                is,
-                {"nx", "ny", "nz"},
-                ply_params.normal_component_type);
+            bool const is_normal_valid =
+                has_valid_vertex_properties({"nx", "ny", "nz"}, ply_params.normal_component_type);
 
             if (!is_normal_valid)
                 return {};
@@ -185,8 +185,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
     }
 
     // can only support float component types for both vertex and normal
-    auto const parse_ply_ascii = [](std::istream& is,
-                                    ply_parameters_t const& params) -> return_type {
+    auto const parse_ply_ascii = [&is](ply_parameters_t const& params) -> return_type {
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
@@ -211,8 +210,8 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
     };
 
     // can only support float component types for both vertex and normal
-    auto const parse_ply_binary_little_endian = [](std::istream& is,
-                                                   ply_parameters_t const& params) -> return_type {
+    auto const parse_ply_binary_little_endian =
+        [&is](ply_parameters_t const& params) -> return_type {
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
@@ -237,8 +236,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
     };
 
     // can only support float component types for both vertex and normal
-    auto const parse_ply_binary_big_endian = [](std::istream& is,
-                                                ply_parameters_t const& params) -> return_type {
+    auto const parse_ply_binary_big_endian = [&is](ply_parameters_t const& params) -> return_type {
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
@@ -264,10 +262,9 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
 
     switch (ply_params.format)
     {
-        case ply_format_t::ascii: return parse_ply_ascii(is, ply_params);
-        case ply_format_t::binary_little_endian:
-            return parse_ply_binary_little_endian(is, ply_params);
-        case ply_format_t::binary_big_endian: return parse_ply_binary_big_endian(is, ply_params);
+        case ply_format_t::ascii: return parse_ply_ascii(ply_params);
+        case ply_format_t::binary_little_endian: return parse_ply_binary_little_endian(ply_params);
+        case ply_format_t::binary_big_endian: return parse_ply_binary_big_endian(ply_params);
         default: return {};
     }
 }
@@ -317,52 +314,42 @@ inline void write_ply(
         for (point_type const& v : vertices)
         {
             std::ostringstream oss{};
-            oss << std::to_string(x) << " " << std::to_string(y) << " " << std::to_string(z)
+            oss << std::to_string(v.x) << " " << std::to_string(v.y) << " " << std::to_string(v.z)
                 << "\n";
             os << oss.str();
         }
         for (normal_type const& n : normals)
         {
             std::ostringstream oss{};
-            oss << std::to_string(nx) << " " << std::to_string(ny) << " " << std::to_string(nz)
+            oss << std::to_string(n.x) << " " << std::to_string(n.y) << " " << std::to_string(n.z)
                 << "\n";
             os << oss.str();
         }
     }
 
-    auto const write_binary_data = [](std::ostream& os,
-                                      std::vector<point_type> const& vertices,
-                                      std::vector<normal_type> const& normals) {
-        os.write(
-            reinterpret_cast<const char*>(vertices.data()),
-            vertices.size() * sizeof(point_type));
-        os.write(
-            reinterpret_cast<const char*>(normals.data()),
-            normals.size() * sizeof(normal_type));
-    };
+    auto const write_binary_data =
+        [&os](std::vector<point_type> const& p, std::vector<normal_type> const& n) {
+            os.write(
+                reinterpret_cast<const char*>(p.data()),
+                static_cast<std::streamsize>(p.size() * sizeof(point_type)));
+            os.write(
+                reinterpret_cast<const char*>(n.data()),
+                static_cast<std::streamsize>(n.size() * sizeof(normal_type)));
+        };
 
-    auto const transform_endianness = [](std::vector<point_type>& vertices,
-                                         std::vector<normal_type>& normals) {
-        std::transform(
-            std::begin(vertices),
-            std::end(vertices),
-            std::begin(vertices),
-            [](point_type const& p) {
-                return point_type{
-                    reverse_endianness(p.x),
-                    reverse_endianness(p.y),
-                    reverse_endianness(p.z)};
-            });
-        std::transform(
-            std::begin(normals),
-            std::end(normals),
-            std::begin(normals),
-            [](normal_type const& n) {
-                return normal_type{
-                    reverse_endianness(n.x),
-                    reverse_endianness(n.y),
-                    reverse_endianness(n.z)};
-            });
+    auto const transform_endianness = [](std::vector<point_type>& v, std::vector<normal_type>& n) {
+        std::transform(std::begin(v), std::end(v), std::begin(v), [](point_type const& point) {
+            return point_type{
+                reverse_endianness(point.x),
+                reverse_endianness(point.y),
+                reverse_endianness(point.z)};
+        });
+        std::transform(std::begin(n), std::end(n), std::begin(n), [](normal_type const& normal) {
+            return normal_type{
+                reverse_endianness(normal.x),
+                reverse_endianness(normal.y),
+                reverse_endianness(normal.z)};
+        });
     };
 
     if (format == ply_format_t::binary_little_endian)
@@ -372,11 +359,11 @@ inline void write_ply(
             auto endian_correct_vertices = vertices;
             auto endian_correct_normals  = normals;
             transform_endianness(endian_correct_vertices, endian_correct_normals);
-            write_binary_data(os, endian_correct_vertices, endian_correct_normals);
+            write_binary_data(endian_correct_vertices, endian_correct_normals);
         }
         else
         {
-            write_binary_data(os, vertices, normals);
+            write_binary_data(vertices, normals);
         }
     }
 
@@ -387,11 +374,11 @@ inline void write_ply(
             auto endian_correct_vertices = vertices;
             auto endian_correct_normals  = normals;
             transform_endianness(endian_correct_vertices, endian_correct_normals);
-            write_binary_data(os, endian_correct_vertices, endian_correct_normals);
+            write_binary_data(endian_correct_vertices, endian_correct_normals);
         }
         else
         {
-            write_binary_data(os, vertices, normals);
+            write_binary_data(vertices, normals);
         }
     }
 }
@@ -454,9 +441,13 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
     vertices.resize(params.vertex_count);
     normals.resize(params.normal_count);
 
-    is.read(reinterpret_cast<char*>(vertices.data()), params.vertex_count * sizeof(point_type));
+    is.read(
+        reinterpret_cast<char*>(vertices.data()),
+        static_cast<std::streamsize>(params.vertex_count * sizeof(point_type)));
 
-    is.read(reinterpret_cast<char*>(normals.data()), params.normal_count * sizeof(normal_type));
+    is.read(
+        reinterpret_cast<char*>(normals.data()),
+        static_cast<std::streamsize>(params.normal_count * sizeof(normal_type)));
 
     if (is.bad())
         return {};

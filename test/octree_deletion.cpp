@@ -60,7 +60,7 @@ SCENARIO("octree deletion", "[octree]")
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
         params.node_capacity = node_capacity;
-        params.max_depth     = max_depth;
+        params.max_depth     = static_cast<std::uint8_t>(max_depth);
 
         pcp::octree_t octree(points.cbegin(), points.cend(), params);
 

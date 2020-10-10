@@ -2,6 +2,7 @@
 
 #include "intersections.hpp"
 
+#include <algorithm>
 #include <cassert>
 #include <memory>
 #include <numeric>
@@ -226,7 +227,7 @@ class octree_node_t
          *
          * This works for any initial max depth > 0.
          */
-        params.max_depth = max_depth_ - 1;
+        params.max_depth = max_depth_ - std::uint8_t{1u};
 
         params.voxel_grid.min.x = octants_bitmask & 0b100 ? center.x : voxel_grid_.min.x;
         params.voxel_grid.max.x = octants_bitmask & 0b100 ? voxel_grid_.max.x : center.x;
@@ -245,7 +246,7 @@ class octree_node_t
 
     const_iterator erase(const_iterator it);
 
-    std::vector<point_t> nearest_neighbours(point_t const& reference, std::size_t k) const
+    std::vector<point_t> nearest_neighbours(point_t const& target, std::size_t k) const
     {
         if (k <= 0u)
             return {};
@@ -281,14 +282,12 @@ class octree_node_t
          * is the point/octant of this octree nearest to the reference point p.
          */
         auto const greater =
-            [&distance, &reference](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            point_t const& p1 =
-                h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(reference);
-            point_t const& p2 =
-                h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(reference);
+            [&distance, &target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
+            point_t const& p1 = h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(target);
+            point_t const& p2 = h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(target);
 
-            auto const d1 = distance(reference, p1);
-            auto const d2 = distance(reference, p2);
+            auto const d1 = distance(target, p1);
+            auto const d2 = distance(target, p2);
 
             return d1 > d2;
         };

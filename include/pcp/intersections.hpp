@@ -40,7 +40,7 @@ inline bool intersects(axis_aligned_bounding_box_t const& b, sphere_t const& s)
     bool const is_center_in_box_x = center.x >= b.min.x && center.x <= b.max.x;
     bool const is_center_in_box_y = center.y >= b.min.y && center.y <= b.max.y;
     bool const is_center_in_box_z = center.z >= b.min.z && center.z <= b.max.z;
-    bool const is_center_in_box   = is_center_in_box_x && is_center_in_box_y && is_center_in_box_y;
+    bool const is_center_in_box   = is_center_in_box_x && is_center_in_box_y && is_center_in_box_z;
 
     if (is_center_in_box)
         return true;

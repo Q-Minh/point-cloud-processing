@@ -2,8 +2,14 @@
 #include <pcp/octree.hpp>
 #include <random>
 
-float constexpr min = -100.f;
-float constexpr max = 100.f;
+float constexpr get_bm_min()
+{
+    return -100.f;
+}
+float constexpr get_bm_max()
+{
+    return 100.f;
+}
 
 static std::vector<pcp::point_t>
 get_vector_of_points(std::uint64_t num_points, float const min, float const max)
@@ -59,6 +65,8 @@ static pcp::point_t get_reference_point(float const min, float const max)
 
 static void bm_vector_construction(benchmark::State& state)
 {
+    auto constexpr min                     = get_bm_min();
+    auto constexpr max                     = get_bm_max();
     std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
     for (auto _ : state)
     {
@@ -69,6 +77,8 @@ static void bm_vector_construction(benchmark::State& state)
 
 static void bm_octree_construction(benchmark::State& state)
 {
+    auto constexpr min                     = get_bm_min();
+    auto constexpr max                     = get_bm_max();
     std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
     pcp::octree_parameters_t params;
     params.voxel_grid =
@@ -85,6 +95,8 @@ static void bm_octree_construction(benchmark::State& state)
 
 static void bm_vector_range_search(benchmark::State& state)
 {
+    auto constexpr min               = get_bm_min();
+    auto constexpr max               = get_bm_max();
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
     for (auto _ : state)
     {
@@ -101,6 +113,8 @@ static void bm_vector_range_search(benchmark::State& state)
 
 static void bm_octree_range_search(benchmark::State& state)
 {
+    auto constexpr min               = get_bm_min();
+    auto constexpr max               = get_bm_max();
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
     pcp::octree_parameters_t params;
@@ -120,6 +134,8 @@ static void bm_octree_range_search(benchmark::State& state)
 
 static void bm_vector_knn_search(benchmark::State& state)
 {
+    auto constexpr min               = get_bm_min();
+    auto constexpr max               = get_bm_max();
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
     std::uint64_t const k            = state.range(1);
     for (auto _ : state)
@@ -145,6 +161,8 @@ static void bm_vector_knn_search(benchmark::State& state)
 
 static void bm_octree_knn_search(benchmark::State& state)
 {
+    auto constexpr min               = get_bm_min();
+    auto constexpr max               = get_bm_max();
     std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
 
     pcp::octree_parameters_t params;

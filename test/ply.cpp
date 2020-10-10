@@ -1,19 +1,42 @@
 #include <catch2/catch.hpp>
 #include <pcp/ply.hpp>
 
-float const x = 1.1f, y = 2.2f, z = 3.3f;
-float const nx = 1.f, ny = 0.f, nz = 0.f;
+static std::string get_ascii_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals = true);
 
-static std::string get_ascii_ply_file(std::size_t num_points, bool const with_normals = true);
+static std::string get_binary_big_endian_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals = true);
 
-static std::string
-get_binary_big_endian_ply_file(std::size_t num_points, bool const with_normals = true);
-
-static std::string
-get_binary_little_endian_ply_file(std::size_t num_points, bool const with_normals = true);
+static std::string get_binary_little_endian_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals = true);
 
 SCENARIO("ply file manipulation", "[ply]")
 {
+    float const x = 1.1f, y = 2.2f, z = 3.3f;
+    float const nx = 1.f, ny = 0.f, nz = 0.f;
+    pcp::point_t const p{x, y, z};
+    pcp::normal_t const n{nx, ny, nz};
     auto const num_points = 3u;
     GIVEN("a valid point cloud ply file")
     {
@@ -25,11 +48,9 @@ SCENARIO("ply file manipulation", "[ply]")
                 {
                     REQUIRE(normals.empty());
                     REQUIRE(vertices.size() == num_points);
-                    for (auto i = 0; i < 3; ++i)
+                    for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(vertices[i].x == x);
-                        REQUIRE(vertices[i].y == y);
-                        REQUIRE(vertices[i].z == z);
+                        REQUIRE(vertices[i] == p);
                     }
                 }
             }
@@ -42,14 +63,10 @@ SCENARIO("ply file manipulation", "[ply]")
                 {
                     REQUIRE(vertices.size() == num_points);
                     REQUIRE(normals.size() == num_points);
-                    for (auto i = 0; i < 3; ++i)
+                    for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(vertices[i].x == x);
-                        REQUIRE(vertices[i].y == y);
-                        REQUIRE(vertices[i].z == z);
-                        REQUIRE(normals[i].x == nx);
-                        REQUIRE(normals[i].y == ny);
-                        REQUIRE(normals[i].z == nz);
+                        REQUIRE(vertices[i] == p);
+                        REQUIRE(normals[i] == n);
                     }
                 }
             }
@@ -57,34 +74,38 @@ SCENARIO("ply file manipulation", "[ply]")
 
         GIVEN("the file is in ascii format")
         {
-            std::istringstream iss{get_ascii_ply_file(num_points, false)};
+            std::istringstream iss{get_ascii_ply_file(num_points, x, y, z, nx, ny, nz, false)};
             validate_vertices(iss);
         }
         GIVEN("the file is in binary little endian format")
         {
-            std::istringstream iss{get_binary_little_endian_ply_file(num_points, false)};
+            std::istringstream iss{
+                get_binary_little_endian_ply_file(num_points, x, y, z, nx, ny, nz, false)};
             validate_vertices(iss);
         }
         GIVEN("the file is in binary big endian format")
         {
-            std::istringstream iss{get_binary_big_endian_ply_file(num_points, false)};
+            std::istringstream iss{
+                get_binary_big_endian_ply_file(num_points, x, y, z, nx, ny, nz, false)};
             validate_vertices(iss);
         }
         GIVEN("vertex normals in the ply file")
         {
             GIVEN("the file is in ascii format")
             {
-                std::istringstream iss{get_ascii_ply_file(num_points, true)};
+                std::istringstream iss{get_ascii_ply_file(num_points, x, y, z, nx, ny, nz, true)};
                 validate_vertices_and_normals(iss);
             }
             GIVEN("the file is in binary little endian format")
             {
-                std::istringstream iss{get_binary_little_endian_ply_file(num_points, true)};
+                std::istringstream iss{
+                    get_binary_little_endian_ply_file(num_points, x, y, z, nx, ny, nz, true)};
                 validate_vertices_and_normals(iss);
             }
             GIVEN("the file is in binary big endian format")
             {
-                std::istringstream iss{get_binary_big_endian_ply_file(num_points, true)};
+                std::istringstream iss{
+                    get_binary_big_endian_ply_file(num_points, x, y, z, nx, ny, nz, true)};
                 validate_vertices_and_normals(iss);
             }
         }
@@ -101,8 +122,9 @@ SCENARIO("ply file manipulation", "[ply]")
                 pcp::io::write_ply<float, float>(oss, vertices, {}, pcp::io::ply_format_t::ascii);
                 THEN("the resulting ply file is valid and encodes all points")
                 {
-                    std::string const truth = get_ascii_ply_file(num_points, false);
-                    std::string const ply   = oss.str();
+                    std::string const truth =
+                        get_ascii_ply_file(num_points, x, y, z, nx, ny, nz, false);
+                    std::string const ply = oss.str();
                     REQUIRE(ply == truth);
                 }
             }
@@ -115,8 +137,9 @@ SCENARIO("ply file manipulation", "[ply]")
                     pcp::io::ply_format_t::binary_little_endian);
                 THEN("the resulting ply file is valid and encodes all points")
                 {
-                    std::string const truth = get_binary_little_endian_ply_file(num_points, false);
-                    std::string const ply   = oss.str();
+                    std::string const truth =
+                        get_binary_little_endian_ply_file(num_points, x, y, z, nx, ny, nz, false);
+                    std::string const ply = oss.str();
                     REQUIRE(ply == truth);
                 }
             }
@@ -129,8 +152,9 @@ SCENARIO("ply file manipulation", "[ply]")
                     pcp::io::ply_format_t::binary_big_endian);
                 THEN("the resulting ply file is valid and encodes all points")
                 {
-                    std::string const truth = get_binary_big_endian_ply_file(num_points, false);
-                    std::string const ply   = oss.str();
+                    std::string const truth =
+                        get_binary_big_endian_ply_file(num_points, x, y, z, nx, ny, nz, false);
+                    std::string const ply = oss.str();
                     REQUIRE(ply == truth);
                 }
             }
@@ -149,8 +173,9 @@ SCENARIO("ply file manipulation", "[ply]")
                         pcp::io::ply_format_t::ascii);
                     THEN("the resulting ply file is valid and encodes all points")
                     {
-                        std::string const truth = get_ascii_ply_file(num_points, true);
-                        std::string const ply   = oss.str();
+                        std::string const truth =
+                            get_ascii_ply_file(num_points, x, y, z, nx, ny, nz, true);
+                        std::string const ply = oss.str();
                         REQUIRE(ply == truth);
                     }
                 }
@@ -163,8 +188,15 @@ SCENARIO("ply file manipulation", "[ply]")
                         pcp::io::ply_format_t::binary_little_endian);
                     THEN("the resulting ply file is valid and encodes all points")
                     {
-                        std::string const truth =
-                            get_binary_little_endian_ply_file(num_points, true);
+                        std::string const truth = get_binary_little_endian_ply_file(
+                            num_points,
+                            x,
+                            y,
+                            z,
+                            nx,
+                            ny,
+                            nz,
+                            true);
                         std::string const ply = oss.str();
                         REQUIRE(ply == truth);
                     }
@@ -178,8 +210,9 @@ SCENARIO("ply file manipulation", "[ply]")
                         pcp::io::ply_format_t::binary_big_endian);
                     THEN("the resulting ply file is valid and encodes all points")
                     {
-                        std::string const truth = get_binary_big_endian_ply_file(num_points, true);
-                        std::string const ply   = oss.str();
+                        std::string const truth =
+                            get_binary_big_endian_ply_file(num_points, x, y, z, nx, ny, nz, true);
+                        std::string const ply = oss.str();
                         REQUIRE(ply == truth);
                     }
                 }
@@ -188,7 +221,15 @@ SCENARIO("ply file manipulation", "[ply]")
     }
 }
 
-static std::string get_ascii_ply_file(std::size_t num_points, bool const with_normals)
+static std::string get_ascii_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals)
 {
     std::ostringstream oss{};
     oss << "ply\n"
@@ -203,20 +244,27 @@ static std::string get_ascii_ply_file(std::size_t num_points, bool const with_no
         << "property float nz\n"
         << "end_header\n";
 
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
         oss << std::to_string(x) << " " << std::to_string(y) << " " << std::to_string(z) << "\n";
 
     if (!with_normals)
         return oss.str();
 
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
         oss << std::to_string(nx) << " " << std::to_string(ny) << " " << std::to_string(nz) << "\n";
 
     return oss.str();
 }
 
-static std::string
-get_binary_little_endian_ply_file(std::size_t num_points, bool const with_normals)
+static std::string get_binary_little_endian_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals)
 {
     std::ostringstream oss{};
     oss << "ply\n"
@@ -234,7 +282,7 @@ get_binary_little_endian_ply_file(std::size_t num_points, bool const with_normal
     auto const reverse_endianness_if_needed = [](float v) {
         return !pcp::is_machine_little_endian() ? pcp::reverse_endianness(v) : v;
     };
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
     {
         float const reversed_coords[3] = {
             reverse_endianness_if_needed(x),
@@ -246,7 +294,7 @@ get_binary_little_endian_ply_file(std::size_t num_points, bool const with_normal
     if (!with_normals)
         return oss.str();
 
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
     {
         float const reversed_coords[3] = {
             reverse_endianness_if_needed(nx),
@@ -257,7 +305,15 @@ get_binary_little_endian_ply_file(std::size_t num_points, bool const with_normal
     return oss.str();
 }
 
-static std::string get_binary_big_endian_ply_file(std::size_t num_points, bool const with_normals)
+static std::string get_binary_big_endian_ply_file(
+    std::size_t num_points,
+    float x,
+    float y,
+    float z,
+    float nx,
+    float ny,
+    float nz,
+    bool const with_normals)
 {
     std::ostringstream oss{};
     oss << "ply\n"
@@ -275,7 +331,7 @@ static std::string get_binary_big_endian_ply_file(std::size_t num_points, bool c
     auto const reverse_endianness_if_needed = [](float v) {
         return !pcp::is_machine_big_endian() ? pcp::reverse_endianness(v) : v;
     };
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
     {
         float const reversed_coords[3] = {
             reverse_endianness_if_needed(x),
@@ -287,7 +343,7 @@ static std::string get_binary_big_endian_ply_file(std::size_t num_points, bool c
     if (!with_normals)
         return oss.str();
 
-    for (auto i = 0; i < num_points; ++i)
+    for (std::size_t i = 0; i < num_points; ++i)
     {
         float const reversed_coords[3] = {
             reverse_endianness_if_needed(nx),
