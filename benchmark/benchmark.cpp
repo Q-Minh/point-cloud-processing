@@ -65,9 +65,10 @@ static pcp::point_t get_reference_point(float const min, float const max)
 
 static void bm_vector_construction(benchmark::State& state)
 {
-    auto constexpr min                     = get_bm_min();
-    auto constexpr max                     = get_bm_max();
-    std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> const points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
     for (auto _ : state)
     {
         std::vector<pcp::point_t> v(points.cbegin(), points.cend());
@@ -77,13 +78,14 @@ static void bm_vector_construction(benchmark::State& state)
 
 static void bm_octree_construction(benchmark::State& state)
 {
-    auto constexpr min                     = get_bm_min();
-    auto constexpr max                     = get_bm_max();
-    std::vector<pcp::point_t> const points = get_vector_of_points(state.range(0), min, max);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> const points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
     pcp::octree_parameters_t params;
     params.voxel_grid =
         pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
-    params.node_capacity = state.range(1);
+    params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
     for (auto _ : state)
@@ -95,9 +97,10 @@ static void bm_octree_construction(benchmark::State& state)
 
 static void bm_vector_range_search(benchmark::State& state)
 {
-    auto constexpr min               = get_bm_min();
-    auto constexpr max               = get_bm_max();
-    std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
     for (auto _ : state)
     {
         pcp::axis_aligned_bounding_box_t range = get_range(min, max);
@@ -113,14 +116,15 @@ static void bm_vector_range_search(benchmark::State& state)
 
 static void bm_octree_range_search(benchmark::State& state)
 {
-    auto constexpr min               = get_bm_min();
-    auto constexpr max               = get_bm_max();
-    std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
 
     pcp::octree_parameters_t params;
     params.voxel_grid =
         pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
-    params.node_capacity = state.range(1);
+    params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
     pcp::octree_t octree(points.cbegin(), points.cend(), params);
 
@@ -134,10 +138,11 @@ static void bm_octree_range_search(benchmark::State& state)
 
 static void bm_vector_knn_search(benchmark::State& state)
 {
-    auto constexpr min               = get_bm_min();
-    auto constexpr max               = get_bm_max();
-    std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
-    std::uint64_t const k            = state.range(1);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+    std::int64_t const k = state.range(1);
     for (auto _ : state)
     {
         pcp::point_t const reference = get_reference_point(min, max);
@@ -161,18 +166,19 @@ static void bm_vector_knn_search(benchmark::State& state)
 
 static void bm_octree_knn_search(benchmark::State& state)
 {
-    auto constexpr min               = get_bm_min();
-    auto constexpr max               = get_bm_max();
-    std::vector<pcp::point_t> points = get_vector_of_points(state.range(0), min, max);
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
 
     pcp::octree_parameters_t params;
     params.voxel_grid =
         pcp::axis_aligned_bounding_box_t{pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
-    params.node_capacity = state.range(1);
+    params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
     pcp::octree_t octree(points.cbegin(), points.cend(), params);
-    std::uint64_t const k = state.range(3);
+    std::uint64_t const k = static_cast<std::uint64_t>(state.range(3));
     for (auto _ : state)
     {
         pcp::point_t const reference  = get_reference_point(min, max);

@@ -14,8 +14,8 @@ namespace pcp {
 
 struct octree_parameters_t
 {
-    std::size_t node_capacity = 1u;
-    std::uint8_t max_depth    = 21;
+    std::uint32_t node_capacity = 1u;
+    std::uint8_t max_depth      = 21;
     axis_aligned_bounding_box_t voxel_grid{};
 };
 
@@ -465,7 +465,7 @@ class octree_node_t
         return octree_child_node_it;
     }
 
-    std::size_t capacity_;
+    std::uint32_t capacity_;
     std::uint8_t max_depth_;
     axis_aligned_bounding_box_t voxel_grid_;
     octants_type octants_;
