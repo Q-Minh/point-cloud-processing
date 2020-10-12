@@ -337,8 +337,8 @@ inline void write_ply(
                 static_cast<std::streamsize>(n.size() * sizeof(normal_type)));
         };
 
-    auto const transform_endianness = [](std::vector<point_type>& v, std::vector<normal_type>& n) {
-        std::transform(std::begin(v), std::end(v), std::begin(v), [](point_type const& point) {
+    auto const transform_endianness = [](std::vector<point_type>& p, std::vector<normal_type>& n) {
+        std::transform(std::begin(p), std::end(p), std::begin(p), [](point_type const& point) {
             return point_type{
                 reverse_endianness(point.x),
                 reverse_endianness(point.y),

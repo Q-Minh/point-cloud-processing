@@ -3,6 +3,40 @@
 
 SCENARIO("octree insertion", "[octree]")
 {
+    auto const insertion = [](pcp::octree_parameters_t const& params,
+                              std::vector<pcp::point_t>& points) {
+        WHEN("inserting a range of points contained in the octree's voxel grid")
+        {
+            pcp::octree_t octree(points.cbegin(), points.cend(), params);
+
+            THEN("the octree's size is the size of the range")
+            {
+                REQUIRE(octree.size() == points.size());
+            }
+        }
+        WHEN(
+            "inserting a range of points contained or not "
+            "contained in the octree's voxel grid")
+        {
+            auto const previous_size = points.size();
+            points.push_back({-2.f, 0.f, 0.f});
+            points.push_back({0.f, -2.f, 0.f});
+            points.push_back({0.f, 0.f, -2.f});
+            points.push_back({2.f, 0.f, 0.f});
+            points.push_back({0.f, 2.f, 0.f});
+            points.push_back({0.f, 0.f, 2.f});
+
+            pcp::octree_t octree(points.cbegin(), points.cend(), params);
+
+            THEN(
+                "the octree's size is the number of points of the"
+                "range contained in the octree's voxel grid")
+            {
+                REQUIRE(octree.size() == previous_size);
+            }
+        }
+    };
+
     GIVEN("an empty octree and a range of points")
     {
         std::vector<pcp::point_t> points{};
@@ -52,40 +86,6 @@ SCENARIO("octree insertion", "[octree]")
         params.voxel_grid = pcp::axis_aligned_bounding_box_t{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
-
-        auto const insertion = [](pcp::octree_parameters_t const& params,
-                                  std::vector<pcp::point_t>& points) {
-            WHEN("inserting a range of points contained in the octree's voxel grid")
-            {
-                pcp::octree_t octree(points.cbegin(), points.cend(), params);
-
-                THEN("the octree's size is the size of the range")
-                {
-                    REQUIRE(octree.size() == points.size());
-                }
-            }
-            WHEN(
-                "inserting a range of points contained or not "
-                "contained in the octree's voxel grid")
-            {
-                auto const previous_size = points.size();
-                points.push_back({-2.f, 0.f, 0.f});
-                points.push_back({0.f, -2.f, 0.f});
-                points.push_back({0.f, 0.f, -2.f});
-                points.push_back({2.f, 0.f, 0.f});
-                points.push_back({0.f, 2.f, 0.f});
-                points.push_back({0.f, 0.f, 2.f});
-
-                pcp::octree_t octree(points.cbegin(), points.cend(), params);
-
-                THEN(
-                    "the octree's size is the number of points of the"
-                    "range contained in the octree's voxel grid")
-                {
-                    REQUIRE(octree.size() == previous_size);
-                }
-            }
-        };
 
         WHEN("the octree's node capacity = 1")
         {
