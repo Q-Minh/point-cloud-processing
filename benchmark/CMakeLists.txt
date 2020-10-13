@@ -2,6 +2,36 @@ add_executable(benchmarks)
 set_target_properties(benchmarks PROPERTIES FOLDER benchmarks)
 target_compile_options(benchmarks
 PRIVATE
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wdouble-promotion
+    -Wnull-dereference
+    -Wimplicit-fallthrough
+    -Wswitch-default
+    -Wswitch-enum
+    -Wunused-const-variable
+    -Wuninitialized
+    -Wduplicate-decl-specifier
+    -Wduplicate-enum
+    -Wduplicate-method-arg
+    -Wduplicate-method-match
+    -Wfloat-equal
+    -Wshadow-all
+    -Wcast-qual
+    -Wcast-align
+    -Wconversion
+    -Wdangling-else
+    -Wsign-conversion
+    -Wfloat-conversion
+    -fstrict-enums
+    -Wnon-virtual-dtor
+    -Wold-style-cast
+    -Woverloaded-virtual
+    -Wmisleading-indentation
+    -Wzero-as-null-pointer-constant
+  >
   $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
     -Wall
     -Wextra
@@ -38,7 +68,7 @@ PRIVATE
     -Wsuggest-final-methods
     -Wsuggest-override
   >
-  # $<$<AND:$<COMPILE_LANG_AND_ID:CXX,GNU>,$<CONFIG:Debug>>:
+  # $<$<AND:$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>,$<CONFIG:Debug>>:
   #   -Werror
   # >
   $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:
