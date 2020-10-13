@@ -68,9 +68,6 @@ PRIVATE
     -Wsuggest-final-methods
     -Wsuggest-override
   >
-  # $<$<AND:$<COMPILE_LANG_AND_ID:CXX,GNU,Clang,AppleClang>,$<CONFIG:Debug>>:
-  #   -Werror
-  # >
   $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:
     /permissive-
     /W4
@@ -91,10 +88,8 @@ PRIVATE
     /w14826
     /w14928
   >
-  # $<$<AND:$<COMPILE_LANG_AND_ID:CXX,MSVC>,$<CONFIG:Debug>>:
-  #   /Wx
-  # >
 )
+
 target_sources(tests
 PRIVATE
   main.cpp
