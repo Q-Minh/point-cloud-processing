@@ -33,10 +33,10 @@ before_build:
       cmake -G "Visual Studio 16 2019" -A "%platform%" -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 build_script:
   - sh: |
-      cmake --build build --target pcp-tests;
+      cmake --build build --target pcp-tests
       cmake --build build --target pcp-benchmarks
   - cmd: |
-      cmake --build build --target pcp-tests --config "%configuration%";
+      cmake --build build --target pcp-tests --config "%configuration%"
       cmake --build build --target pcp-benchmarks --config "%configuration%"
 test_script:
   - cmd: ./build/"%configuration%"/tests.exe
