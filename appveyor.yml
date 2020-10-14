@@ -21,12 +21,14 @@ branches:
     - dev
 install:
   - sh: |
-      sudo apt update
-      sudo apt --yes install gcc-10
-      type -a gcc-10
-      sudo apt --yes install g++-10
-      type -a g++-10
-      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+      if [[ "$APPVEYOR_BUILD_WORKER_IMAGE" == "Ubuntu2004" ]]; then
+        sudo apt update
+        sudo apt --yes install gcc-10
+        type -a gcc-10
+        sudo apt --yes install g++-10
+        type -a g++-10
+        sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
+      fi
 before_build:
   - sh: |
       mkdir build;
