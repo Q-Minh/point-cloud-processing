@@ -21,7 +21,7 @@ branches:
     - dev
 install:
   - sh: |
-      if [[ "$APPVEYOR_BUILD_WORKER_IMAGE" == "Ubuntu2004" ]]; then
+      if [ "$APPVEYOR_BUILD_WORKER_IMAGE" = "Ubuntu2004" ]; then
         sudo apt update
         sudo apt --yes install gcc-10
         type -a gcc-10
