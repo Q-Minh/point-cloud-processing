@@ -1,5 +1,22 @@
 add_executable(pcp-tests)
 set_target_properties(pcp-tests PROPERTIES FOLDER pcp-tests)
+
+if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
+    option(PCP_COVERAGE "Enable code coverage reports for gcc/clang" FALSE)
+    if (PCP_COVERAGE)
+        target_compile_options(pcp-tests 
+          PRIVATE 
+            $<$<CONFIG:Debug>:--coverage -O0 -g -ftest-coverage>
+        )
+        target_link_options(pcp-tests 
+          PRIVATE 
+            $<$<CONFIG:Debug>:--coverage>
+        )
+    endif()
+endif()
+
+target_link_libraries(pcp INTERFACE eigen)
+
 target_compile_options(pcp-tests
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:

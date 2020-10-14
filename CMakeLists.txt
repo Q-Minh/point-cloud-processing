@@ -3,6 +3,7 @@ project(pcp VERSION 0.0.1 LANGUAGES CXX)
 
 option(PCP_BUILD_TESTS "build tests (requires catch2)" ON)
 option(PCP_BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
+
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(FetchContent)
@@ -17,7 +18,6 @@ add_library(pcp INTERFACE)
 add_library(pcp::pcp ALIAS pcp)
 target_compile_features(pcp INTERFACE cxx_std_17)
 target_link_libraries(pcp INTERFACE eigen)
-
 target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:
