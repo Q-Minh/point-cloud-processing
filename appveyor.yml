@@ -53,5 +53,4 @@ notifications:
     to:
       - tonthat.quocminh@gmail.com
     subject: 'Build {{status}}'
-    message: "{{commitId}}"
     on_build_status_changed: true
