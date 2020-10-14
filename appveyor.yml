@@ -4,6 +4,12 @@ image:
   - Visual Studio 2019
   - Ubuntu2004
   - macos
+environment:
+    matrix:
+        - configuration: Debug
+          platform: x64
+        - configuration: Release
+          platform: x64
 configuration:
   - Debug
   - Release
@@ -24,19 +30,19 @@ install:
 before_build:
   - sh: |
       mkdir build;
-      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=$(CONFIGURATION)
+      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE="%configuration%"
   - cmd: |
       mkdir build;
-      cmake -A $(PLATFORM) -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
+      cmake -G "Visual Studio 16 2019" -A "%platform%" -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 build_script:
   - sh: |
       cmake --build build --target pcp-tests;
       cmake --build build --target pcp-benchmarks
   - cmd: |
-      cmake --build build --target pcp-tests --config $(CONFIGURATION);
-      cmake --build build --target pcp-benchmarks --config $(CONFIGURATION)
+      cmake --build build --target pcp-tests --config "%configuration%";
+      cmake --build build --target pcp-benchmarks --config "%configuration%"
 test_script:
-  - cmd: ./build/$(CONFIGURATION)/tests.exe
+  - cmd: ./build/"%configuration%"/tests.exe
   - sh: ./build/tests
 notifications:
   - provider: Email
