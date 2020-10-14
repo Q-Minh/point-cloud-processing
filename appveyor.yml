@@ -17,11 +17,17 @@ branches:
     - master
     - dev
 before_build:
-  - ps: |
+  - sh: |
       mkdir build;
-      cmake -A %PLATFORM% -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION%
+      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=$CONFIGURATION
+  - cmd: |
+      mkdir build;
+      cmake -A %PLATFORM% -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 build_script:
-  - ps: |
+  - sh: |
+      cmake --build build --target pcp-tests;
+      cmake --build build --target pcp-benchmarks
+  - cmd: |
       cmake --build build --target pcp-tests --config %CONFIGURATION%;
       cmake --build build --target pcp-benchmarks --config %CONFIGURATION%
 test_script:
