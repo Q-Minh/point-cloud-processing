@@ -29,7 +29,6 @@ PRIVATE
     -Wnon-virtual-dtor
     -Wold-style-cast
     -Woverloaded-virtual
-    -Wmisleading-indentation
     -Wzero-as-null-pointer-constant
   >
   $<$<COMPILE_LANG_AND_ID:CXX,GNU>:

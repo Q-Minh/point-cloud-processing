@@ -16,22 +16,27 @@ branches:
   only:
     - master
     - dev
+install:
+  - sh: |
+      sudo apt update
+      sudo apt install g++-10
+      sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-10 100 --slave /usr/bin/g++ g++ /usr/bin/g++-10 --slave /usr/bin/gcov gcov /usr/bin/gcov-10
 before_build:
   - sh: |
       mkdir build;
-      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=$CONFIGURATION
+      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=$(CONFIGURATION)
   - cmd: |
       mkdir build;
-      cmake -A %PLATFORM% -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
+      cmake -A $(PLATFORM) -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 build_script:
   - sh: |
       cmake --build build --target pcp-tests;
       cmake --build build --target pcp-benchmarks
   - cmd: |
-      cmake --build build --target pcp-tests --config %CONFIGURATION%;
-      cmake --build build --target pcp-benchmarks --config %CONFIGURATION%
+      cmake --build build --target pcp-tests --config $(CONFIGURATION);
+      cmake --build build --target pcp-benchmarks --config $(CONFIGURATION)
 test_script:
-  - cmd: ./build/%CONFIGURATION%/tests.exe
+  - cmd: ./build/$(CONFIGURATION)/tests.exe
   - sh: ./build/tests
 notifications:
   - provider: Email
