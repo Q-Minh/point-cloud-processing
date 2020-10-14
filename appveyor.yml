@@ -1,0 +1,36 @@
+version: 0.0.{build}
+
+image:
+  - Visual Studio 2019
+  - Ubuntu2004
+  - macos
+configuration:
+  - Debug
+  - Release
+max_jobs: 1
+matrix:
+  - fast_finish: true
+platform:
+  - x64
+branches:
+  only:
+    - master
+    - dev
+before_build:
+  - ps: |
+      mkdir build;
+      cmake -A %PLATFORM% -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=%CONFIGURATION%
+build_script:
+  - ps: |
+      cmake --build build --target pcp-tests --config %CONFIGURATION%;
+      cmake --build build --target pcp-benchmarks --config %CONFIGURATION%
+test_script:
+  - cmd: ./build/%CONFIGURATION%/tests.exe
+  - sh: ./build/tests
+notifications:
+  - provider: Email
+    to:
+      - tonthat.quocminh@gmail.com
+    subject: 'Build {{status}}'
+    message: "{{message}}, {{commitId}}, ..."
+    on_build_status_changed: true
