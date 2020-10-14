@@ -10,9 +10,6 @@ environment:
           platform: x64
         - configuration: Release
           platform: x64
-configuration:
-  - Debug
-  - Release
 max_jobs: 1
 matrix:
   fast_finish: false
