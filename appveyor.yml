@@ -9,7 +9,7 @@ configuration:
   - Release
 max_jobs: 1
 matrix:
-  fast_finish: true
+  fast_finish: false
 platform:
   - x64
 branches:
