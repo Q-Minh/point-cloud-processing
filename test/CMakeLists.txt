@@ -1,6 +1,6 @@
-add_executable(tests)
-set_target_properties(tests PROPERTIES FOLDER tests)
-target_compile_options(tests
+add_executable(pcp-tests)
+set_target_properties(pcp-tests PROPERTIES FOLDER pcp-tests)
+target_compile_options(pcp-tests
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
     -Wall
@@ -90,7 +90,7 @@ PRIVATE
   >
 )
 
-target_sources(tests
+target_sources(pcp-tests
 PRIVATE
   main.cpp
   obj.cpp
@@ -112,12 +112,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(Catch2)
 
-target_link_libraries(tests PRIVATE pcp::pcp Catch2::Catch2)
+target_link_libraries(pcp-tests PRIVATE pcp::pcp Catch2::Catch2)
 
 include(GNUInstallDirs)
 
 install(
-  TARGETS tests
+  TARGETS pcp-tests
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

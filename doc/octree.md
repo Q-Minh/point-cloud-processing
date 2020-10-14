@@ -28,7 +28,7 @@ Some particularities of this octree implementation are that this octree implemen
 You can plot benchmark results using python3:
 ```
 $ pip install -r <path to repo>/scripts/requirements.txt
-$ <path to executable>/benchmarks --benchmark_format=json --benchmark_out=benchmarks.json
+$ <path to executable>/pcp-benchmarks.exe --benchmark_format=json --benchmark_out=benchmarks.json
 $ <path to repo>/scripts/plot_octree_benchmark.py --in benchmarks.json
 ```
 

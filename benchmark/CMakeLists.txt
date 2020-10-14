@@ -1,6 +1,6 @@
-add_executable(benchmarks)
-set_target_properties(benchmarks PROPERTIES FOLDER benchmarks)
-target_compile_options(benchmarks
+add_executable(pcp-benchmarks)
+set_target_properties(pcp-benchmarks PROPERTIES FOLDER pcp-benchmarks)
+target_compile_options(pcp-benchmarks
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
     -Wall
@@ -90,7 +90,7 @@ PRIVATE
   >
 )
 
-target_sources(benchmarks
+target_sources(pcp-benchmarks
 PRIVATE
   benchmark.cpp
 )
@@ -104,12 +104,12 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(benchmark)
 
-target_link_libraries(benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
+target_link_libraries(pcp-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
 
 include(GNUInstallDirs)
 
 install(
-  TARGETS benchmarks
+  TARGETS pcp-benchmarks
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

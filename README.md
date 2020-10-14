@@ -28,8 +28,8 @@ $ cmake .. -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 
 | CMake Targets | Help |
 | --- | --- |
-| `tests` | The [Catch2](https://github.com/catchorg/Catch2) test runner executable. Commands line options are documented [here](https://github.com/catchorg/Catch2/blob/devel/docs/command-line.md#top). |
-| `benchmarks` | The [Google Benchmark](https://github.com/google/benchmark) benchmark runner executable. Command line options are documented [here](https://github.com/google/benchmark#command-line). |
+| `pcp-tests` | The [Catch2](https://github.com/catchorg/Catch2) test runner executable. Commands line options are documented [here](https://github.com/catchorg/Catch2/blob/devel/docs/command-line.md#top). |
+| `pcp-benchmarks` | The [Google Benchmark](https://github.com/google/benchmark) benchmark runner executable. Command line options are documented [here](https://github.com/google/benchmark#command-line). |
 | `pcp` | The `pcp` library. Currently header-only, so building is a no-op. |
 
 ```
@@ -72,10 +72,10 @@ Run tests, benchmarks and visualize benchmark results:
 # In the install tree, you can find the executables in "/bin".
 
 # to run the tests
-$ <path to executable>/tests.exe
+$ <path to executable>/pcp-tests.exe
 
 # to run the benchmarks and export them to benchmarks.json
-$ <path to executable>/benchmarks --benchmark_format=json --benchmark_out=benchmarks.json
+$ <path to executable>/pcp-benchmarks.exe --benchmark_format=json --benchmark_out=benchmarks.json
 ```
 
 ## Documentation
