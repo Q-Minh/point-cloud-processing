@@ -2,6 +2,7 @@
 
 #include "point.hpp"
 
+#include <algorithm>
 #include <array>
 
 namespace pcp {

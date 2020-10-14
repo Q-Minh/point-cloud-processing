@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace pcp {
 
 template <class T /* point coordinates' type */>

@@ -19,6 +19,7 @@ class octree_iterator_t
     using const_reference = typename octree_node_t::const_reference;
 
   private:
+    using this_type = octree_iterator_t;
     using point_iterator        = typename octree_node_t::points_type::iterator;
     using const_point_iterator  = typename octree_node_t::points_type::const_iterator;
     using octant_iterator       = typename octree_node_t::octants_type::iterator;
@@ -95,16 +96,16 @@ class octree_iterator_t
         return *this;
     }
 
-    octree_iterator_t const& operator++() const { return ++(*this); }
+    octree_iterator_t const& operator++() const { return ++(const_cast<this_type&>(*this)); }
 
     octree_iterator_t operator++(int)
     {
         octree_iterator_t previous{*this};
-        ++(*this);
+        ++(const_cast<this_type&>(*this));
         return previous;
     }
 
-    octree_iterator_t const& operator++(int) const { return (*this)++; }
+    octree_iterator_t operator++(int) const { return const_cast<this_type&>(*this)++; }
 
     bool operator==(octree_iterator_t const& other) const
     {
