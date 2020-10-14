@@ -1,5 +1,7 @@
 # Point Cloud Processing Toolkit
 
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/Q-Minh/point-cloud-processing?branch=master&svg=true&retina=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing/branch/master) [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
+
 ## Overview
 
 `pcp` is a toolkit of common point cloud processing algorithms.

@@ -3,7 +3,7 @@ version: 0.0.{build}
 image:
   - Visual Studio 2019
   - Ubuntu2004
-    #  - macos
+  - macos
 environment:
     matrix:
         - configuration: Debug
