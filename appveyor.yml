@@ -42,17 +42,14 @@ build_script:
       cmake --build build --target pcp-tests --config "%configuration%"
       cmake --build build --target pcp-benchmarks --config "%configuration%"
 test_script:
-  - cmd: | 
-      cd build
-      dir
-      cd "%configuration%"
-      dir
-      tests.exe
-  - sh: ./build/tests
+  - cmd: |
+      cd build/test/"%configuration%"
+      pcp-tests.exe
+  - sh: ./build/test/pcp-tests
 notifications:
   - provider: Email
     to:
       - tonthat.quocminh@gmail.com
     subject: 'Build {{status}}'
-    message: "{{message}}, {{commitId}}, ..."
+    message: "{{commitId}}"
     on_build_status_changed: true

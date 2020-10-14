@@ -92,6 +92,7 @@ export(
 )
 
 if (PCP_BUILD_TESTS)
+    enable_testing()
     add_subdirectory(test)
 endif()
 
