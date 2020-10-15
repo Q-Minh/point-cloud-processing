@@ -1,6 +1,6 @@
 # Point Cloud Processing Toolkit
 
-[![Build Status](https://ci.appveyor.com/api/projects/status/github/Q-Minh/point-cloud-processing?branch=master&svg=true&retina=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing/branch/master) [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
+[![Build Status](https://ci.appveyor.com/api/projects/status/github/Q-Minh/point-cloud-processing?branch=master&svg=true&retina=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing/branch/master) [![codecov](https://codecov.io/gh/Q-Minh/point-cloud-processing/branch/master/graph/badge.svg?token=ICLU539TV2)](https://codecov.io/gh/Q-Minh/point-cloud-processing) [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
 
 ## Overview
 
