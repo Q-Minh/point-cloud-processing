@@ -6,7 +6,7 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Cla
     if (PCP_COVERAGE)
         target_compile_options(pcp-tests 
           PRIVATE 
-            $<$<CONFIG:Debug>:--coverage -O0 -g -ftest-coverage>
+            $<$<CONFIG:Debug>:--coverage -O0 -ftest-coverage>
         )
         target_link_options(pcp-tests 
           PRIVATE 

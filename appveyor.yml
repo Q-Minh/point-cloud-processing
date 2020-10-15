@@ -32,7 +32,11 @@ install:
 before_build:
   - sh: |
       mkdir build;
-      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE="$configuration"
+      coverage=OFF
+      if [ "$configuration" = "Debug" ]; then
+        coverage=ON  
+      fi
+      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE="$configuration" -DPCP_COVERAGE=$coverage
   - cmd: |
       mkdir build;
       cmake -G "Visual Studio 16 2019" -A "%platform%" -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
@@ -48,6 +52,9 @@ test_script:
       cd build/test/"%configuration%"
       pcp-tests.exe
   - sh: ./build/test/pcp-tests
+after_test:
+  - sh: |
+      bash <(curl -s https://codecov.io/bash)
 notifications:
   - provider: Email
     to:
