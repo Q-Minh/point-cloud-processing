@@ -71,6 +71,8 @@ class octree_t
     std::size_t size() const { return size_; }
     bool empty() const { return size() == 0u; }
     void clear() { root_.clear(); }
+    const_iterator begin() const { return octree_iterator_t(&root_); }
+    const_iterator end() const { return octree_iterator_t{}; }
     const_iterator cbegin() const { return octree_iterator_t(&root_); }
     const_iterator cend() const { return octree_iterator_t{}; }
 

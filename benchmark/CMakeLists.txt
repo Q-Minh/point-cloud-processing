@@ -91,7 +91,7 @@ PRIVATE
 
 target_sources(pcp-benchmarks
 PRIVATE
-  benchmark.cpp
+  octree_benchmark.cpp
 )
 
 set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
