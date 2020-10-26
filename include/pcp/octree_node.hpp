@@ -1,6 +1,8 @@
 #pragma once
 
 #include "intersections.hpp"
+#include "octree_iterator.hpp"
+#include "point_traits.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -12,29 +14,37 @@
 
 namespace pcp {
 
+template <class Point>
 struct octree_parameters_t
 {
     std::uint32_t node_capacity = 1u;
     std::uint8_t max_depth      = 21;
-    axis_aligned_bounding_box_t voxel_grid{};
+    axis_aligned_bounding_box_t<Point> voxel_grid{};
 };
 
+template <class Point>
 class octree_iterator_t;
 
-class octree_node_t
+template <class Point>
+class basic_octree_node_t
 {
-  public:
-    friend class octree_iterator_t;
+    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
 
-    using iterator        = octree_iterator_t;
-    using const_iterator  = octree_iterator_t const;
-    using value_type      = point_t;
+  public:
+    friend class octree_iterator_t<Point>;
+
+    using self_type       = basic_octree_node_t<Point>;
+    using params_type     = octree_parameters_t<Point>;
+    using aabb_type       = axis_aligned_bounding_box_t<Point>;
+    using iterator        = octree_iterator_t<Point>;
+    using const_iterator  = iterator const;
+    using value_type      = Point;
     using reference       = value_type&;
     using const_reference = value_type const&;
     using pointer         = value_type*;
     using const_pointer   = value_type const*;
 
-    explicit octree_node_t(octree_parameters_t const& params)
+    explicit basic_octree_node_t(params_type const& params)
         : capacity_(params.node_capacity),
           max_depth_(params.max_depth),
           voxel_grid_(params.voxel_grid),
@@ -44,14 +54,15 @@ class octree_node_t
         assert(capacity_ > 0u);
         assert(max_depth_ > 0u);
         assert(
-            (voxel_grid_.min.x < voxel_grid_.max.x) && (voxel_grid_.min.y < voxel_grid_.max.y) &&
-            (voxel_grid_.min.z < voxel_grid_.max.z));
+            (voxel_grid_.min.x() < voxel_grid_.max.x()) &&
+            (voxel_grid_.min.y() < voxel_grid_.max.y()) &&
+            (voxel_grid_.min.z() < voxel_grid_.max.z()));
         points_.reserve(params.node_capacity);
     }
 
     template <class ForwardIter>
-    explicit octree_node_t(ForwardIter begin, ForwardIter end, octree_parameters_t const& params)
-        : octree_node_t(params)
+    explicit basic_octree_node_t(ForwardIter begin, ForwardIter end, params_type const& params)
+        : basic_octree_node_t(params)
     {
         insert(begin, end);
     }
@@ -60,7 +71,7 @@ class octree_node_t
     {
         points_.clear();
         for (auto& octant : octants_)
-            octant.release();
+            octant.reset();
     }
 
     template <class ForwardIter>
@@ -70,12 +81,12 @@ class octree_node_t
             begin,
             end,
             static_cast<std::size_t>(0u),
-            [this](std::size_t const count, point_t const& p) {
+            [this](std::size_t const count, Point const& p) {
                 return this->insert(p) ? count + 1 : count;
             });
     }
 
-    bool insert(point_t const& p)
+    bool insert(Point const& p)
     {
         /*
          * If the point does not reside in the voxel grid
@@ -118,7 +129,7 @@ class octree_node_t
          * subdivided in 8 separate octants, there can be
          * only 1 octant that contains this point.
          */
-        point_t const center = voxel_grid_.center();
+        Point const center = voxel_grid_.center();
 
         /*
          * Since we know that an octree may only have 8
@@ -169,11 +180,11 @@ class octree_node_t
          */
         std::uint64_t octants_bitmask = 0b000;
 
-        if (p.x > center.x)
+        if (p.x() > center.x())
             octants_bitmask |= 0b100;
-        if (p.y > center.y)
+        if (p.y() > center.y())
             octants_bitmask |= 0b010;
-        if (p.z > center.z)
+        if (p.z() > center.z())
             octants_bitmask |= 0b001;
 
         /*
@@ -198,7 +209,7 @@ class octree_node_t
          * yet, we create it and delegate the work of inserting
          * point p to the newly created child octree.
          */
-        octree_parameters_t params;
+        params_type params;
 
         /*
          * This octree node must propagate the node capacity
@@ -229,24 +240,111 @@ class octree_node_t
          */
         params.max_depth = max_depth_ - std::uint8_t{1u};
 
-        params.voxel_grid.min.x = octants_bitmask & 0b100 ? center.x : voxel_grid_.min.x;
-        params.voxel_grid.max.x = octants_bitmask & 0b100 ? voxel_grid_.max.x : center.x;
+        params.voxel_grid.min.x() = octants_bitmask & 0b100 ? center.x() : voxel_grid_.min.x();
+        params.voxel_grid.max.x() = octants_bitmask & 0b100 ? voxel_grid_.max.x() : center.x();
 
-        params.voxel_grid.min.y = octants_bitmask & 0b010 ? center.y : voxel_grid_.min.y;
-        params.voxel_grid.max.y = octants_bitmask & 0b010 ? voxel_grid_.max.y : center.y;
+        params.voxel_grid.min.y() = octants_bitmask & 0b010 ? center.y() : voxel_grid_.min.y();
+        params.voxel_grid.max.y() = octants_bitmask & 0b010 ? voxel_grid_.max.y() : center.y();
 
-        params.voxel_grid.min.z = octants_bitmask & 0b001 ? center.z : voxel_grid_.min.z;
-        params.voxel_grid.max.z = octants_bitmask & 0b001 ? voxel_grid_.max.z : center.z;
+        params.voxel_grid.min.z() = octants_bitmask & 0b001 ? center.z() : voxel_grid_.min.z();
+        params.voxel_grid.max.z() = octants_bitmask & 0b001 ? voxel_grid_.max.z() : center.z();
 
-        octant = std::make_unique<octree_node_t>(params);
+        octant = std::make_unique<self_type>(params);
         return octant->insert(p);
     }
 
-    const_iterator find(point_t const& p) const;
+    const_iterator find(Point const& p) const
+    {
+        /**
+         * Pretty much the same implementation as an insert, except we return the found point
+         * if it exists, instead of inserting.
+         */
+        if (!voxel_grid_.contains(p))
+            return const_iterator{};
 
-    const_iterator erase(const_iterator it);
+        iterator it{};
+        return this->do_find(p, it);
+    }
 
-    std::vector<point_t> nearest_neighbours(point_t const& target, std::size_t k) const
+    const_iterator erase(const_iterator it)
+    {
+        iterator next = it;
+
+        /*
+         * Get the octree node that the iterator currently
+         * resides in.
+         */
+        self_type* octree_node = const_cast<self_type*>(next.octree_node_);
+
+        /*
+         * If the point to erase actually exists, then
+         * we erase it and set the iterator's point to
+         * the next point in the sequence.
+         */
+        if (next.it_ != octree_node->points_.cend())
+            const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
+
+        /*
+         * If after erasing the point, we still have other
+         * points in this node, then simply return the next
+         * iterator which already resides in the right octree
+         * node and which already points to the next point in
+         * the sequence.
+         */
+        if (!octree_node->points_.empty())
+            return next;
+
+        /*
+         * If this is an internal node, then it will succeed in
+         * taking a point from one of its children.
+         */
+        if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
+        {
+            next.it_ = octree_node->points_.cbegin();
+            return next;
+        }
+
+        /*
+         * Return end() iterator if this is the root node
+         * (which happens to be a leaf node) and there
+         * are no points left.
+         */
+        if (next.ancestor_octree_nodes_.empty())
+        {
+            return octree_iterator_t<Point>{};
+        }
+
+        /*
+         * If this is a leaf node, then we simply move the iterator
+         * to the next node, and we remove this leaf from its parent
+         * since the leaf is empty.
+         */
+        auto* parent = const_cast<self_type*>(next.ancestor_octree_nodes_.top());
+
+        /*
+         * Move the iterator to the next point before we change the structure
+         * of the tree by releasing the leaf. The next iterator used to reside
+         * in the leaf node that we are about to delete, so we must move the
+         * iterator before the deletion.
+         */
+        next.move_to_next_node();
+
+        auto const is_same_octant =
+            [octree_node](std::unique_ptr<self_type> const& octant) -> bool {
+            return octant.get() == octree_node;
+        };
+
+        /*
+         * Find the leaf and release/delete it.
+         */
+        auto octant_it =
+            std::find_if(parent->octants_.begin(), parent->octants_.end(), is_same_octant);
+        octant_it->reset();
+
+        return next;
+    }
+
+    std::vector<Point> nearest_neighbours(Point const& target, std::size_t k) const
     {
         if (k <= 0u)
             return {};
@@ -262,18 +360,18 @@ class octree_node_t
          *
          * since we are squaring both sides of the equation.
          */
-        auto const distance = [](point_t const& p1, point_t const& p2) -> float {
-            auto const x = (p2.x - p1.x);
-            auto const y = (p2.y - p1.y);
-            auto const z = (p2.z - p1.z);
+        auto const distance = [](Point const& p1, Point const& p2) -> float {
+            auto const x = (p2.x() - p1.x());
+            auto const y = (p2.y() - p1.y());
+            auto const z = (p2.z() - p1.z());
             return x * x + y * y + z * z;
         };
 
         struct min_heap_node_t
         {
-            point_t const* p       = nullptr;
-            octree_node_t const* o = nullptr;
-            bool is_point          = false;
+            Point const* p     = nullptr;
+            self_type const* o = nullptr;
+            bool is_point      = false;
         };
 
         /*
@@ -283,8 +381,8 @@ class octree_node_t
          */
         auto const greater =
             [&distance, &target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            point_t const& p1 = h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(target);
-            point_t const& p2 = h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(target);
+            Point const& p1 = h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(target);
+            Point const& p2 = h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(target);
 
             auto const d1 = distance(target, p1);
             auto const d2 = distance(target, p2);
@@ -315,7 +413,7 @@ class octree_node_t
          */
         min_heap.push(min_heap_node_t{nullptr, this, false});
 
-        std::vector<point_t> knearest_points{};
+        std::vector<Point> knearest_points{};
         // we only need up to k elements, so we can reserve the memory upfront
         knearest_points.reserve(k);
 
@@ -371,7 +469,7 @@ class octree_node_t
     }
 
     template <class Range>
-    void range_search(Range const& range, std::vector<point_t>& points_in_range) const
+    void range_search(Range const& range, std::vector<Point>& points_in_range) const
     {
         for (auto const& p : points_)
             if (range.contains(p))
@@ -403,15 +501,39 @@ class octree_node_t
     }
 
   protected:
-    const_iterator do_find(point_t const& p, octree_iterator_t& it) const;
+    const_iterator do_find(Point const& p, iterator& it) const
+    {
+        it.octree_node_ = this;
+        it.it_          = std::find(points_.cbegin(), points_.cend(), p);
+        if (it.it_ != points_.cend())
+            return it;
+
+        Point const center            = voxel_grid_.center();
+        std::uint64_t octants_bitmask = 0b000;
+
+        if (p.x() > center.x())
+            octants_bitmask |= 0b100;
+        if (p.y() > center.y())
+            octants_bitmask |= 0b010;
+        if (p.z() > center.z())
+            octants_bitmask |= 0b001;
+
+        auto& octant = octants_[octants_bitmask];
+
+        if (!octant)
+            return const_iterator{};
+
+        it.ancestor_octree_nodes_.push(this);
+        return octant->do_find(p, it);
+    }
 
   private:
-    using points_type  = std::vector<point_t>;
-    using octants_type = std::array<std::unique_ptr<octree_node_t>, 8>;
+    using points_type  = std::vector<Point>;
+    using octants_type = std::array<std::unique_ptr<self_type>, 8>;
 
     typename octants_type::const_iterator take_point_from_first_nonempty_octant()
     {
-        auto const exists = [](std::unique_ptr<octree_node_t> const& o) {
+        auto const exists = [](std::unique_ptr<self_type> const& o) {
             return static_cast<bool>(o);
         };
 
@@ -455,7 +577,7 @@ class octree_node_t
         if (octree_child_node->take_point_from_first_nonempty_octant() ==
             octree_child_node->octants_.cend())
         {
-            octree_child_node.release();
+            octree_child_node.reset();
         }
 
         /*
@@ -467,132 +589,9 @@ class octree_node_t
 
     std::uint32_t capacity_;
     std::uint8_t max_depth_;
-    axis_aligned_bounding_box_t voxel_grid_;
+    aabb_type voxel_grid_;
     octants_type octants_;
     points_type points_;
 };
-
-} // namespace pcp
-
-#include "octree_iterator.hpp"
-
-namespace pcp {
-
-inline octree_node_t::const_iterator octree_node_t::find(point_t const& p) const
-{
-    /*
-     * Pretty much the same implementation as an insert, except we return the found point
-     * if it exists, instead of inserting.
-     */
-    if (!voxel_grid_.contains(p))
-        return octree_iterator_t{};
-
-    octree_iterator_t it{};
-    return this->do_find(p, it);
-}
-
-inline octree_node_t::const_iterator
-octree_node_t::do_find(point_t const& p, octree_iterator_t& it) const
-{
-    it.octree_node_ = this;
-    it.it_          = std::find(points_.cbegin(), points_.cend(), p);
-    if (it.it_ != points_.cend())
-        return it;
-
-    point_t const center          = voxel_grid_.center();
-    std::uint64_t octants_bitmask = 0b000;
-
-    if (p.x > center.x)
-        octants_bitmask |= 0b100;
-    if (p.y > center.y)
-        octants_bitmask |= 0b010;
-    if (p.z > center.z)
-        octants_bitmask |= 0b001;
-
-    auto& octant = octants_[octants_bitmask];
-
-    if (!octant)
-        return octree_iterator_t{};
-
-    it.ancestor_octree_nodes_.push(this);
-    return octant->do_find(p, it);
-}
-
-inline octree_node_t::const_iterator octree_node_t::erase(const_iterator it)
-{
-    iterator next = it;
-
-    /*
-     * Get the octree node that the iterator currently
-     * resides in.
-     */
-    octree_node_t* octree_node = const_cast<octree_node_t*>(next.octree_node_);
-
-    /*
-     * If the point to erase actually exists, then
-     * we erase it and set the iterator's point to
-     * the next point in the sequence.
-     */
-    if (next.it_ != octree_node->points_.cend())
-        const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
-
-    /*
-     * If after erasing the point, we still have other
-     * points in this node, then simply return the next
-     * iterator which already resides in the right octree
-     * node and which already points to the next point in
-     * the sequence.
-     */
-    if (!octree_node->points_.empty())
-        return next;
-
-    /*
-     * If this is an internal node, then it will succeed in
-     * taking a point from one of its children.
-     */
-    if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
-    {
-        next.it_ = octree_node->points_.cbegin();
-        return next;
-    }
-
-    /*
-     * Return end() iterator if this is the root node
-     * (which happens to be a leaf node) and there
-     * are no points left.
-     */
-    if (next.ancestor_octree_nodes_.empty())
-    {
-        return octree_iterator_t{};
-    }
-
-    /*
-     * If this is a leaf node, then we simply move the iterator
-     * to the next node, and we remove this leaf from its parent
-     * since the leaf is empty.
-     */
-    auto* parent = const_cast<octree_node_t*>(next.ancestor_octree_nodes_.top());
-
-    /*
-     * Move the iterator to the next point before we change the structure
-     * of the tree by releasing the leaf. The next iterator used to reside
-     * in the leaf node that we are about to delete, so we must move the
-     * iterator before the deletion.
-     */
-    next.move_to_next_node();
-
-    auto const is_same_octant =
-        [octree_node](std::unique_ptr<octree_node_t> const& octant) -> bool {
-        return octant.get() == octree_node;
-    };
-
-    /*
-     * Find the leaf and release/delete it.
-     */
-    auto octant_it = std::find_if(parent->octants_.begin(), parent->octants_.end(), is_same_octant);
-    octant_it->release();
-
-    return next;
-}
 
 } // namespace pcp

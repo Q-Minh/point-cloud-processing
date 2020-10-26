@@ -11,8 +11,8 @@ SCENARIO("octree find", "[octree]")
         float const min = -1000.f;
         float const max = 1000.f;
 
-        pcp::octree_parameters_t params;
-        params.voxel_grid    = {pcp::point_t{min, min, min}, pcp::point_t{max, max, max}};
+        pcp::octree_parameters_t<pcp::point_t> params;
+        params.voxel_grid    = {{min, min, min}, {max, max, max}};
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
 

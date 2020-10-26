@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/ply.hpp>
+#include <pcp/point.hpp>
+#include <pcp/normal.hpp>
 
 static std::string get_ascii_ply_file(
     std::size_t num_points,
@@ -43,7 +45,7 @@ SCENARIO("ply file manipulation", "[ply]")
         auto const validate_vertices = [=](std::istream& is) {
             WHEN("parsing the ply's vertices")
             {
-                auto [vertices, normals] = pcp::io::read_ply(is);
+                auto [vertices, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(is);
                 THEN("the correct vertices are recovered")
                 {
                     REQUIRE(normals.empty());
@@ -58,7 +60,7 @@ SCENARIO("ply file manipulation", "[ply]")
         auto const validate_vertices_and_normals = [=](std::istream& is) {
             WHEN("parsing the ply's vertices and normals")
             {
-                auto [vertices, normals] = pcp::io::read_ply(is);
+                auto [vertices, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(is);
                 THEN("the correct vertices and normals are recovered")
                 {
                     REQUIRE(vertices.size() == num_points);
@@ -119,7 +121,7 @@ SCENARIO("ply file manipulation", "[ply]")
         {
             WHEN("writing in ascii format")
             {
-                pcp::io::write_ply<float, float>(oss, vertices, {}, pcp::io::ply_format_t::ascii);
+                pcp::io::write_ply<pcp::point_t, pcp::normal_t>(oss, vertices, {}, pcp::io::ply_format_t::ascii);
                 THEN("the resulting ply file is valid and encodes all points")
                 {
                     std::string const truth =
@@ -130,7 +132,7 @@ SCENARIO("ply file manipulation", "[ply]")
             }
             WHEN("writing in binary_little_endian format")
             {
-                pcp::io::write_ply<float, float>(
+                pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
                     oss,
                     vertices,
                     {},
@@ -145,7 +147,7 @@ SCENARIO("ply file manipulation", "[ply]")
             }
             WHEN("writing in binary_big_endian format")
             {
-                pcp::io::write_ply<float, float>(
+                pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
                     oss,
                     vertices,
                     {},
@@ -166,7 +168,7 @@ SCENARIO("ply file manipulation", "[ply]")
             {
                 WHEN("writing in ascii format")
                 {
-                    pcp::io::write_ply<float, float>(
+                    pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
                         oss,
                         vertices,
                         normals,
@@ -181,7 +183,7 @@ SCENARIO("ply file manipulation", "[ply]")
                 }
                 WHEN("writing in binary_little_endian format")
                 {
-                    pcp::io::write_ply<float, float>(
+                    pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
                         oss,
                         vertices,
                         normals,
@@ -203,7 +205,7 @@ SCENARIO("ply file manipulation", "[ply]")
                 }
                 WHEN("writing in binary_big_endian format")
                 {
-                    pcp::io::write_ply<float, float>(
+                    pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
                         oss,
                         vertices,
                         normals,

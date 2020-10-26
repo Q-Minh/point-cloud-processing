@@ -3,7 +3,7 @@
 
 SCENARIO("octree insertion", "[octree]")
 {
-    auto const insertion = [](pcp::octree_parameters_t const& params,
+    auto const insertion = [](pcp::octree_parameters_t<pcp::point_t> const& params,
                               std::vector<pcp::point_t>& points) {
         WHEN("inserting a range of points contained in the octree's voxel grid")
         {
@@ -82,10 +82,10 @@ SCENARIO("octree insertion", "[octree]")
         points.push_back({0.8f, -0.8f, -0.8f});
         points.push_back({0.9f, -0.9f, -0.9f});
 
-        pcp::octree_parameters_t params;
-        params.voxel_grid = pcp::axis_aligned_bounding_box_t{
-            pcp::point_t{-1.f, -1.f, -1.f},
-            pcp::point_t{1.f, 1.f, 1.f}};
+        pcp::octree_parameters_t<pcp::point_t> params;
+        params.voxel_grid = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
+            {-1.f, -1.f, -1.f},
+            {1.f, 1.f, 1.f}};
 
         WHEN("the octree's node capacity = 1")
         {

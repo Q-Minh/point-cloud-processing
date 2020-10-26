@@ -1,8 +1,8 @@
 #pragma once
 
 #include "endianness.hpp"
-#include "normal.hpp"
-#include "point.hpp"
+#include "normal_traits.hpp"
+#include "point_traits.hpp"
 #include "tokenize.hpp"
 
 #include <algorithm>
@@ -31,26 +31,28 @@ struct ply_parameters_t
     std::size_t end_header_offset               = 0u;
 };
 
-inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::vector<normal_t>>;
+template <class Point, class Normal>
+inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>;
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
+template <class Point, class Normal>
 inline auto read_ply(std::filesystem::path const& path)
-    -> std::tuple<std::vector<point_t>, std::vector<normal_t>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
     if (!path.has_filename())
         return {};
@@ -66,12 +68,15 @@ inline auto read_ply(std::filesystem::path const& path)
     if (!fs.is_open())
         return {};
 
-    return read_ply(fs);
+    return read_ply<Point, Normal>(fs);
 }
 
-inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::vector<normal_t>>
+template <class Point, class Normal>
+inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using return_type = std::tuple<std::vector<point_t>, std::vector<normal_t>>;
+    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
+    static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
+    using return_type = std::tuple<std::vector<Point>, std::vector<Normal>>;
 
     ply_parameters_t ply_params;
 
@@ -189,7 +194,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
-            return read_ply_ascii<float, float>(is, params);
+            return read_ply_ascii<Point, Normal>(is, params);
         }
         else if (
             params.vertex_component_type == ply_coordinate_type_t::single_precision &&
@@ -215,7 +220,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
-            return read_ply_binary_little_endian<float, float>(is, params);
+            return read_ply_binary_little_endian<Point, Normal>(is, params);
         }
         else if (
             params.vertex_component_type == ply_coordinate_type_t::single_precision &&
@@ -240,7 +245,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
         if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
             params.normal_component_type == ply_coordinate_type_t::single_precision)
         {
-            return read_ply_binary_big_endian<float, float>(is, params);
+            return read_ply_binary_big_endian<Point, Normal>(is, params);
         }
         else if (
             params.vertex_component_type == ply_coordinate_type_t::single_precision &&
@@ -269,22 +274,19 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<point_t>, std::
     }
 }
 
-/**
- * Only supports T = float, T = double, U = float, U = double
- */
-template <class T /* vertex component type */, class U /* normal component type */>
+template <class Point, class Normal>
 inline void write_ply(
     std::ostream& os,
-    std::vector<basic_point_t<T>> const& vertices,
-    std::vector<basic_normal_t<U>> const& normals,
+    std::vector<Point> const& vertices,
+    std::vector<Normal> const& normals,
     ply_format_t format = ply_format_t::ascii)
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    using point_type  = Point;
+    using normal_type = Normal;
 
-    std::string const vertex_component_type = std::is_same_v<T, double> ? "double" : "float";
+    std::string const vertex_component_type = std::is_same_v<typename Point::coordinate_type, double> ? "double" : "float";
 
-    std::string const normal_component_type = std::is_same_v<T, double> ? "double" : "float";
+    std::string const normal_component_type = std::is_same_v<typename Normal::coordinate_type, double> ? "double" : "float";
 
     std::ostringstream header_stream{};
     header_stream << "ply\n";
@@ -314,15 +316,15 @@ inline void write_ply(
         for (point_type const& v : vertices)
         {
             std::ostringstream oss{};
-            oss << std::to_string(v.x) << " " << std::to_string(v.y) << " " << std::to_string(v.z)
-                << "\n";
+            oss << std::to_string(v.x()) << " " << std::to_string(v.y()) << " "
+                << std::to_string(v.z()) << "\n";
             os << oss.str();
         }
         for (normal_type const& n : normals)
         {
             std::ostringstream oss{};
-            oss << std::to_string(n.x) << " " << std::to_string(n.y) << " " << std::to_string(n.z)
-                << "\n";
+            oss << std::to_string(n.x()) << " " << std::to_string(n.y()) << " "
+                << std::to_string(n.z()) << "\n";
             os << oss.str();
         }
     }
@@ -340,15 +342,15 @@ inline void write_ply(
     auto const transform_endianness = [](std::vector<point_type>& p, std::vector<normal_type>& n) {
         std::transform(std::begin(p), std::end(p), std::begin(p), [](point_type const& point) {
             return point_type{
-                reverse_endianness(point.x),
-                reverse_endianness(point.y),
-                reverse_endianness(point.z)};
+                reverse_endianness(point.x()),
+                reverse_endianness(point.y()),
+                reverse_endianness(point.z())};
         });
         std::transform(std::begin(n), std::end(n), std::begin(n), [](normal_type const& normal) {
             return normal_type{
-                reverse_endianness(normal.x),
-                reverse_endianness(normal.y),
-                reverse_endianness(normal.z)};
+                reverse_endianness(normal.x()),
+                reverse_endianness(normal.y()),
+                reverse_endianness(normal.z())};
         });
     };
 
@@ -383,12 +385,12 @@ inline void write_ply(
     }
 }
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    using point_type  = Point;
+    using normal_type = Normal;
 
     std::vector<point_type> vertices;
     std::vector<normal_type> normals;
@@ -428,12 +430,12 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
     return std::make_tuple(vertices, normals);
 }
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    using point_type  = Point;
+    using normal_type = Normal;
 
     std::vector<point_type> vertices;
     std::vector<normal_type> normals;
@@ -455,14 +457,14 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
     return std::make_tuple(vertices, normals);
 }
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    using point_type  = Point;
+    using normal_type = Normal;
 
-    auto point_cloud = read_ply_binary<T, U>(is, params);
+    auto point_cloud = read_ply_binary<Point, Normal>(is, params);
 
     if (is_machine_little_endian())
         return point_cloud;
@@ -475,33 +477,33 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
         std::begin(vertices),
         [](point_type const& p) {
             return point_type{
-                reverse_endianness(p.x),
-                reverse_endianness(p.y),
-                reverse_endianness(p.z)};
+                reverse_endianness(p.x()),
+                reverse_endianness(p.y()),
+                reverse_endianness(p.z())};
         });
 
     std::transform(
         std::begin(normals),
         std::end(normals),
         std::begin(normals),
-        [](normal_type const& p) {
+        [](normal_type const& n) {
             return normal_type{
-                reverse_endianness(p.x),
-                reverse_endianness(p.y),
-                reverse_endianness(p.z)};
+                reverse_endianness(n.x()),
+                reverse_endianness(n.y()),
+                reverse_endianness(n.z())};
         });
 
     return point_cloud;
 }
 
-template <class T /* vertex coordinates' type */, class U /* normal components' type */>
+template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    using point_type  = Point;
+    using normal_type = Normal;
 
-    auto point_cloud = read_ply_binary<T, U>(is, params);
+    auto point_cloud = read_ply_binary<Point, Normal>(is, params);
 
     if (is_machine_big_endian())
         return point_cloud;
@@ -514,20 +516,20 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
         std::begin(vertices),
         [](point_type const& p) {
             return point_type{
-                reverse_endianness(p.x),
-                reverse_endianness(p.y),
-                reverse_endianness(p.z)};
+                reverse_endianness(p.x()),
+                reverse_endianness(p.y()),
+                reverse_endianness(p.z())};
         });
 
     std::transform(
         std::begin(normals),
         std::end(normals),
         std::begin(normals),
-        [](normal_type const& p) {
+        [](normal_type const& n) {
             return normal_type{
-                reverse_endianness(p.x),
-                reverse_endianness(p.y),
-                reverse_endianness(p.z)};
+                reverse_endianness(n.x()),
+                reverse_endianness(n.y()),
+                reverse_endianness(n.z())};
         });
 
     return point_cloud;

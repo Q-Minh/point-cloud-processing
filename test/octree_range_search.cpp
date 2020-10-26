@@ -8,10 +8,10 @@ SCENARIO("range searches on the octree", "[octree]")
 
     GIVEN("an octree with 1 point in each octant")
     {
-        pcp::octree_parameters_t params;
+        pcp::octree_parameters_t<pcp::point_t> params;
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
-        params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
+        params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
@@ -34,13 +34,13 @@ SCENARIO("range searches on the octree", "[octree]")
         octree.insert({.4f, .3f, .6f});    // 111
         octree.insert({-.4f, .3f, .6f});   // 011
 
-        auto const test = octree.range_search(pcp::axis_aligned_bounding_box_t{
-            pcp::point_t{.5f, .5f, .5f},
-            pcp::point_t{.5f, .5f, .5f}});
+        auto const test = octree.range_search(pcp::axis_aligned_bounding_box_t<pcp::point_t>{
+            {.5f, .5f, .5f},
+            {.5f, .5f, .5f}});
 
         WHEN("searching for points that are not contained in the queried sphere")
         {
-            pcp::sphere_t sphere;
+            pcp::sphere_t<pcp::point_t> sphere;
             sphere.position = {0.f, 0.f, 0.f};
             sphere.radius   = 0.1f;
 
@@ -49,7 +49,7 @@ SCENARIO("range searches on the octree", "[octree]")
         }
         WHEN("searching for points that are contained in the queried sphere")
         {
-            pcp::sphere_t sphere;
+            pcp::sphere_t<pcp::point_t> sphere;
             sphere.position = {.9f, .9f, .9f};
             sphere.radius   = 1.f;
 
@@ -71,7 +71,7 @@ SCENARIO("range searches on the octree", "[octree]")
         }
         WHEN("searching for points that are not contained in the queried aabb")
         {
-            pcp::axis_aligned_bounding_box_t aabb;
+            pcp::axis_aligned_bounding_box_t<pcp::point_t> aabb;
             aabb.min = {1.05f, 1.05f, 1.05f};
             aabb.max = {2.f, 2.f, 2.f};
 
@@ -80,7 +80,7 @@ SCENARIO("range searches on the octree", "[octree]")
         }
         WHEN("searching for points that are in the queried aabb")
         {
-            pcp::axis_aligned_bounding_box_t aabb;
+            pcp::axis_aligned_bounding_box_t<pcp::point_t> aabb;
             aabb.min = {-2.f, -2.f, -2.f};
             aabb.max = {0.f, 0.f, 0.f};
 

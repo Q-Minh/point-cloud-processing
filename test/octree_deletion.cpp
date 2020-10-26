@@ -55,10 +55,10 @@ SCENARIO("octree deletion", "[octree]")
         points.push_back({0.8f, -0.8f, -0.8f});
         points.push_back({0.9f, -0.9f, -0.9f});
 
-        pcp::octree_parameters_t params;
-        params.voxel_grid = pcp::axis_aligned_bounding_box_t{
-            pcp::point_t{-1.f, -1.f, -1.f},
-            pcp::point_t{1.f, 1.f, 1.f}};
+        pcp::octree_parameters_t<pcp::point_t> params;
+        params.voxel_grid = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
+            {-1.f, -1.f, -1.f},
+            {1.f, 1.f, 1.f}};
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
 

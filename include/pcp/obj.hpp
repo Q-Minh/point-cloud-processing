@@ -1,7 +1,7 @@
 #pragma once
 
-#include "normal.hpp"
-#include "point.hpp"
+#include "point_traits.hpp"
+#include "normal_traits.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -13,12 +13,15 @@
 namespace pcp {
 namespace io {
 
-template <class T, class U>
+template <class Point, class Normal>
 inline auto read_obj(std::istream& is)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
-    using point_type  = basic_point_t<T>;
-    using normal_type = basic_normal_t<U>;
+    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
+    static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
+
+    using point_type  = Point;
+    using normal_type = Normal;
 
     std::vector<point_type> points;
     std::vector<normal_type> normals;
@@ -32,18 +35,18 @@ inline auto read_obj(std::istream& is)
         {
             std::istringstream s(line.substr(2));
             point_type v;
-            s >> v.x;
-            s >> v.y;
-            s >> v.z;
+            s >> v.x();
+            s >> v.y();
+            s >> v.z();
             points.push_back(v);
         }
         else if (type == "vn")
         {
             std::istringstream s(line.substr(2));
             normal_type vn;
-            s >> vn.x;
-            s >> vn.y;
-            s >> vn.z;
+            s >> vn.x();
+            s >> vn.y();
+            s >> vn.z();
             normals.push_back(vn);
         }
     }
@@ -51,9 +54,9 @@ inline auto read_obj(std::istream& is)
     return std::make_tuple(points, normals);
 }
 
-template <class T /* vertex component type */, class U /* normal component type */>
+template <class Point, class Normal>
 inline auto read_obj(std::filesystem::path const& path)
-    -> std::tuple<std::vector<basic_point_t<T>>, std::vector<basic_normal_t<U>>>
+    -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
     if (!path.has_filename())
         return {};
@@ -69,13 +72,13 @@ inline auto read_obj(std::filesystem::path const& path)
     if (!ifs.is_open())
         return {};
 
-    return read_obj<T, U>(ifs);
+    return read_obj<Point, Normal>(ifs);
 }
 
-template <class T, class U>
+template <class Point, class Normal>
 inline void write_obj(
-    std::vector<basic_point_t<T>> const& points,
-    std::vector<basic_normal_t<U>> const& normals,
+    std::vector<Point> const& points,
+    std::vector<Normal> const& normals,
     std::filesystem::path const& path)
 {
     if (!path.has_extension() || path.extension() != "obj")
@@ -95,10 +98,10 @@ inline void write_obj(
     write_obj(points, normals, ofs);
 }
 
-template <class T, class U>
+template <class Point, class Normal>
 inline void write_obj(
-    std::vector<basic_point_t<T>> const& points,
-    std::vector<basic_normal_t<U>> const& normals,
+    std::vector<Point> const& points,
+    std::vector<Normal> const& normals,
     std::ostream& os)
 {
     bool const has_normals = !normals.empty();
@@ -106,8 +109,8 @@ inline void write_obj(
     {
         auto const& p = points[i];
 
-        std::string const v = "v " + std::to_string(p.x) + " " + std::to_string(p.y) + " " +
-                              std::to_string(p.z) + "\n";
+        std::string const v = "v " + std::to_string(p.x()) + " " + std::to_string(p.y()) + " " +
+                              std::to_string(p.z()) + "\n";
 
         os << v;
 
@@ -116,8 +119,8 @@ inline void write_obj(
 
         auto const& n = normals[i];
 
-        std::string const vn = "vn " + std::to_string(n.x) + " " + std::to_string(n.y) + " " +
-                               std::to_string(n.z) + "\n";
+        std::string const vn = "vn " + std::to_string(n.x()) + " " + std::to_string(n.y()) + " " +
+                               std::to_string(n.z()) + "\n";
 
         os << vn;
     }

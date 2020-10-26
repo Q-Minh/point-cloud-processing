@@ -31,6 +31,8 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/normal.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/ply.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/range_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/tokenize.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp

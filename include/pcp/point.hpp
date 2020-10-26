@@ -4,38 +4,49 @@
 
 namespace pcp {
 
-template <class T /* point coordinates' type */>
+template <class T /* point coordinates' ty_pe */>
 struct basic_point_t
 {
-    T x = 0., y = 0., z = 0.;
+    using coordinate_type = T;
 
-    friend basic_point_t operator*(T k, basic_point_t p)
+    T const& x() const { return x_; }
+    T const& y() const { return y_; }
+    T const& z() const { return z_; }
+
+    T& x() { return x_; }
+    T& y() { return y_; }
+    T& z() { return z_; }
+
+    basic_point_t() = default;
+    basic_point_t(T x, T y, T z) : x_(x), y_(y), z_(z) {}
+
+    friend basic_point_t operator*(coordinate_type k, basic_point_t p)
     {
         return basic_point_t{
-            k * p.x,
-            k * p.y,
-            k * p.z,
+            k * p.x_,
+            k * p.y_,
+            k * p.z_,
         };
     }
 
-    friend basic_point_t operator/(basic_point_t p, T k)
+    friend basic_point_t operator/(basic_point_t p, coordinate_type k)
     {
-        return basic_point_t{p.x / k, p.y / k, p.z / k};
+        return basic_point_t{p.x_ / k, p.y_ / k, p.z_ / k};
     }
 
     bool operator==(basic_point_t const& p) const
     {
-        if constexpr (std::is_integral_v<T>)
+        if constexpr (std::is_integral_v<coordinate_type>)
         {
-            return p.x == x && p.y == y && p.z == z;
+            return p.x_ == x_ && p.y_ == y_ && p.z_ == z_;
         }
         else
         {
-            T constexpr e     = static_cast<T>(1e-5);
-            T const dx        = std::abs(x - p.x);
-            T const dy        = std::abs(y - p.y);
-            T const dz        = std::abs(z - p.z);
-            bool const equals = (dx < e) && (dy < e) && (dz < e);
+            coordinate_type constexpr e = static_cast<coordinate_type>(1e-5);
+            coordinate_type const dx    = std::abs(x_ - p.x_);
+            coordinate_type const dy    = std::abs(y_ - p.y_);
+            coordinate_type const dz    = std::abs(z_ - p.z_);
+            bool const equals           = (dx < e) && (dy < e) && (dz < e);
             return equals;
         }
     };
@@ -44,13 +55,16 @@ struct basic_point_t
 
     basic_point_t operator+(basic_point_t const& other) const
     {
-        return basic_point_t{x + other.x, y + other.y, z + other.z};
+        return basic_point_t{x_ + other.x_, y_ + other.y_, z_ + other.z_};
     }
 
     basic_point_t operator-(basic_point_t const& other) const
     {
-        return basic_point_t{x - other.x, y - other.y, z - other.z};
+        return basic_point_t{x_ - other.x_, y_ - other.y_, z_ - other.z_};
     }
+
+  private:
+    coordinate_type x_ = 0., y_ = 0., z_ = 0.;
 };
 
 using point_t = basic_point_t<float>;

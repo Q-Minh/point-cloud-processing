@@ -1,5 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/obj.hpp>
+#include <pcp/point.hpp>
+#include <pcp/normal.hpp>
 
 SCENARIO("obj file manipulation", "[obj]")
 {
@@ -18,7 +20,7 @@ SCENARIO("obj file manipulation", "[obj]")
         std::istringstream iss{oss.str()};
         WHEN("parsing the obj's vertices and normals")
         {
-            auto [vertices, normals] = pcp::io::read_obj<float, float>(iss);
+            auto [vertices, normals] = pcp::io::read_obj<pcp::point_t, pcp::normal_t>(iss);
             THEN("the correct vertices and normals are recovered")
             {
                 REQUIRE(vertices.size() == 3u);
@@ -41,7 +43,7 @@ SCENARIO("obj file manipulation", "[obj]")
         std::istringstream iss{oss.str()};
         WHEN("parsing the obj's vertices")
         {
-            auto [vertices, normals] = pcp::io::read_obj<float, float>(iss);
+            auto [vertices, normals] = pcp::io::read_obj<pcp::point_t, pcp::normal_t>(iss);
             THEN("the correct vertices are recovered and there are no normals")
             {
                 REQUIRE(vertices.size() == 3u);
@@ -61,7 +63,7 @@ SCENARIO("obj file manipulation", "[obj]")
 
         WHEN("writing the vector of points as an obj file")
         {
-            pcp::io::write_obj<float, float>(vertices, {}, oss);
+            pcp::io::write_obj<pcp::point_t, pcp::normal_t>(vertices, {}, oss);
             THEN("the resulting obj file is valid and encodes all points")
             {
                 std::ostringstream truth_stream{};
@@ -81,7 +83,7 @@ SCENARIO("obj file manipulation", "[obj]")
             std::vector<pcp::normal_t> normals(num_points, pcp::normal_t{1.0f, 0.0f, 0.0f});
             WHEN("writing the vector of points and normals as an obj file")
             {
-                pcp::io::write_obj<float, float>(vertices, normals, oss);
+                pcp::io::write_obj<pcp::point_t, pcp::normal_t>(vertices, normals, oss);
                 THEN("the resulting obj file is valid and encodes all points with normals")
                 {
                     std::ostringstream truth_stream{};

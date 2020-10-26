@@ -8,10 +8,10 @@ SCENARIO("KNN searches on the octree", "[octree]")
 
     GIVEN("an octree with 1 point in each octant")
     {
-        pcp::octree_parameters_t params;
+        pcp::octree_parameters_t<pcp::point_t> params;
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
-        params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
+        params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
@@ -61,10 +61,10 @@ SCENARIO("KNN searches on the octree", "[octree]")
         "an octree with 1 point in 7 octants "
         "and 4 points in the other octant")
     {
-        pcp::octree_parameters_t params;
+        pcp::octree_parameters_t<pcp::point_t> params;
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
-        params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
+        params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
@@ -128,10 +128,10 @@ SCENARIO("KNN searches on the octree", "[octree]")
         std::uniform_int_distribution<std::size_t> size_distribution(1'000, 100'000);
         std::uniform_int_distribution<std::size_t> k_distribution(1u, 10u);
 
-        pcp::octree_parameters_t params;
+        pcp::octree_parameters_t<pcp::point_t> params;
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
-        params.voxel_grid    = pcp::axis_aligned_bounding_box_t{
+        params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
             pcp::point_t{-2.f, -2.f, -2.f},
             pcp::point_t{2.f, 2.f, 2.f}};
 

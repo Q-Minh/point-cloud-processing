@@ -49,10 +49,10 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
 
     points.push_back({offset + 0.9f, offset + 0.9f, offset + 0.9f});
 
-    pcp::octree_parameters_t params;
-    params.voxel_grid = pcp::axis_aligned_bounding_box_t{
-        pcp::point_t{-(offset + 1.f), -(offset + 1.f), -(offset + 1.f)},
-        pcp::point_t{offset + 1.f, offset + 1.f, offset + 1.f}};
+    pcp::octree_parameters_t<pcp::point_t> params;
+    params.voxel_grid = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
+        {-(offset + 1.f), -(offset + 1.f), -(offset + 1.f)},
+        {offset + 1.f, offset + 1.f, offset + 1.f}};
     params.node_capacity = node_capacity;
     params.max_depth     = static_cast<std::uint8_t>(max_depth);
 
@@ -78,32 +78,32 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                     return p == pcp::point_t{t, t, t};
                 }));
                 REQUIRE(std::all_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
-                    return p.x < t && p.y < t && p.z < t;
+                    return p.x() < t && p.y() < t && p.z() < t;
                 }));
 
                 auto const vector_sum = std::accumulate(
                     points.cbegin(),
                     points.cend(),
                     pcp::point_t{
-                        0.f,
+                        0.f, 0.f, 0.f
                     });
                 auto const octree_sum = std::accumulate(
                     begin,
                     end,
                     pcp::point_t{
-                        0.f,
+                        0.f, 0.f, 0.f
                     });
 
                 REQUIRE(vector_sum == octree_sum);
 
                 auto const xless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
-                    return p1.x < p2.x;
+                    return p1.x() < p2.x();
                 };
                 auto const yless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
-                    return p1.y < p2.y;
+                    return p1.y() < p2.y();
                 };
                 auto const zless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
-                    return p1.z < p2.z;
+                    return p1.z() < p2.z();
                 };
 
                 auto const vector_minmax_point_x =

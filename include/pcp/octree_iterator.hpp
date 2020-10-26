@@ -1,49 +1,58 @@
 #pragma once
 
-#include "octree_node.hpp"
+#include <stack>
 
 namespace pcp {
+
+template <class Point>
+class basic_octree_node_t;
 
 /*
  * Read-only forward iterator for points in the octree
  */
+template <class Point>
 class octree_iterator_t
 {
+    using octree_node_type = basic_octree_node_t<Point>;
+
   public:
-    using value_type        = typename octree_node_t::value_type;
+    using value_type        = typename octree_node_type::value_type;
     using difference_type   = std::size_t;
-    using reference         = typename octree_node_t::reference;
-    using pointer           = typename octree_node_t::pointer;
+    using reference         = typename octree_node_type::reference;
+    using pointer           = typename octree_node_type::pointer;
     using iterator_category = std::forward_iterator_tag;
 
-    using const_reference = typename octree_node_t::const_reference;
+    using const_reference = typename octree_node_type::const_reference;
 
   private:
-    using this_type = octree_iterator_t;
-    using point_iterator        = typename octree_node_t::points_type::iterator;
-    using const_point_iterator  = typename octree_node_t::points_type::const_iterator;
-    using octant_iterator       = typename octree_node_t::octants_type::iterator;
-    using const_octant_iterator = typename octree_node_t::octants_type::const_iterator;
+    using self_type             = octree_iterator_t<Point>;
+    using point_iterator        = typename octree_node_type::points_type::iterator;
+    using const_point_iterator  = typename octree_node_type::points_type::const_iterator;
+    using octant_iterator       = typename octree_node_type::octants_type::iterator;
+    using const_octant_iterator = typename octree_node_type::octants_type::const_iterator;
 
   public:
-    friend class octree_node_t;
+    friend class octree_node_type;
 
     octree_iterator_t() : octree_node_(nullptr), it_() {}
 
-    octree_iterator_t(octree_node_t const* octree_node) : octree_node_(nullptr), it_()
+    octree_iterator_t(octree_node_type const* octree_node) : octree_node_(nullptr), it_()
     {
         octree_node_ = get_next_node(octree_node, octree_node->octants_.cbegin());
         it_          = octree_node_->points_.cbegin();
     }
 
-    octree_iterator_t(octree_iterator_t const& other)     = default;
-    octree_iterator_t(octree_iterator_t&& other) noexcept = default;
+    octree_iterator_t(self_type const& other)     = default;
+    octree_iterator_t(self_type&& other) noexcept = default;
 
-    octree_iterator_t& operator=(octree_iterator_t const& other) = default;
+    self_type& operator=(self_type const& other) = default;
 
-    octree_node_t const* root() const
+    octree_node_type const* root() const
     {
         using stack_type = decltype(ancestor_octree_nodes_);
+
+        if (ancestor_octree_nodes_.empty())
+            return octree_node_;
 
         decltype(ancestor_octree_nodes_) copy;
         while (!ancestor_octree_nodes_.empty())
@@ -65,7 +74,7 @@ class octree_iterator_t
 
     const_reference operator*() const { return *it_; }
 
-    octree_iterator_t& operator++()
+    self_type& operator++()
     {
         /*
          * There are still points in this octree node, just
@@ -96,31 +105,32 @@ class octree_iterator_t
         return *this;
     }
 
-    octree_iterator_t const& operator++() const { return ++(const_cast<this_type&>(*this)); }
+    self_type const& operator++() const { return ++(const_cast<self_type&>(*this)); }
 
-    octree_iterator_t operator++(int)
+    self_type operator++(int)
     {
-        octree_iterator_t previous{*this};
-        ++(const_cast<this_type&>(*this));
+        self_type previous{*this};
+        ++(const_cast<self_type&>(*this));
         return previous;
     }
 
-    octree_iterator_t operator++(int) const { return const_cast<this_type&>(*this)++; }
+    self_type operator++(int) const { return const_cast<self_type&>(*this)++; }
 
-    bool operator==(octree_iterator_t const& other) const
+    bool operator==(self_type const& other) const
     {
         return (octree_node_ == other.octree_node_) && (it_ == other.it_);
     }
 
-    bool operator!=(octree_iterator_t const& other) const { return !(*this == other); }
+    bool operator!=(self_type const& other) const { return !(*this == other); }
 
-    point_t const* operator->() const { return &(*it_); }
+    Point const* operator->() const { return &(*it_); }
 
   private:
     /*
      * Returns the next node in post-order sequence.
      */
-    octree_node_t const* get_next_node(octree_node_t const* octree, const_octant_iterator begin)
+    octree_node_type const*
+    get_next_node(octree_node_type const* octree, const_octant_iterator begin)
     {
         auto const end = octree->octants_.cend();
 
@@ -154,7 +164,7 @@ class octree_iterator_t
 
         auto const is_same_octant =
             [target = octree_node_](
-                std::iterator_traits<const_octant_iterator>::reference octant) -> bool {
+                typename std::iterator_traits<const_octant_iterator>::reference octant) -> bool {
             return octant.get() == target;
         };
 
@@ -174,8 +184,8 @@ class octree_iterator_t
         it_ = octree_node_->points_.cbegin();
     }
 
-    octree_node_t const* octree_node_;
-    std::stack<octree_node_t const*> ancestor_octree_nodes_;
+    octree_node_type const* octree_node_;
+    std::stack<octree_node_type const*> ancestor_octree_nodes_;
     const_point_iterator it_;
 };
 
