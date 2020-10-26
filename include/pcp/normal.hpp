@@ -35,7 +35,7 @@ struct basic_normal_t
     {
         if constexpr (std::is_integral_v<T>)
         {
-            return n.x_ == x && n.y == y && n.z == z;
+            return n.x_ == x_ && n.y_ == y_ && n.z_ == z_;
         }
         else
         {

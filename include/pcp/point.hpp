@@ -8,6 +8,7 @@ template <class T /* point coordinates' ty_pe */>
 struct basic_point_t
 {
     using coordinate_type = T;
+    using self_type = basic_point_t<T>;
 
     T const& x() const { return x_; }
     T const& y() const { return y_; }
@@ -20,7 +21,7 @@ struct basic_point_t
     basic_point_t() = default;
     basic_point_t(T x, T y, T z) : x_(x), y_(y), z_(z) {}
 
-    friend basic_point_t operator*(coordinate_type k, basic_point_t p)
+    friend self_type operator*(coordinate_type k, self_type const& p)
     {
         return basic_point_t{
             k * p.x_,
@@ -29,12 +30,12 @@ struct basic_point_t
         };
     }
 
-    friend basic_point_t operator/(basic_point_t p, coordinate_type k)
+    friend self_type operator/(self_type const& p, coordinate_type k)
     {
-        return basic_point_t{p.x_ / k, p.y_ / k, p.z_ / k};
+        return self_type{p.x_ / k, p.y_ / k, p.z_ / k};
     }
 
-    bool operator==(basic_point_t const& p) const
+    bool operator==(self_type const& p) const
     {
         if constexpr (std::is_integral_v<coordinate_type>)
         {
@@ -51,16 +52,16 @@ struct basic_point_t
         }
     };
 
-    bool operator!=(basic_point_t const& p) const { return !(*this == p); }
+    bool operator!=(self_type const& p) const { return !(*this == p); }
 
-    basic_point_t operator+(basic_point_t const& other) const
+    self_type operator+(self_type const& other) const
     {
-        return basic_point_t{x_ + other.x_, y_ + other.y_, z_ + other.z_};
+        return self_type{x_ + other.x_, y_ + other.y_, z_ + other.z_};
     }
 
-    basic_point_t operator-(basic_point_t const& other) const
+    self_type operator-(self_type const& other) const
     {
-        return basic_point_t{x_ - other.x_, y_ - other.y_, z_ - other.z_};
+        return self_type{x_ - other.x_, y_ - other.y_, z_ - other.z_};
     }
 
   private:
