@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/tokenize.hpp>
+#include <pcp/io/tokenize.hpp>
 
 SCENARIO("string tokenization", "[tokenization]")
 {

@@ -22,20 +22,25 @@ target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/axis_aligned_bounding_box.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/endianness.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/intersections.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/obj.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_iterator.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_node.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/normal.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/ply.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/range_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/tokenize.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
+        
+        # io
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/obj.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
+        
+        # traits
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
     >
 )
 

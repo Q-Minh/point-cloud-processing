@@ -2,7 +2,7 @@
 
 #include "intersections.hpp"
 #include "octree_iterator.hpp"
-#include "point_traits.hpp"
+#include "traits/point_traits.hpp"
 
 #include <algorithm>
 #include <cassert>

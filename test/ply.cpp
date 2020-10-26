@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 #include <pcp/normal.hpp>
-#include <pcp/ply.hpp>
+#include <pcp/io/ply.hpp>
 #include <pcp/point.hpp>
 
 static std::string get_ascii_ply_file(

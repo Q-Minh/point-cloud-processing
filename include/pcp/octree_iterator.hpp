@@ -32,7 +32,7 @@ class octree_iterator_t
     using const_octant_iterator = typename octree_node_type::octants_type::const_iterator;
 
   public:
-    friend class octree_node_type;
+    friend class basic_octree_node_t<Point>;
 
     octree_iterator_t() : octree_node_(nullptr), it_() {}
 
