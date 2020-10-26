@@ -4,16 +4,16 @@
 
 namespace pcp {
 
-template <class Point>
+template <class Point, class ParamsType>
 class basic_octree_node_t;
 
 /*
  * Read-only forward iterator for points in the octree
  */
-template <class Point>
+template <class Point, class ParamsType>
 class octree_iterator_t
 {
-    using octree_node_type = basic_octree_node_t<Point>;
+    using octree_node_type = basic_octree_node_t<Point, ParamsType>;
 
   public:
     using value_type        = typename octree_node_type::value_type;
@@ -25,14 +25,14 @@ class octree_iterator_t
     using const_reference = typename octree_node_type::const_reference;
 
   private:
-    using self_type             = octree_iterator_t<Point>;
+    using self_type             = octree_iterator_t<Point, ParamsType>;
     using point_iterator        = typename octree_node_type::points_type::iterator;
     using const_point_iterator  = typename octree_node_type::points_type::const_iterator;
     using octant_iterator       = typename octree_node_type::octants_type::iterator;
     using const_octant_iterator = typename octree_node_type::octants_type::const_iterator;
 
   public:
-    friend class basic_octree_node_t<Point>;
+    friend class basic_octree_node_t<Point, ParamsType>;
 
     octree_iterator_t() : octree_node_(nullptr), it_() {}
 

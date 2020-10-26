@@ -15,10 +15,6 @@ struct is_normal<
     Normal,
     std::void_t<
         typename Normal::component_type,
-        decltype(Normal{
-            typename Normal::component_type{},
-            typename Normal::component_type{},
-            typename Normal::component_type{}}),
         decltype(std::declval<Normal&>().x()),
         decltype(std::declval<Normal&>().y()),
         decltype(std::declval<Normal&>().z()),

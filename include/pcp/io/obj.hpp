@@ -21,6 +21,8 @@ inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 
     using point_type  = Point;
     using normal_type = Normal;
+    using coordinate_type = typename point_type::coordinate_type;
+    using component_type  = typename normal_type::component_type;
 
     std::vector<point_type> points;
     std::vector<normal_type> normals;
@@ -33,19 +35,21 @@ inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
         if (type == "v ")
         {
             std::istringstream s(line.substr(2));
-            point_type v;
-            s >> v.x();
-            s >> v.y();
-            s >> v.z();
+            coordinate_type x, y, z;
+            s >> x;
+            s >> y;
+            s >> z;
+            point_type v{x, y, z};
             points.push_back(v);
         }
         else if (type == "vn")
         {
             std::istringstream s(line.substr(2));
-            normal_type vn;
-            s >> vn.x();
-            s >> vn.y();
-            s >> vn.z();
+            component_type x, y, z;
+            s >> x;
+            s >> y;
+            s >> z;
+            normal_type vn{x, y, z};
             normals.push_back(vn);
         }
     }

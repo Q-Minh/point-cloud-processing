@@ -117,6 +117,7 @@ PRIVATE
   octree_knn.cpp
   octree_range_search.cpp
   ply.cpp
+  static_knn_adjacency_list.cpp
   tokenize.cpp
 )
 

@@ -14,19 +14,24 @@ namespace pcp {
  * Interesting applications of octrees include efficient collision detection,
  * k-nearest-neighbor searches and range queries.
  */
-template <class Point>
+template <class Point, class ParamsType = octree_parameters_t<Point>>
 class basic_octree_t
 {
   public:
-    using octree_node_type = basic_octree_node_t<Point>;
-    using params_type      = typename octree_node_type::params_type;
-    using iterator         = octree_iterator_t<Point>;
+    using octree_node_type = basic_octree_node_t<Point, ParamsType>;
+    using params_type      = ParamsType;
+    using aabb_type        = typename ParamsType::aabb_type;
+    using aabb_point_type  = typename aabb_type::point_type;
+    using iterator         = octree_iterator_t<Point, ParamsType>;
     using const_iterator   = iterator const;
     using value_type       = Point;
     using reference        = value_type&;
     using const_reference  = value_type const&;
     using pointer          = value_type*;
     using const_pointer    = value_type const*;
+    using self_type        = basic_octree_t<Point, params_type>;
+
+    basic_octree_t(self_type&& other) = default;
 
     explicit basic_octree_t(params_type const& params) : root_(params), size_(0u) {}
 
@@ -48,8 +53,8 @@ class basic_octree_t
     std::size_t insert(ForwardIter begin, ForwardIter end)
     {
         static_assert(
-            traits::is_point_v<std::remove_cv_t<typename ForwardIter::value_type>>,
-            "ForwardIter::value_type must satisfy Point concept");
+            traits::is_point_view_v<std::remove_cv_t<typename ForwardIter::value_type>>,
+            "ForwardIter::value_type must satisfy PointView concept");
         auto const inserted = root_.insert(begin, end);
         size_ += inserted;
         return inserted;

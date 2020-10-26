@@ -1,16 +1,15 @@
 #pragma once
 
+#include "common/norm.hpp"
 #include "intersections.hpp"
 #include "octree_iterator.hpp"
 #include "traits/point_traits.hpp"
-#include "common/norm.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <memory>
 #include <numeric>
 #include <queue>
-#include <stack>
 #include <vector>
 
 namespace pcp {
@@ -18,28 +17,32 @@ namespace pcp {
 template <class Point>
 struct octree_parameters_t
 {
+    using aabb_type  = axis_aligned_bounding_box_t<Point>;
+    using point_type = Point;
+
     std::uint32_t node_capacity = 1u;
     std::uint8_t max_depth      = 21;
-    axis_aligned_bounding_box_t<Point> voxel_grid{};
+    aabb_type voxel_grid{};
 };
 
-template <class Point>
+template <class PointView, class ParamsType>
 class octree_iterator_t;
 
-template <class Point>
+template <class PointView, class ParamsType>
 class basic_octree_node_t
 {
-    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
+    static_assert(traits::is_point_view_v<PointView>, "PointView must satisfy PointView concept");
 
   public:
-    friend class octree_iterator_t<Point>;
+    friend class octree_iterator_t<PointView, ParamsType>;
 
-    using self_type       = basic_octree_node_t<Point>;
-    using params_type     = octree_parameters_t<Point>;
-    using aabb_type       = axis_aligned_bounding_box_t<Point>;
-    using iterator        = octree_iterator_t<Point>;
+    using self_type       = basic_octree_node_t<PointView, ParamsType>;
+    using params_type     = ParamsType;
+    using aabb_type       = typename ParamsType::aabb_type;
+    using aabb_point_type = typename aabb_type::point_type;
+    using iterator        = octree_iterator_t<PointView, ParamsType>;
     using const_iterator  = iterator const;
-    using value_type      = Point;
+    using value_type      = PointView;
     using reference       = value_type&;
     using const_reference = value_type const&;
     using pointer         = value_type*;
@@ -82,12 +85,12 @@ class basic_octree_node_t
             begin,
             end,
             static_cast<std::size_t>(0u),
-            [this](std::size_t const count, Point const& p) {
+            [this](std::size_t const count, PointView const& p) {
                 return this->insert(p) ? count + 1 : count;
             });
     }
 
-    bool insert(Point const& p)
+    bool insert(PointView const& p)
     {
         /*
          * If the point does not reside in the voxel grid
@@ -130,7 +133,7 @@ class basic_octree_node_t
          * subdivided in 8 separate octants, there can be
          * only 1 octant that contains this point.
          */
-        Point const center = voxel_grid_.center();
+        auto const center = voxel_grid_.center();
 
         /*
          * Since we know that an octree may only have 8
@@ -241,20 +244,20 @@ class basic_octree_node_t
          */
         params.max_depth = max_depth_ - std::uint8_t{1u};
 
-        params.voxel_grid.min.x() = octants_bitmask & 0b100 ? center.x() : voxel_grid_.min.x();
-        params.voxel_grid.max.x() = octants_bitmask & 0b100 ? voxel_grid_.max.x() : center.x();
+        params.voxel_grid.min.x(octants_bitmask & 0b100 ? center.x() : voxel_grid_.min.x());
+        params.voxel_grid.max.x(octants_bitmask & 0b100 ? voxel_grid_.max.x() : center.x());
 
-        params.voxel_grid.min.y() = octants_bitmask & 0b010 ? center.y() : voxel_grid_.min.y();
-        params.voxel_grid.max.y() = octants_bitmask & 0b010 ? voxel_grid_.max.y() : center.y();
+        params.voxel_grid.min.y(octants_bitmask & 0b010 ? center.y() : voxel_grid_.min.y());
+        params.voxel_grid.max.y(octants_bitmask & 0b010 ? voxel_grid_.max.y() : center.y());
 
-        params.voxel_grid.min.z() = octants_bitmask & 0b001 ? center.z() : voxel_grid_.min.z();
-        params.voxel_grid.max.z() = octants_bitmask & 0b001 ? voxel_grid_.max.z() : center.z();
+        params.voxel_grid.min.z(octants_bitmask & 0b001 ? center.z() : voxel_grid_.min.z());
+        params.voxel_grid.max.z(octants_bitmask & 0b001 ? voxel_grid_.max.z() : center.z());
 
         octant = std::make_unique<self_type>(params);
         return octant->insert(p);
     }
 
-    const_iterator find(Point const& p) const
+    const_iterator find(PointView const& p) const
     {
         /**
          * Pretty much the same implementation as an insert, except we return the found point
@@ -312,7 +315,7 @@ class basic_octree_node_t
          */
         if (next.ancestor_octree_nodes_.empty())
         {
-            return octree_iterator_t<Point>{};
+            return const_iterator{};
         }
 
         /*
@@ -345,14 +348,14 @@ class basic_octree_node_t
         return next;
     }
 
-    std::vector<Point> nearest_neighbours(Point const& target, std::size_t k) const
+    std::vector<PointView> nearest_neighbours(PointView const& target, std::size_t k) const
     {
         if (k <= 0u)
             return {};
 
         struct min_heap_node_t
         {
-            Point const* p     = nullptr;
+            PointView const* p = nullptr;
             self_type const* o = nullptr;
             bool is_point      = false;
         };
@@ -364,8 +367,8 @@ class basic_octree_node_t
          */
         auto const greater =
             [&target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            Point const& p1 = h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(target);
-            Point const& p2 = h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(target);
+            auto const& p1 = h1.is_point ? *h1.p : PointView{h1.o->voxel_grid_.nearest_point_from(target)};
+            auto const& p2 = h2.is_point ? *h2.p : PointView{h2.o->voxel_grid_.nearest_point_from(target)};
 
             auto const d1 = common::squared_distance(target, p1);
             auto const d2 = common::squared_distance(target, p2);
@@ -396,7 +399,7 @@ class basic_octree_node_t
          */
         min_heap.push(min_heap_node_t{nullptr, this, false});
 
-        std::vector<Point> knearest_points{};
+        std::vector<PointView> knearest_points{};
         // we only need up to k elements, so we can reserve the memory upfront
         knearest_points.reserve(k);
 
@@ -420,7 +423,9 @@ class basic_octree_node_t
              */
             if (heap_node.is_point)
             {
-                knearest_points.push_back(*heap_node.p);
+                auto const& p = *heap_node.p;
+                if (p != target)
+                    knearest_points.push_back(p);
                 continue;
             }
 
@@ -452,7 +457,7 @@ class basic_octree_node_t
     }
 
     template <class Range>
-    void range_search(Range const& range, std::vector<Point>& points_in_range) const
+    void range_search(Range const& range, std::vector<PointView>& points_in_range) const
     {
         for (auto const& p : points_)
             if (range.contains(p))
@@ -484,14 +489,14 @@ class basic_octree_node_t
     }
 
   protected:
-    const_iterator do_find(Point const& p, iterator& it) const
+    const_iterator do_find(PointView const& p, iterator& it) const
     {
         it.octree_node_ = this;
         it.it_          = std::find(points_.cbegin(), points_.cend(), p);
         if (it.it_ != points_.cend())
             return it;
 
-        Point const center            = voxel_grid_.center();
+        auto const center             = voxel_grid_.center();
         std::uint64_t octants_bitmask = 0b000;
 
         if (p.x() > center.x())
@@ -511,7 +516,7 @@ class basic_octree_node_t
     }
 
   private:
-    using points_type  = std::vector<Point>;
+    using points_type  = std::vector<PointView>;
     using octants_type = std::array<std::unique_ptr<self_type>, 8>;
 
     typename octants_type::const_iterator take_point_from_first_nonempty_octant()

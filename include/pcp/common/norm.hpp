@@ -8,11 +8,13 @@
 namespace pcp {
 namespace common {
 
-template <class Vector3d>
-static inline typename Vector3d::component_type
-inner_product(Vector3d const& v1, Vector3d const& v2)
+template <class Vector3d1, class Vector3d2>
+static inline typename Vector3d1::component_type
+inner_product(Vector3d1 const& v1, Vector3d2 const& v2)
 {
-    static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
+    static_assert(
+        traits::is_vector3d_v<Vector3d1> && traits::is_vector3d_v<Vector3d2>,
+        "Vector3d1 and Vector3d2 must satisfy Vector3d concept");
 
     auto const xx = v2.x() * v1.x();
     auto const yy = v2.y() * v1.y();
@@ -26,7 +28,7 @@ struct l2
 };
 
 template <class Vector3d, class Norm = l2>
-typename Vector3d::component_type norm(Vector3d const& v1, Vector3d const& v2, Norm const&);
+typename Vector3d::component_type norm(Vector3d const& v, Norm const&);
 
 template <class Vector3d, class Norm>
 static inline typename Vector3d::component_type norm(Vector3d const& v, l2 const&)
@@ -51,12 +53,16 @@ static inline typename Vector3d::component_type norm(Vector3d const& v, l2 const
  *
  * since we are squaring both sides of the equation.
  */
-template <class Point>
-static inline typename Point::coordinate_type squared_distance(Point const& p1, Point const& p2)
+template <class Point1, class Point2>
+static inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point2 const& p2)
 {
-    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
-    auto const& diff = p2 - p1;
-    return inner_product(diff, diff);
+    static_assert(
+        traits::is_point_view_v<Point1> && traits::is_point_view_v<Point2>,
+        "Point1 and Point2 must satisfy PointView concept");
+    auto const dx = p2.x() - p1.x();
+    auto const dy = p2.y() - p1.y();
+    auto const dz = p2.z() - p1.z();
+    return dx * dx + dy * dy + dz * dz;
 }
 
 } // namespace common

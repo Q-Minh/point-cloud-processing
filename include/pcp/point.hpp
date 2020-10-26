@@ -4,7 +4,7 @@
 
 namespace pcp {
 
-template <class T /* point coordinates' ty_pe */>
+template <class T /* point coordinates' type */>
 struct basic_point_t
 {
     using component_type = T;
@@ -15,11 +15,14 @@ struct basic_point_t
     T const& y() const { return y_; }
     T const& z() const { return z_; }
 
-    T& x() { return x_; }
-    T& y() { return y_; }
-    T& z() { return z_; }
+    void x(T const& x) { x_ = x; }
+    void y(T const& y) { y_ = y; }
+    void z(T const& z) { z_ = z; }
 
     basic_point_t() = default;
+    basic_point_t(self_type const& other) = default;
+    basic_point_t(self_type&& other) = default;
+    self_type& operator=(self_type const& other) = default;
     basic_point_t(T x, T y, T z) : x_(x), y_(y), z_(z) {}
 
     friend self_type operator*(coordinate_type k, self_type const& p)

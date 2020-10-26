@@ -23,17 +23,20 @@ INTERFACE
     $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/intersections.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/knn_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_iterator.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_node.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/normal.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point_view.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
         
         # common
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/distance.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
+
+        # graph
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
 
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp
@@ -42,6 +45,8 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
         
         # traits
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_search_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp

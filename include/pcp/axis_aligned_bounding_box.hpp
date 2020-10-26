@@ -10,21 +10,25 @@ namespace pcp {
 template <class Point>
 struct axis_aligned_bounding_box_t
 {
+    using point_type = Point;
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
 
-    Point min{}, max{};
+    Point min{0.f, 0.f, 0.f}, max{0.f, 0.f, 0.f};
 
     /**
      * Containment predicate.
      * @return <code>true</code> if point <code>p</code> is contained in this AABB
      */
-    bool contains(Point const& p) const
+    template <class TPoint>
+    bool contains(TPoint const& p) const
     {
-        auto const greater_than_or_equal = [](Point const& p1, Point const& p2) -> bool {
+        static_assert(traits::is_point_view_v<TPoint>, "TPoint must satisfy PointView concept");
+
+        auto const greater_than_or_equal = [](TPoint const& p1, Point const& p2) -> bool {
             return p1.x() >= p2.x() && p1.y() >= p2.y() && p1.z() >= p2.z();
         };
 
-        auto const less_than_or_equal = [](Point const& p1, Point const& p2) -> bool {
+        auto const less_than_or_equal = [](TPoint const& p1, Point const& p2) -> bool {
             return p1.x() <= p2.x() && p1.y() <= p2.y() && p1.z() <= p2.z();
         };
 
@@ -42,12 +46,14 @@ struct axis_aligned_bounding_box_t
      * @param p The point closest to the returned point
      * @return The closest point from this AABB to the point <code>p</code>
      */
-    Point nearest_point_from(Point const& p) const
+    template <class TPoint>
+    Point nearest_point_from(TPoint const& p) const
     {
-        Point nearest_point = p;
-        nearest_point.x()   = std::clamp(nearest_point.x(), min.x(), max.x());
-        nearest_point.y()   = std::clamp(nearest_point.y(), min.y(), max.y());
-        nearest_point.z()   = std::clamp(nearest_point.z(), min.z(), max.z());
+        static_assert(traits::is_point_view_v<TPoint>, "TPoint must satisfy PointView concept");
+        Point nearest_point{p.x(), p.y(), p.z()};
+        nearest_point.x(std::clamp(nearest_point.x(), min.x(), max.x()));
+        nearest_point.y(std::clamp(nearest_point.y(), min.y(), max.y()));
+        nearest_point.z(std::clamp(nearest_point.z(), min.z(), max.z()));
 
         return nearest_point;
     }
