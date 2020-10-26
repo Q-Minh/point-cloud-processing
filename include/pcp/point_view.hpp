@@ -18,7 +18,7 @@ class point_view_t
     using coordinate_type = typename point_type::coordinate_type;
     using T               = component_type;
 
-    point_view_t()                                = default;
+    point_view_t()                       = default;
     point_view_t(self_type const& other) = default;
     point_view_t(self_type&& other)      = default;
     self_type& operator=(self_type const& other) = default;
@@ -35,8 +35,21 @@ class point_view_t
     T& y() { return (*point_).y(); }
     T& z() { return (*point_).z(); }
 
-    bool operator!=(self_type const& other) const { return *point_ != *(other.point_); }
-    bool operator==(self_type const& other) const { return *point_ == *(other.point_); }
+    template <class PointView>
+    bool operator==(PointView const& other) const
+    {
+        T constexpr e     = static_cast<T>(1e-5);
+        T const dx        = std::abs(x() - other.x());
+        T const dy        = std::abs(y() - other.y());
+        T const dz        = std::abs(z() - other.z());
+        bool const equals = (dx < e) && (dy < e) && (dz < e);
+        return equals;
+    }
+    template <class PointView>
+    bool operator!=(PointView const& other) const
+    {
+        return !(*this == other);
+    }
 
   private:
     point_type* point_;
