@@ -83,9 +83,8 @@ SCENARIO("octree insertion", "[octree]")
         points.push_back({0.9f, -0.9f, -0.9f});
 
         pcp::octree_parameters_t<pcp::point_t> params;
-        params.voxel_grid = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
-            {-1.f, -1.f, -1.f},
-            {1.f, 1.f, 1.f}};
+        params.voxel_grid =
+            pcp::axis_aligned_bounding_box_t<pcp::point_t>{{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
 
         WHEN("the octree's node capacity = 1")
         {

@@ -45,9 +45,9 @@ struct axis_aligned_bounding_box_t
     Point nearest_point_from(Point const& p) const
     {
         Point nearest_point = p;
-        nearest_point.x()       = std::clamp(nearest_point.x(), min.x(), max.x());
-        nearest_point.y()       = std::clamp(nearest_point.y(), min.y(), max.y());
-        nearest_point.z()       = std::clamp(nearest_point.z(), min.z(), max.z());
+        nearest_point.x()   = std::clamp(nearest_point.x(), min.x(), max.x());
+        nearest_point.y()   = std::clamp(nearest_point.y(), min.y(), max.y());
+        nearest_point.z()   = std::clamp(nearest_point.z(), min.z(), max.z());
 
         return nearest_point;
     }

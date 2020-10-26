@@ -60,7 +60,7 @@ struct basic_normal_t
         return basic_normal_t{x_ - other.x_, y_ - other.y_, z_ - other.z_};
     }
 
-private:
+  private:
     T x_ = 0., y_ = 0., z_ = 0.;
 };
 

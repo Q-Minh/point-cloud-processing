@@ -191,78 +191,18 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 
     // can only support float component types for both vertex and normal
     auto const parse_ply_ascii = [&is](ply_parameters_t const& params) -> return_type {
-        if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return read_ply_ascii<Point, Normal>(is, params);
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::double_precision)
-        {
-            return {};
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::double_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return {};
-        }
-        else
-        {
-            return {};
-        }
+        return read_ply_ascii<Point, Normal>(is, params);
     };
 
     // can only support float component types for both vertex and normal
     auto const parse_ply_binary_little_endian =
         [&is](ply_parameters_t const& params) -> return_type {
-        if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return read_ply_binary_little_endian<Point, Normal>(is, params);
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::double_precision)
-        {
-            return {};
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::double_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return {};
-        }
-        else
-        {
-            return {};
-        }
+        return read_ply_binary_little_endian<Point, Normal>(is, params);
     };
 
     // can only support float component types for both vertex and normal
     auto const parse_ply_binary_big_endian = [&is](ply_parameters_t const& params) -> return_type {
-        if (params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return read_ply_binary_big_endian<Point, Normal>(is, params);
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::single_precision &&
-            params.normal_component_type == ply_coordinate_type_t::double_precision)
-        {
-            return {};
-        }
-        else if (
-            params.vertex_component_type == ply_coordinate_type_t::double_precision &&
-            params.normal_component_type == ply_coordinate_type_t::single_precision)
-        {
-            return {};
-        }
-        else
-        {
-            return {};
-        }
+        return read_ply_binary_big_endian<Point, Normal>(is, params);
     };
 
     switch (ply_params.format)
@@ -284,9 +224,11 @@ inline void write_ply(
     using point_type  = Point;
     using normal_type = Normal;
 
-    std::string const vertex_component_type = std::is_same_v<typename Point::coordinate_type, double> ? "double" : "float";
+    std::string const vertex_component_type =
+        std::is_same_v<typename Point::coordinate_type, double> ? "double" : "float";
 
-    std::string const normal_component_type = std::is_same_v<typename Normal::coordinate_type, double> ? "double" : "float";
+    std::string const normal_component_type =
+        std::is_same_v<typename Normal::coordinate_type, double> ? "double" : "float";
 
     std::ostringstream header_stream{};
     header_stream << "ply\n";

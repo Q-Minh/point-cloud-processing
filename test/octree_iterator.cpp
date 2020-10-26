@@ -81,18 +81,9 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                     return p.x() < t && p.y() < t && p.z() < t;
                 }));
 
-                auto const vector_sum = std::accumulate(
-                    points.cbegin(),
-                    points.cend(),
-                    pcp::point_t{
-                        0.f, 0.f, 0.f
-                    });
-                auto const octree_sum = std::accumulate(
-                    begin,
-                    end,
-                    pcp::point_t{
-                        0.f, 0.f, 0.f
-                    });
+                auto const vector_sum =
+                    std::accumulate(points.cbegin(), points.cend(), pcp::point_t{0.f, 0.f, 0.f});
+                auto const octree_sum = std::accumulate(begin, end, pcp::point_t{0.f, 0.f, 0.f});
 
                 REQUIRE(vector_sum == octree_sum);
 

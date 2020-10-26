@@ -19,7 +19,9 @@ static inline typename Point::coordinate_type squared_distance(Point const& p1, 
 }
 
 template <class Point>
-inline bool intersects(axis_aligned_bounding_box_t<Point> const& b1, axis_aligned_bounding_box_t<Point> const& b2)
+inline bool intersects(
+    axis_aligned_bounding_box_t<Point> const& b1,
+    axis_aligned_bounding_box_t<Point> const& b2)
 {
     return (b1.max.x() >= b2.min.x() && b1.max.y() >= b2.min.y() && b1.max.z() >= b2.min.z()) &&
            (b1.min.x() <= b2.max.x() && b1.min.y() <= b2.max.y() && b1.min.z() <= b2.max.z());

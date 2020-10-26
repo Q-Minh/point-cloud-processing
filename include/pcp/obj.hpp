@@ -1,7 +1,7 @@
 #pragma once
 
-#include "point_traits.hpp"
 #include "normal_traits.hpp"
+#include "point_traits.hpp"
 
 #include <filesystem>
 #include <fstream>
@@ -14,8 +14,7 @@ namespace pcp {
 namespace io {
 
 template <class Point, class Normal>
-inline auto read_obj(std::istream& is)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
@@ -99,10 +98,8 @@ inline void write_obj(
 }
 
 template <class Point, class Normal>
-inline void write_obj(
-    std::vector<Point> const& points,
-    std::vector<Normal> const& normals,
-    std::ostream& os)
+inline void
+write_obj(std::vector<Point> const& points, std::vector<Normal> const& normals, std::ostream& os)
 {
     bool const has_normals = !normals.empty();
     for (std::size_t i = 0; i < points.size(); ++i)

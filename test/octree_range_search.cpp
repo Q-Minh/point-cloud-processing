@@ -34,9 +34,8 @@ SCENARIO("range searches on the octree", "[octree]")
         octree.insert({.4f, .3f, .6f});    // 111
         octree.insert({-.4f, .3f, .6f});   // 011
 
-        auto const test = octree.range_search(pcp::axis_aligned_bounding_box_t<pcp::point_t>{
-            {.5f, .5f, .5f},
-            {.5f, .5f, .5f}});
+        auto const test = octree.range_search(
+            pcp::axis_aligned_bounding_box_t<pcp::point_t>{{.5f, .5f, .5f}, {.5f, .5f, .5f}});
 
         WHEN("searching for points that are not contained in the queried sphere")
         {

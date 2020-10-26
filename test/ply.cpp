@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
+#include <pcp/normal.hpp>
 #include <pcp/ply.hpp>
 #include <pcp/point.hpp>
-#include <pcp/normal.hpp>
 
 static std::string get_ascii_ply_file(
     std::size_t num_points,
@@ -121,7 +121,11 @@ SCENARIO("ply file manipulation", "[ply]")
         {
             WHEN("writing in ascii format")
             {
-                pcp::io::write_ply<pcp::point_t, pcp::normal_t>(oss, vertices, {}, pcp::io::ply_format_t::ascii);
+                pcp::io::write_ply<pcp::point_t, pcp::normal_t>(
+                    oss,
+                    vertices,
+                    {},
+                    pcp::io::ply_format_t::ascii);
                 THEN("the resulting ply file is valid and encodes all points")
                 {
                     std::string const truth =
