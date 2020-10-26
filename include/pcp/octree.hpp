@@ -1,6 +1,7 @@
 #pragma once
 
 #include "octree_node.hpp"
+#include "point.hpp"
 #include "traits/range_traits.hpp"
 
 namespace pcp {

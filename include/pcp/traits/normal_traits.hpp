@@ -14,16 +14,16 @@ template <class Normal>
 struct is_normal<
     Normal,
     std::void_t<
-        typename Normal::coordinate_type,
+        typename Normal::component_type,
         decltype(Normal{
-            typename Normal::coordinate_type{},
-            typename Normal::coordinate_type{},
-            typename Normal::coordinate_type{}}),
+            typename Normal::component_type{},
+            typename Normal::component_type{},
+            typename Normal::component_type{}}),
         decltype(std::declval<Normal&>().x()),
         decltype(std::declval<Normal&>().y()),
         decltype(std::declval<Normal&>().z()),
-        decltype(std::declval<typename Normal::coordinate_type>() * std::declval<Normal&>()),
-        decltype(std::declval<Normal&>() / std::declval<typename Normal::coordinate_type>()),
+        decltype(std::declval<typename Normal::component_type>() * std::declval<Normal&>()),
+        decltype(std::declval<Normal&>() / std::declval<typename Normal::component_type>()),
         decltype(std::declval<Normal&>() + std::declval<Normal&>()),
         decltype(std::declval<Normal&>() - std::declval<Normal&>()),
         decltype(std::declval<Normal&>() == std::declval<Normal&>()),

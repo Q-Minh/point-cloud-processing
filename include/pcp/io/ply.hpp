@@ -228,7 +228,7 @@ inline void write_ply(
         std::is_same_v<typename Point::coordinate_type, double> ? "double" : "float";
 
     std::string const normal_component_type =
-        std::is_same_v<typename Normal::coordinate_type, double> ? "double" : "float";
+        std::is_same_v<typename Normal::component_type, double> ? "double" : "float";
 
     std::ostringstream header_stream{};
     header_stream << "ply\n";

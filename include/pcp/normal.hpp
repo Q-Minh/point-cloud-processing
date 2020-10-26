@@ -5,7 +5,7 @@ namespace pcp {
 template <class T>
 struct basic_normal_t
 {
-    using coordinate_type = T;
+    using component_type = T;
 
     basic_normal_t() = default;
     basic_normal_t(T x, T y, T z) : x_(x), y_(y), z_(z) {}

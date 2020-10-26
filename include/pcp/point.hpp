@@ -7,6 +7,7 @@ namespace pcp {
 template <class T /* point coordinates' ty_pe */>
 struct basic_point_t
 {
+    using component_type = T;
     using coordinate_type = T;
     using self_type = basic_point_t<T>;
 

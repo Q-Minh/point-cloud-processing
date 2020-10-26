@@ -23,6 +23,7 @@ INTERFACE
     $<BUILD_INTERFACE:
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/intersections.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/knn_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_iterator.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_node.hpp
@@ -31,16 +32,20 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
         
+        # common
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/distance.hpp
+
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/obj.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
         
         # traits
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/vector3d_traits.hpp
     >
 )
 

@@ -3,6 +3,7 @@
 #include "intersections.hpp"
 #include "octree_iterator.hpp"
 #include "traits/point_traits.hpp"
+#include "common/norm.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -349,24 +350,6 @@ class basic_octree_node_t
         if (k <= 0u)
             return {};
 
-        /*
-         * The l2-norm is defined as sqrt(x*x + y*y + z*z), but we don't actually need
-         * the sqrt computation for distance comparisons:
-         *
-         * Having points p1 and p2, we have that:
-         * sqrt((p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2) < sqrt((p2.x-p.x)^2 + (p2.y-p.y)^2 +
-         * (p2.z-p.z)^2) is equivalent to (p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2 < (p2.x-p.x)^2
-         * + (p2.y-p.y)^2 + (p2.z-p.z)^2
-         *
-         * since we are squaring both sides of the equation.
-         */
-        auto const distance = [](Point const& p1, Point const& p2) -> float {
-            auto const x = (p2.x() - p1.x());
-            auto const y = (p2.y() - p1.y());
-            auto const z = (p2.z() - p1.z());
-            return x * x + y * y + z * z;
-        };
-
         struct min_heap_node_t
         {
             Point const* p     = nullptr;
@@ -380,12 +363,12 @@ class basic_octree_node_t
          * is the point/octant of this octree nearest to the reference point p.
          */
         auto const greater =
-            [&distance, &target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
+            [&target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
             Point const& p1 = h1.is_point ? *h1.p : h1.o->voxel_grid_.nearest_point_from(target);
             Point const& p2 = h2.is_point ? *h2.p : h2.o->voxel_grid_.nearest_point_from(target);
 
-            auto const d1 = distance(target, p1);
-            auto const d2 = distance(target, p2);
+            auto const d1 = common::squared_distance(target, p1);
+            auto const d2 = common::squared_distance(target, p2);
 
             return d1 > d2;
         };
