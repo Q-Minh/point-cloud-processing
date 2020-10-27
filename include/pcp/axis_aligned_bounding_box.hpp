@@ -4,6 +4,7 @@
 
 #include <algorithm>
 #include <array>
+#include <limits>
 
 namespace pcp {
 
@@ -58,5 +59,44 @@ struct axis_aligned_bounding_box_t
         return nearest_point;
     }
 };
+
+template <class ForwardIter, class Point>
+inline axis_aligned_bounding_box_t<Point> bounding_box(ForwardIter begin, ForwardIter end)
+{
+    using aabb_type       = axis_aligned_bounding_box_t<Point>;
+    using point_view_type = typename std::iterator_traits<ForwardIter>::value_type;
+
+    static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
+    static_assert(
+        traits::is_point_v<point_view_type>,
+        "std::iterator_traits<ForwardIter>::value_type must satisfy PointView concept");
+
+    aabb_type aabb;
+    aabb.min.x(std::numeric_limits<typename Point::coordinate_type>::max());
+    aabb.min.y(std::numeric_limits<typename Point::coordinate_type>::max());
+    aabb.min.z(std::numeric_limits<typename Point::coordinate_type>::max());
+    aabb.max.x(std::numeric_limits<typename Point::coordinate_type>::min());
+    aabb.max.y(std::numeric_limits<typename Point::coordinate_type>::min());
+    aabb.max.z(std::numeric_limits<typename Point::coordinate_type>::min());
+
+    aabb = std::reduce(begin, end, aabb, [](aabb_type& bbox, point_view_type const& p) {
+        if (p.x() < bbox.min.x())
+            bbox.min.x(p.x());
+        if (p.y() < bbox.min.y())
+            bbox.min.y(p.y());
+        if (p.z() < bbox.min.z())
+            bbox.min.z(p.z());
+        if (p.x() > bbox.max.x())
+            bbox.max.x(p.x());
+        if (p.y() > bbox.max.y())
+            bbox.max.y(p.y());
+        if (p.z() > bbox.max.z())
+            bbox.max.z(p.z());
+
+        return bbox;
+    });
+
+    return aabb;
+}
 
 } // namespace pcp

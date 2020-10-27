@@ -15,9 +15,9 @@ struct basic_point_t
     T const& y() const { return y_; }
     T const& z() const { return z_; }
 
-    void x(T const& x) { x_ = x; }
-    void y(T const& y) { y_ = y; }
-    void z(T const& z) { z_ = z; }
+    void x(T const& value) { x_ = value; }
+    void y(T const& value) { y_ = value; }
+    void z(T const& value) { z_ = value; }
 
     basic_point_t() = default;
     basic_point_t(self_type const& other) = default;

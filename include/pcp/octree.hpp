@@ -44,8 +44,8 @@ class basic_octree_t
     std::size_t size() const { return size_; }
     bool empty() const { return size() == 0u; }
     void clear() { root_.clear(); }
-    const_iterator begin() const { return const_iterator(&root_); }
-    const_iterator end() const { return const_iterator{}; }
+    const_iterator begin() const { return iterator(&root_); }
+    const_iterator end() const { return iterator{}; }
     const_iterator cbegin() const { return const_iterator(&root_); }
     const_iterator cend() const { return const_iterator{}; }
 
