@@ -3,6 +3,7 @@ project(pcp VERSION 0.0.1 LANGUAGES CXX)
 
 option(PCP_BUILD_TESTS "build tests (requires catch2)" ON)
 option(PCP_BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
+option(PCP_BUILD_EXAMPLES "build examples" ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
@@ -115,4 +116,8 @@ endif()
 
 if (PCP_BUILD_BENCHMARKS)
     add_subdirectory(benchmark)
+endif()
+
+if (PCP_BUILD_EXAMPLES)
+    add_subdirectory(examples)
 endif()

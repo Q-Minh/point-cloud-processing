@@ -1,0 +1,34 @@
+#include <iostream>
+#include <pcp/io/ply.hpp>
+#include <pcp/normal.hpp>
+#include <pcp/point.hpp>
+
+int main(int argc, char** argv)
+{
+    if (argc != 4)
+    {
+        std::cerr << "Usage:\n"
+            << "./pcp-ply.exe <input ply file path> <output ply file path> <format>\n\n"
+            << "\t'format'\tascii | binary_little_endian | binary_big_endian\n";
+
+        return 0;
+    }
+
+    std::filesystem::path ply_point_cloud = argv[1];
+    auto [points, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(ply_point_cloud);
+
+    std::cout << "Read ply point cloud\n"
+              << "Vertices: " << std::to_string(points.size()) << "\n"
+              << "Normals: " << std::to_string(normals.size()) << "\n";
+
+    std::cout << "Writing to " << argv[2] << "\n";
+
+    std::filesystem::path out = argv[2];
+    pcp::io::write_ply(
+        out,
+        points,
+        normals,
+        pcp::io::string_to_format(argv[3]));
+
+    return 0;
+}

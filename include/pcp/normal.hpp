@@ -13,9 +13,9 @@ struct basic_normal_t
     T const& x() const { return x_; }
     T const& y() const { return y_; }
     T const& z() const { return z_; }
-    T& x() { return x_; }
-    T& y() { return y_; }
-    T& z() { return z_; }
+    void x(T value) { x_ = value; }
+    void y(T value) { y_ = value; }
+    void z(T value) { z_ = value; }
 
     friend basic_normal_t operator*(T k, basic_normal_t p)
     {

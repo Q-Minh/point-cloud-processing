@@ -15,8 +15,6 @@ if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Cla
     endif()
 endif()
 
-target_link_libraries(pcp INTERFACE eigen)
-
 target_compile_options(pcp-tests
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:

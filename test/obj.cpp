@@ -63,7 +63,7 @@ SCENARIO("obj file manipulation", "[obj]")
 
         WHEN("writing the vector of points as an obj file")
         {
-            pcp::io::write_obj<pcp::point_t, pcp::normal_t>(vertices, {}, oss);
+            pcp::io::write_obj<pcp::point_t, pcp::normal_t>(oss, vertices, {});
             THEN("the resulting obj file is valid and encodes all points")
             {
                 std::ostringstream truth_stream{};
@@ -83,7 +83,7 @@ SCENARIO("obj file manipulation", "[obj]")
             std::vector<pcp::normal_t> normals(num_points, pcp::normal_t{1.0f, 0.0f, 0.0f});
             WHEN("writing the vector of points and normals as an obj file")
             {
-                pcp::io::write_obj<pcp::point_t, pcp::normal_t>(vertices, normals, oss);
+                pcp::io::write_obj<pcp::point_t, pcp::normal_t>(oss, vertices, normals);
                 THEN("the resulting obj file is valid and encodes all points with normals")
                 {
                     std::ostringstream truth_stream{};

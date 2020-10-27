@@ -64,13 +64,13 @@ inline auto read_obj(std::filesystem::path const& path)
     if (!path.has_filename())
         return {};
 
-    if (!path.has_extension() || path.extension() != "obj")
+    if (!path.has_extension() || path.extension() != ".obj")
         return {};
 
     if (!std::filesystem::exists(path))
         return {};
 
-    std::ifstream ifs{path.c_str()};
+    std::ifstream ifs{path.c_str(), std::ios::binary};
 
     if (!ifs.is_open())
         return {};
@@ -80,11 +80,11 @@ inline auto read_obj(std::filesystem::path const& path)
 
 template <class Point, class Normal>
 inline void write_obj(
+    std::filesystem::path const& path,
     std::vector<Point> const& points,
-    std::vector<Normal> const& normals,
-    std::filesystem::path const& path)
+    std::vector<Normal> const& normals)
 {
-    if (!path.has_extension() || path.extension() != "obj")
+    if (!path.has_extension() || path.extension() != ".obj")
         return;
 
     if (points.empty())
@@ -93,7 +93,7 @@ inline void write_obj(
     if (points.size() != normals.size())
         return;
 
-    std::ofstream ofs{path.c_str()};
+    std::ofstream ofs{path.c_str(), std::ios::binary};
 
     if (!ofs.is_open())
         return;
@@ -103,7 +103,7 @@ inline void write_obj(
 
 template <class Point, class Normal>
 inline void
-write_obj(std::vector<Point> const& points, std::vector<Normal> const& normals, std::ostream& os)
+write_obj(std::ostream& os, std::vector<Point> const& points, std::vector<Normal> const& normals)
 {
     bool const has_normals = !normals.empty();
     for (std::size_t i = 0; i < points.size(); ++i)

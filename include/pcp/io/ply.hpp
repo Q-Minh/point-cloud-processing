@@ -28,7 +28,18 @@ struct ply_parameters_t
     std::size_t normal_count                    = 0u;
     ply_coordinate_type_t vertex_component_type = ply_coordinate_type_t::single_precision;
     ply_coordinate_type_t normal_component_type = ply_coordinate_type_t::single_precision;
-    std::size_t end_header_offset               = 0u;
+};
+
+inline ply_format_t string_to_format(std::string const& s)
+{
+    ply_format_t format = ply_format_t::ascii;
+    if (s == "ascii")
+        format = ply_format_t::ascii;
+    if (s == "binary_little_endian")
+        format = ply_format_t::binary_little_endian;
+    if (s == "binary_big_endian")
+        format = ply_format_t::binary_big_endian;
+    return format;
 };
 
 template <class Point, class Normal>
@@ -57,13 +68,13 @@ inline auto read_ply(std::filesystem::path const& path)
     if (!path.has_filename())
         return {};
 
-    if (!path.has_extension() || path.extension() != "ply")
+    if (!path.has_extension() || path.extension() != ".ply")
         return {};
 
     if (!std::filesystem::exists(path))
         return {};
 
-    std::ifstream fs{path.filename()};
+    std::ifstream fs{path.string(), std::ios::binary};
 
     if (!fs.is_open())
         return {};
@@ -79,17 +90,6 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
     using return_type = std::tuple<std::vector<Point>, std::vector<Normal>>;
 
     ply_parameters_t ply_params;
-
-    auto const string_to_format = [](std::string const& s) -> ply_format_t {
-        ply_format_t format = ply_format_t::ascii;
-        if (s == "ascii")
-            format = ply_format_t::ascii;
-        if (s == "binary_little_endian")
-            format = ply_format_t::binary_little_endian;
-        if (s == "binary_big_endian")
-            format = ply_format_t::binary_big_endian;
-        return format;
-    };
 
     auto const string_to_coordinate_type = [](std::string const& s) -> ply_coordinate_type_t {
         ply_coordinate_type_t type = ply_coordinate_type_t::single_precision;
@@ -137,14 +137,23 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
     };
 
     std::string line;
+    bool is_ply = false;
 
     /**
      * Read ply header
      */
     while (std::getline(is, line))
     {
-        ply_params.end_header_offset += line.size();
         auto const tokens = tokenize(line);
+
+        if (!is_ply)
+        {
+            if (tokens.front() != "ply")
+                return {};
+
+            is_ply = true;
+            continue;
+        }
 
         if (tokens.empty())
             continue;
@@ -189,29 +198,36 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
             break;
     }
 
-    // can only support float component types for both vertex and normal
-    auto const parse_ply_ascii = [&is](ply_parameters_t const& params) -> return_type {
-        return read_ply_ascii<Point, Normal>(is, params);
-    };
-
-    // can only support float component types for both vertex and normal
-    auto const parse_ply_binary_little_endian =
-        [&is](ply_parameters_t const& params) -> return_type {
-        return read_ply_binary_little_endian<Point, Normal>(is, params);
-    };
-
-    // can only support float component types for both vertex and normal
-    auto const parse_ply_binary_big_endian = [&is](ply_parameters_t const& params) -> return_type {
-        return read_ply_binary_big_endian<Point, Normal>(is, params);
-    };
-
     switch (ply_params.format)
     {
-        case ply_format_t::ascii: return parse_ply_ascii(ply_params);
-        case ply_format_t::binary_little_endian: return parse_ply_binary_little_endian(ply_params);
-        case ply_format_t::binary_big_endian: return parse_ply_binary_big_endian(ply_params);
+        case ply_format_t::ascii: return read_ply_ascii<Point, Normal>(is, ply_params);
+        case ply_format_t::binary_little_endian:
+            return read_ply_binary_little_endian<Point, Normal>(is, ply_params);
+        case ply_format_t::binary_big_endian:
+            return read_ply_binary_big_endian<Point, Normal>(is, ply_params);
         default: return {};
     }
+}
+
+template <class Point, class Normal>
+inline void write_ply(
+    std::filesystem::path const& filepath,
+    std::vector<Point> const& vertices,
+    std::vector<Normal> const& normals,
+    ply_format_t format = ply_format_t::ascii)
+{
+    if (!filepath.has_extension() || filepath.extension() != ".ply")
+        return;
+
+    if (vertices.empty())
+        return;
+
+    std::ofstream ofs{filepath.c_str(), std::ios::binary};
+
+    if (!ofs.is_open())
+        return;
+
+    write_ply<Point, Normal>(ofs, vertices, normals, format);
 }
 
 template <class Point, class Normal>
