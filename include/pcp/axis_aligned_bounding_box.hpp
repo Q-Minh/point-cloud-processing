@@ -15,7 +15,7 @@ struct axis_aligned_bounding_box_t
     using point_type = Point;
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
 
-    Point min{0.f, 0.f, 0.f}, max{0.f, 0.f, 0.f};
+    Point min{0., 0., 0.}, max{0., 0., 0.};
 
     /**
      * Containment predicate.

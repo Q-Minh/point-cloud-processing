@@ -14,22 +14,23 @@ namespace pcp {
  * Interesting applications of octrees include efficient collision detection,
  * k-nearest-neighbor searches and range queries.
  */
-template <class Point, class ParamsType = octree_parameters_t<Point>>
+template <class PointView, class ParamsType = octree_parameters_t<point_t>>
 class basic_octree_t
 {
   public:
-    using octree_node_type = basic_octree_node_t<Point, ParamsType>;
+    using octree_node_type = basic_octree_node_t<PointView, ParamsType>;
+    using point_view_type  = PointView;
     using params_type      = ParamsType;
     using aabb_type        = typename ParamsType::aabb_type;
     using aabb_point_type  = typename aabb_type::point_type;
-    using iterator         = octree_iterator_t<Point, ParamsType>;
+    using iterator         = octree_iterator_t<point_view_type, ParamsType>;
     using const_iterator   = iterator const;
-    using value_type       = Point;
+    using value_type       = point_view_type;
     using reference        = value_type&;
     using const_reference  = value_type const&;
     using pointer          = value_type*;
     using const_pointer    = value_type const*;
-    using self_type        = basic_octree_t<Point, params_type>;
+    using self_type        = basic_octree_t<point_view_type, params_type>;
 
     basic_octree_t(self_type&& other) = default;
 
@@ -60,7 +61,7 @@ class basic_octree_t
         return inserted;
     }
 
-    bool insert(Point const& p)
+    bool insert(point_view_type const& p)
     {
         bool const inserted = root_.insert(p);
         if (inserted)
@@ -75,7 +76,7 @@ class basic_octree_t
      * @param p Point to search for in the octree
      * @return iterator to the found point in the octree, or end iterator if it was not found
      */
-    const_iterator find(Point const& p) const { return root_.find(p); }
+    const_iterator find(point_view_type const& p) const { return root_.find(p); }
 
     /*
      * Removes the point pointed-to by iterator pos.
@@ -98,7 +99,8 @@ class basic_octree_t
      * @param target    The reference point for which we want the k nearest neighbors
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
-    std::vector<Point> nearest_neighbours(Point const& target, std::size_t k) const
+    std::vector<point_view_type>
+    nearest_neighbours(point_view_type const& target, std::size_t k) const
     {
         return root_.nearest_neighbours(target, k);
     }
@@ -110,10 +112,12 @@ class basic_octree_t
      * @return A list of all points that reside in the given range
      */
     template <class Range>
-    std::vector<Point> range_search(Range const& range) const
+    std::vector<point_view_type> range_search(Range const& range) const
     {
-        static_assert(traits::is_range_v<Range, Point>, "Range must satisfy Range concept");
-        std::vector<Point> points_in_range;
+        static_assert(
+            traits::is_range_v<Range, point_view_type>,
+            "Range must satisfy Range concept");
+        std::vector<point_view_type> points_in_range;
         root_.range_search(range, points_in_range);
         return points_in_range;
     }
@@ -132,13 +136,14 @@ using octree_t = basic_octree_t<point_t>;
  */
 namespace std {
 
-template <template <class> class InputIt, class Point>
-InputIt<Point> find(InputIt<Point> first, InputIt<Point> last, Point const& value)
+template <template <class> class InputIt, class PointView>
+InputIt<PointView> find(InputIt<PointView> first, InputIt<PointView> last, PointView const& value)
 {
+    static_assert(pcp::traits::is_point_view_v<PointView>, "PointView must satisfy PointView concept");
     static_assert(
         std::is_same_v<
-            std::remove_cv_t<InputIt<Point>>,
-            std::remove_cv_t<typename pcp::basic_octree_t<Point>::const_iterator>>,
+            std::remove_cv_t<InputIt<PointView>>,
+            std::remove_cv_t<typename pcp::basic_octree_t<PointView>::const_iterator>>,
         "InputIt must be octree iterator");
     if (first == last)
         return last;
@@ -147,21 +152,24 @@ InputIt<Point> find(InputIt<Point> first, InputIt<Point> last, Point const& valu
     return root->find(value);
 }
 
-template <template <class> class InputIt, class Point>
-auto count(InputIt<Point> first, InputIt<Point> const last, Point const& value) ->
-    typename InputIt<Point>::difference_type
+template <template <class> class InputIt, class PointView>
+auto count(InputIt<PointView> first, InputIt<PointView> const last, PointView const& value) ->
+    typename InputIt<PointView>::difference_type
 {
     static_assert(
+        pcp::traits::is_point_view_v<PointView>,
+        "PointView must satisfy PointView concept");
+    static_assert(
         std::is_same_v<
-            std::remove_cv_t<InputIt<Point>>,
-            std::remove_cv_t<typename pcp::basic_octree_t<Point>::const_iterator>>,
+            std::remove_cv_t<InputIt<PointView>>,
+            std::remove_cv_t<typename pcp::basic_octree_t<PointView>::const_iterator>>,
         "InputIt must be octree iterator");
     if (first == last)
         return 0u;
 
     auto const* root = first.root();
-    std::vector<Point> points;
-    root->range_search(pcp::axis_aligned_bounding_box_t<Point>{value, value}, points);
+    std::vector<PointView> points;
+    root->range_search(pcp::axis_aligned_bounding_box_t<pcp::point_t>{value, value}, points);
     return points.size();
 }
 

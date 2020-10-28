@@ -37,12 +37,13 @@ class basic_octree_node_t
     friend class octree_iterator_t<PointView, ParamsType>;
 
     using self_type       = basic_octree_node_t<PointView, ParamsType>;
+    using point_view_type = PointView;
     using params_type     = ParamsType;
     using aabb_type       = typename ParamsType::aabb_type;
     using aabb_point_type = typename aabb_type::point_type;
-    using iterator        = octree_iterator_t<PointView, ParamsType>;
+    using iterator        = octree_iterator_t<point_view_type, ParamsType>;
     using const_iterator  = iterator const;
-    using value_type      = PointView;
+    using value_type      = point_view_type;
     using reference       = value_type&;
     using const_reference = value_type const&;
     using pointer         = value_type*;
@@ -85,12 +86,12 @@ class basic_octree_node_t
             begin,
             end,
             static_cast<std::size_t>(0u),
-            [this](std::size_t const count, PointView const& p) {
+            [this](std::size_t const count, point_view_type const& p) {
                 return this->insert(p) ? count + 1 : count;
             });
     }
 
-    bool insert(PointView const& p)
+    bool insert(point_view_type const& p)
     {
         /*
          * If the point does not reside in the voxel grid
@@ -257,7 +258,7 @@ class basic_octree_node_t
         return octant->insert(p);
     }
 
-    const_iterator find(PointView const& p) const
+    const_iterator find(point_view_type const& p) const
     {
         /**
          * Pretty much the same implementation as an insert, except we return the found point
@@ -348,14 +349,15 @@ class basic_octree_node_t
         return next;
     }
 
-    std::vector<PointView> nearest_neighbours(PointView const& target, std::size_t k) const
+    std::vector<point_view_type>
+    nearest_neighbours(point_view_type const& target, std::size_t k) const
     {
         if (k <= 0u)
             return {};
 
         struct min_heap_node_t
         {
-            PointView const* p = nullptr;
+            point_view_type const* p = nullptr;
             self_type const* o = nullptr;
             bool is_point      = false;
         };
@@ -399,7 +401,7 @@ class basic_octree_node_t
          */
         min_heap.push(min_heap_node_t{nullptr, this, false});
 
-        std::vector<PointView> knearest_points{};
+        std::vector<point_view_type> knearest_points{};
         // we only need up to k elements, so we can reserve the memory upfront
         knearest_points.reserve(k);
 
@@ -457,7 +459,7 @@ class basic_octree_node_t
     }
 
     template <class Range>
-    void range_search(Range const& range, std::vector<PointView>& points_in_range) const
+    void range_search(Range const& range, std::vector<point_view_type>& points_in_range) const
     {
         for (auto const& p : points_)
             if (range.contains(p))
@@ -489,7 +491,7 @@ class basic_octree_node_t
     }
 
   protected:
-    const_iterator do_find(PointView const& p, iterator& it) const
+    const_iterator do_find(point_view_type const& p, iterator& it) const
     {
         it.octree_node_ = this;
         it.it_          = std::find(points_.cbegin(), points_.cend(), p);
@@ -516,7 +518,7 @@ class basic_octree_node_t
     }
 
   private:
-    using points_type  = std::vector<PointView>;
+    using points_type  = std::vector<point_view_type>;
     using octants_type = std::array<std::unique_ptr<self_type>, 8>;
 
     typename octants_type::const_iterator take_point_from_first_nonempty_octant()
