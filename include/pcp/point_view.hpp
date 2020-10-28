@@ -18,26 +18,38 @@ class point_view_t
     using coordinate_type = typename point_type::coordinate_type;
     using T               = component_type;
 
+    explicit point_view_t(point_type* point) : point_(point) {}
     point_view_t()                       = default;
     point_view_t(self_type const& other) = default;
     point_view_t(self_type&& other)      = default;
     self_type& operator=(self_type const& other) = default;
+    self_type& operator=(self_type&& other) = default;
 
-    self_type& operator=(point_type const& other) { point_ = &other; }
-    point_view_t(point_type point) : point_(&point) {}
-    explicit point_view_t(point_type* point) : point_(point) {}
+    template <class PointView>
+    self_type& operator=(PointView const& other)
+    {
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
+        x(other.x());
+        y(other.y());
+        z(other.z());
+    }
 
-    T const& x() const { return (*point_).x(); }
-    T const& y() const { return (*point_).y(); }
-    T const& z() const { return (*point_).z(); }
+    T const& x() const { return point_->x(); }
+    T const& y() const { return point_->y(); }
+    T const& z() const { return point_->z(); }
 
-    T& x() { return (*point_).x(); }
-    T& y() { return (*point_).y(); }
-    T& z() { return (*point_).z(); }
+    void x(T value) { point_->x(value); }
+    void y(T value) { point_->y(value); }
+    void z(T value) { point_->z(value); }
 
     template <class PointView>
     bool operator==(PointView const& other) const
     {
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
         T constexpr e     = static_cast<T>(1e-5);
         T const dx        = std::abs(x() - other.x());
         T const dy        = std::abs(y() - other.y());
@@ -50,6 +62,8 @@ class point_view_t
     {
         return !(*this == other);
     }
+
+    void point(point_type* point) { point_ = point; }
 
   private:
     point_type* point_;

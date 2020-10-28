@@ -1,5 +1,7 @@
 #pragma once
 
+#include "traits/point_traits.hpp"
+
 #include <cmath>
 
 namespace pcp {
@@ -7,9 +9,9 @@ namespace pcp {
 template <class T /* point coordinates' type */>
 struct basic_point_t
 {
-    using component_type = T;
+    using component_type  = T;
     using coordinate_type = T;
-    using self_type = basic_point_t<T>;
+    using self_type       = basic_point_t<T>;
 
     T const& x() const { return x_; }
     T const& y() const { return y_; }
@@ -19,11 +21,20 @@ struct basic_point_t
     void y(T const& value) { y_ = value; }
     void z(T const& value) { z_ = value; }
 
-    basic_point_t() = default;
-    basic_point_t(self_type const& other) = default;
-    basic_point_t(self_type&& other) = default;
+    basic_point_t()                           = default;
+    basic_point_t(self_type const& other)     = default;
+    basic_point_t(self_type&& other) noexcept = default;
     self_type& operator=(self_type const& other) = default;
+    self_type& operator=(self_type&& other) noexcept = default;
     basic_point_t(T x, T y, T z) : x_(x), y_(y), z_(z) {}
+
+    template <class PointView>
+    basic_point_t(PointView const& other) : x_(other.x()), y_(other.y()), z_(other.z())
+    {
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
+    }
 
     friend self_type operator*(coordinate_type k, self_type const& p)
     {
@@ -39,8 +50,12 @@ struct basic_point_t
         return self_type{p.x_ / k, p.y_ / k, p.z_ / k};
     }
 
-    bool operator==(self_type const& p) const
+    template <class PointView>
+    bool operator==(PointView const& p) const
     {
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
         if constexpr (std::is_integral_v<coordinate_type>)
         {
             return p.x_ == x_ && p.y_ == y_ && p.z_ == z_;
@@ -48,24 +63,35 @@ struct basic_point_t
         else
         {
             coordinate_type constexpr e = static_cast<coordinate_type>(1e-5);
-            coordinate_type const dx    = std::abs(x_ - p.x_);
-            coordinate_type const dy    = std::abs(y_ - p.y_);
-            coordinate_type const dz    = std::abs(z_ - p.z_);
+            coordinate_type const dx    = std::abs(x() - p.x());
+            coordinate_type const dy    = std::abs(y() - p.y());
+            coordinate_type const dz    = std::abs(z() - p.z());
             bool const equals           = (dx < e) && (dy < e) && (dz < e);
             return equals;
         }
     };
-
-    bool operator!=(self_type const& p) const { return !(*this == p); }
-
-    self_type operator+(self_type const& other) const
+    template <class PointView>
+    bool operator!=(PointView const& p) const
     {
-        return self_type{x_ + other.x_, y_ + other.y_, z_ + other.z_};
+        return !(*this == p);
     }
 
-    self_type operator-(self_type const& other) const
+    template <class PointView>
+    self_type operator+(PointView const& other) const
     {
-        return self_type{x_ - other.x_, y_ - other.y_, z_ - other.z_};
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
+        return self_type{x() + other.x(), y() + other.y(), z() + other.z()};
+    }
+
+    template <class PointView>
+    self_type operator-(PointView const& other) const
+    {
+        static_assert(
+            traits::is_point_view_v<PointView>,
+            "PointView must satisfy PointView concept");
+        return self_type{x() - other.x(), y() - other.y(), z() - other.z()};
     }
 
   private:

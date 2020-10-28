@@ -88,7 +88,7 @@ int main(int argc, char** argv)
 
     std::size_t k = 5u;
 
-    for (vertex_t const& vertex : vertices)
+    for (vertex_t& vertex : vertices)
     {
         auto const knn = octree.nearest_neighbours(vertex, k);
 
@@ -102,25 +102,36 @@ int main(int argc, char** argv)
         Eigen::Matrix3f const Cov     = Vprime * Vprime.transpose();
         Eigen::SelfAdjointEigenSolver<decltype(Cov)> A(Cov);
         auto const l = A.eigenvalues();
+        auto const q = A.eigenvectors();
 
         pcp::normal_t normal{};
         // instead of sorting, just use 3 if statements
         // First eigenvalue is smallest
-        if (l(0) < l(1) && l(0) < l(2))
+        if (l(0) <= l(1) && l(0) <= l(2))
         {
-
+            normal = {q(0, 0), q(1, 0), q(2, 0)};
         }
         // Second eigenvalue is smallest
-        if (l(1) < l(0) && l(1) < l(2))
+        if (l(1) <= l(0) && l(1) <= l(2))
         {
-            
+            normal = {q(0, 1), q(1, 1), q(2, 1)};
         }
         // Third eigenvalue is smallest
-        if (l(2) < l(0) && l(2) < l(0))
+        if (l(2) <= l(0) && l(2) <= l(0))
         {
-            
+            normal = {q(0, 2), q(1, 2), q(2, 2)};
         }
+
+        vertex.nx(normal.x());
+        vertex.ny(normal.y());
+        vertex.nz(normal.z());
     }
+
+    pcp::io::write_ply(
+        std::filesystem::path("../../../examples/data/stanford_bunny_normals.ply" /* argv[2] */),
+        points,
+        normals,
+        pcp::io::ply_format_t::binary_little_endian);
 
     return 0;
 }

@@ -367,8 +367,8 @@ class basic_octree_node_t
          */
         auto const greater =
             [&target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            auto const& p1 = h1.is_point ? *h1.p : PointView{h1.o->voxel_grid_.nearest_point_from(target)};
-            auto const& p2 = h2.is_point ? *h2.p : PointView{h2.o->voxel_grid_.nearest_point_from(target)};
+            aabb_point_type const p1 = h1.is_point ? aabb_point_type(*h1.p) : h1.o->voxel_grid_.nearest_point_from(target);
+            aabb_point_type const p2 = h2.is_point ? aabb_point_type(*h2.p) : h2.o->voxel_grid_.nearest_point_from(target);
 
             auto const d1 = common::squared_distance(target, p1);
             auto const d2 = common::squared_distance(target, p2);
