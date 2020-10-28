@@ -49,7 +49,7 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
             std::end(points),
             std::back_inserter(vertices),
             [](auto& p) { return vertex_type(&p); });
-        
+
         THEN("collections of point_view_t and point_t compare equal")
         {
             bool const are_vertices_and_points_equal =
@@ -80,16 +80,18 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
             THEN("the graph's edge count is 'vertex_count * k nearest neighbours'")
             {
                 auto const [edges_begin, edges_end] = graph.edges();
-                auto const edge_count               = std::distance(edges_begin, edges_end);
-                REQUIRE(edge_count == static_cast<decltype(edge_count)>(vertices.size()) * k);
-                REQUIRE(edge_count == static_cast<decltype(edge_count)>(octree.size()) * k);
+                auto const edge_count =
+                    static_cast<std::size_t>(std::distance(edges_begin, edges_end));
+                REQUIRE(edge_count == vertices.size() * k);
+                REQUIRE(edge_count == octree.size() * k);
             }
             THEN("the graph's vertex count is equal to the octree's size")
             {
                 auto const [vertices_begin, vertices_end] = graph.vertices();
-                auto const vertex_count = std::distance(vertices_begin, vertices_end);
-                REQUIRE(vertex_count == static_cast<decltype(vertex_count)>(vertices.size()));
-                REQUIRE(vertex_count == static_cast<decltype(vertex_count)>(octree.size()));
+                auto const vertex_count =
+                    static_cast<std::size_t>(std::distance(vertices_begin, vertices_end));
+                REQUIRE(vertex_count == vertices.size());
+                REQUIRE(vertex_count == octree.size());
             }
             THEN("the static_knn_adjacency_list has the correct topology")
             {
@@ -99,7 +101,8 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
                 for (auto it = vertices_begin; it != vertices_end; ++it)
                 {
                     auto const [edges_begin, edges_end] = graph.out_edges_of(it);
-                    auto const edge_count               = std::distance(edges_begin, edges_end);
+                    auto const edge_count =
+                        static_cast<std::uint32_t>(std::distance(edges_begin, edges_end));
                     REQUIRE(edge_count == k);
                     for (auto eit = edges_begin; eit != edges_end; ++eit)
                     {

@@ -69,7 +69,7 @@ struct basic_point_t
             bool const equals           = (dx < e) && (dy < e) && (dz < e);
             return equals;
         }
-    };
+    }
     template <class PointView>
     bool operator!=(PointView const& p) const
     {

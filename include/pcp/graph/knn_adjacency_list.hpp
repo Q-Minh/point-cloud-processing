@@ -24,7 +24,6 @@ class static_knn_adjacency_list
     using vertices_type             = std::vector<Vertex>;
     using vertex_neighborhoods_type = std::vector<Vertex>;
     using vertex_iterator_type      = typename vertices_type::const_iterator;
-    using vertex_descriptor_type    = typename vertices_type::const_iterator;
     using edge_iterator_type        = edge_iterator_t<Vertex>;
     using edge_iterator_range       = std::pair<edge_iterator_type, edge_iterator_type>;
     using edge_descriptor_type      = edge_iterator_type;
@@ -38,8 +37,8 @@ class static_knn_adjacency_list
         : k_(k), vertices_(), vertex_neighborhoods_()
     {
         static_assert(
-            std::is_convertible_v<std::remove_cv_t<typename ForwardIter::value_type>,
-            vertex_type>, "ForwardIter::value_type must be convertible to Vertex");
+            std::is_convertible_v<std::remove_cv_t<typename ForwardIter::value_type>, vertex_type>,
+            "ForwardIter::value_type must be convertible to Vertex");
         static_assert(
             traits::is_knn_searcher_v<KnnSearcher, vertex_type, k_type>,
             "KnnSearcher must satisfy KnnSearcher concept");
@@ -53,14 +52,16 @@ class static_knn_adjacency_list
 
     edge_iterator_range edges() const
     {
+        using diff_t = typename edge_iterator_type::difference_type;
         return {
             edge_iterator_type{const_cast<self_type&>(*this)},
-            edge_iterator_type{const_cast<self_type&>(*this), vertex_neighborhoods_.size()}};
+            edge_iterator_type{const_cast<self_type&>(*this), static_cast<diff_t>(vertex_neighborhoods_.size())}};
     }
 
-    edge_iterator_range out_edges_of(vertex_descriptor_type const& v) const
+    edge_iterator_range out_edges_of(vertex_iterator_type const& v) const
     {
-        auto const n      = std::distance<vertex_descriptor_type>(std::begin(vertices_), v);
+        auto const n =
+            std::distance<vertex_iterator_type>(std::begin(vertices_), v);
         auto const offset = n * k_;
         auto const end    = offset + k_;
         return {
@@ -109,7 +110,6 @@ class edge_iterator_t
     using graph_type                = static_knn_adjacency_list<Vertex>;
     using vertices_type             = typename graph_type::vertices_type;
     using vertex_neighborhoods_type = typename graph_type::vertex_neighborhoods_type;
-    using vertex_descriptor_type    = typename graph_type::vertex_descriptor_type;
 
     using value_type        = typename std::pair<Vertex, Vertex>;
     using reference         = value_type;
@@ -118,11 +118,10 @@ class edge_iterator_t
     using const_pointer     = value_type const*;
     using iterator_category = std::random_access_iterator_tag;
     using difference_type   = typename vertices_type::difference_type;
-    using size_type         = typename vertices_type::size_type;
 
     edge_iterator_t(self_type const&) = default;
     edge_iterator_t(graph_type& graph) : graph_(graph), n_() {}
-    edge_iterator_t(graph_type& graph, size_type n) : graph_(graph), n_(n) {}
+    edge_iterator_t(graph_type& graph, difference_type n) : graph_(graph), n_(n) {}
 
     reference operator*() const
     {

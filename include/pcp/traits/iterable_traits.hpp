@@ -11,10 +11,12 @@ struct is_iterable : std::false_type
 };
 
 template <class Iterable, class Element>
-struct is_iterable<Iterable, Element, std::void_t<
-    decltype(std::declval<Iterable&>().begin()),
-    decltype(std::declval<Iterable&>().end())
->> : std::true_type 
+struct is_iterable<
+    Iterable,
+    Element,
+    std::void_t<
+        decltype(std::declval<Iterable&>().begin()),
+        decltype(std::declval<Iterable&>().end())>> : std::true_type
 {
     static_assert(
         std::is_convertible_v<decltype(*std::declval<Iterable&>().begin()), Element>,

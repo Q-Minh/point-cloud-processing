@@ -102,7 +102,7 @@ int main(int argc, char** argv)
         Eigen::Matrix3f const Cov     = Vprime * Vprime.transpose();
         Eigen::SelfAdjointEigenSolver<decltype(Cov)> A(Cov);
         auto const l = A.eigenvalues();
-        auto const q = A.eigenvectors();
+        auto const& q = A.eigenvectors();
 
         pcp::normal_t normal{};
         // instead of sorting, just use 3 if statements
@@ -117,7 +117,7 @@ int main(int argc, char** argv)
             normal = {q(0, 1), q(1, 1), q(2, 1)};
         }
         // Third eigenvalue is smallest
-        if (l(2) <= l(0) && l(2) <= l(0))
+        if (l(2) <= l(0) && l(2) <= l(1))
         {
             normal = {q(0, 2), q(1, 2), q(2, 2)};
         }

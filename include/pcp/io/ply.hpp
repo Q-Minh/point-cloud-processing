@@ -40,7 +40,7 @@ inline ply_format_t string_to_format(std::string const& s)
     if (s == "binary_big_endian")
         format = ply_format_t::binary_big_endian;
     return format;
-};
+}
 
 template <class Point, class Normal>
 inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>;
@@ -87,7 +87,6 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 {
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
-    using return_type = std::tuple<std::vector<Point>, std::vector<Normal>>;
 
     ply_parameters_t ply_params;
 
