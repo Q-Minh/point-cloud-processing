@@ -8,8 +8,8 @@ int main(int argc, char** argv)
     if (argc != 4)
     {
         std::cerr << "Usage:\n"
-            << "./pcp-ply.exe <input ply file path> <output ply file path> <format>\n\n"
-            << "\t'format'\tascii | binary_little_endian | binary_big_endian\n";
+                  << "./pcp-ply.exe <input ply file path> <output ply file path> <format>\n\n"
+                  << "\t'format'\tascii | binary_little_endian | binary_big_endian\n";
 
         return 0;
     }
@@ -24,11 +24,7 @@ int main(int argc, char** argv)
     std::cout << "Writing to " << argv[2] << "\n";
 
     std::filesystem::path out = argv[2];
-    pcp::io::write_ply(
-        out,
-        points,
-        normals,
-        pcp::io::string_to_format(argv[3]));
+    pcp::io::write_ply(out, points, normals, pcp::io::string_to_format(argv[3]));
 
     return 0;
 }

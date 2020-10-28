@@ -27,7 +27,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
 
         WHEN("searching for k nearest neighbors with k=1")
         {
-            auto const k                            = 1u;
+            auto const k = 1u;
 
             auto const reference111                 = pcp::point_t{.51f, .51f, .51f};
             auto const& nearest_neighbors_octant111 = octree.nearest_neighbours(reference111, k);

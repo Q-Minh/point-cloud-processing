@@ -19,8 +19,8 @@ inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
 
-    using point_type  = Point;
-    using normal_type = Normal;
+    using point_type      = Point;
+    using normal_type     = Normal;
     using coordinate_type = typename point_type::coordinate_type;
     using component_type  = typename normal_type::component_type;
 

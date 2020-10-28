@@ -139,7 +139,9 @@ namespace std {
 template <template <class> class InputIt, class PointView>
 InputIt<PointView> find(InputIt<PointView> first, InputIt<PointView> last, PointView const& value)
 {
-    static_assert(pcp::traits::is_point_view_v<PointView>, "PointView must satisfy PointView concept");
+    static_assert(
+        pcp::traits::is_point_view_v<PointView>,
+        "PointView must satisfy PointView concept");
     static_assert(
         std::is_same_v<
             std::remove_cv_t<InputIt<PointView>>,

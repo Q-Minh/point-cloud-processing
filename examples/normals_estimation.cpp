@@ -101,7 +101,7 @@ int main(int argc, char** argv)
         Eigen::Matrix3Xf const Vprime = V.colwise() - Mu;
         Eigen::Matrix3f const Cov     = Vprime * Vprime.transpose();
         Eigen::SelfAdjointEigenSolver<decltype(Cov)> A(Cov);
-        auto const l = A.eigenvalues();
+        auto const l  = A.eigenvalues();
         auto const& q = A.eigenvectors();
 
         pcp::normal_t normal{};

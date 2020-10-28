@@ -6,7 +6,7 @@ namespace pcp {
 namespace traits {
 
 template <class Vector3d, class = void>
-struct is_vector3d : std::false_type 
+struct is_vector3d : std::false_type
 {
 };
 
@@ -23,8 +23,7 @@ struct is_vector3d<
         decltype(std::declval<Vector3d&>() + std::declval<Vector3d&>()),
         decltype(std::declval<Vector3d&>() - std::declval<Vector3d&>()),
         decltype(std::declval<Vector3d&>() == std::declval<Vector3d&>()),
-        decltype(std::declval<Vector3d&>() != std::declval<Vector3d&>())
-    >> : std::true_type 
+        decltype(std::declval<Vector3d&>() != std::declval<Vector3d&>())>> : std::true_type
 {
 };
 

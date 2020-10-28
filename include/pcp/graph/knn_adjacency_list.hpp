@@ -55,13 +55,14 @@ class static_knn_adjacency_list
         using diff_t = typename edge_iterator_type::difference_type;
         return {
             edge_iterator_type{const_cast<self_type&>(*this)},
-            edge_iterator_type{const_cast<self_type&>(*this), static_cast<diff_t>(vertex_neighborhoods_.size())}};
+            edge_iterator_type{
+                const_cast<self_type&>(*this),
+                static_cast<diff_t>(vertex_neighborhoods_.size())}};
     }
 
     edge_iterator_range out_edges_of(vertex_iterator_type const& v) const
     {
-        auto const n =
-            std::distance<vertex_iterator_type>(std::begin(vertices_), v);
+        auto const n      = std::distance<vertex_iterator_type>(std::begin(vertices_), v);
         auto const offset = n * k_;
         auto const end    = offset + k_;
         return {
