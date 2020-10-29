@@ -1,6 +1,6 @@
-function(add_example target_name source_file)
+function(add_example folder_name target_name source_file)
   add_executable(${target_name})
-  set_target_properties(${target_name} PROPERTIES FOLDER ${target_name})
+  set_target_properties(${target_name} PROPERTIES FOLDER ${folder_name})
 
   target_sources(${target_name}
   PRIVATE
@@ -19,5 +19,5 @@ function(add_example target_name source_file)
   )
 endfunction()
 
-add_example(pcp-normals-estimation normals_estimation.cpp)
-add_example(pcp-ply ply.cpp)
+add_example("examples" pcp-normals-estimation normals_estimation.cpp)
+add_example("examples" pcp-ply ply.cpp)
