@@ -37,7 +37,9 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
 
         # graph
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimal_spanning_tree.hpp
 
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp

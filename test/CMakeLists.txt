@@ -106,18 +106,18 @@ PRIVATE
 
 target_sources(pcp-tests
 PRIVATE
-  main.cpp
-  obj.cpp
-  octree_deletion.cpp
-  octree_find.cpp
-  octree_insertion.cpp
-  octree_iterator.cpp
-  octree_knn.cpp
-  octree_range_search.cpp
-  ply.cpp
-  static_knn_adjacency_list.cpp
-  tokenize.cpp
-)
+  "main.cpp"
+  "obj.cpp"
+  "octree_deletion.cpp"
+  "octree_find.cpp"
+  "octree_insertion.cpp"
+  "octree_iterator.cpp"
+  "octree_knn.cpp"
+  "octree_range_search.cpp"
+  "ply.cpp"
+  "static_knn_adjacency_list.cpp"
+  "tokenize.cpp"
+  "adjacency_list.cpp")
 
 include(FetchContent)
 FetchContent_Declare(
