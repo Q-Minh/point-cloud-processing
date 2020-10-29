@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <pcp/traits/graph_traits.hpp>
 #include <pcp/graph/knn_adjacency_list.hpp>
 #include <pcp/octree.hpp>
 #include <pcp/point.hpp>
@@ -11,6 +12,10 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
         using point_type  = pcp::point_t;
         using vertex_type = pcp::point_view_t<point_type>;
         using graph_type  = pcp::graph::static_knn_adjacency_list<vertex_type>;
+
+        static_assert(
+            pcp::traits::is_directed_graph_v<graph_type>,
+            "DirectedGraph concept not satisfied");
 
         auto const push_back_cluster =
             [](std::vector<point_type>& points, pcp::point_t const& c, float radius) {

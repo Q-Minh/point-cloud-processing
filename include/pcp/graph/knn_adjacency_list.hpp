@@ -24,9 +24,9 @@ class static_knn_adjacency_list
     using vertices_type             = std::vector<Vertex>;
     using vertex_neighborhoods_type = std::vector<Vertex>;
     using vertex_iterator_type      = typename vertices_type::const_iterator;
+    using vertex_iterator_range     = std::pair<vertex_iterator_type, vertex_iterator_type>;
     using edge_iterator_type        = edge_iterator_t<Vertex>;
     using edge_iterator_range       = std::pair<edge_iterator_type, edge_iterator_type>;
-    using edge_descriptor_type      = edge_iterator_type;
 
     static_knn_adjacency_list() noexcept                       = default;
     static_knn_adjacency_list(self_type const& other) noexcept = default;
@@ -45,7 +45,7 @@ class static_knn_adjacency_list
         build_from(begin, end, std::forward<KnnSearcher>(knn));
     }
 
-    std::pair<vertex_iterator_type, vertex_iterator_type> vertices() const
+    vertex_iterator_range vertices() const
     {
         return {std::begin(vertices_), std::end(vertices_)};
     };

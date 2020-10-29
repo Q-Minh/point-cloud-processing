@@ -46,6 +46,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
         
         # traits
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_search_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
