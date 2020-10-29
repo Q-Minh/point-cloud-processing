@@ -19,7 +19,7 @@ struct vertex_t
     vertex_t(self_type&& other)      = default;
     self_type& operator=(self_type const& other) = default;
     self_type& operator=(self_type&& other) = default;
-    explicit vertex_t(pcp::point_t other) : point_(&other), normal_(nullptr) {}
+    explicit vertex_t(pcp::point_t& other) : point_(&other), normal_(nullptr) {}
     explicit vertex_t(pcp::point_t* other) : point_(other), normal_(nullptr) {}
     explicit vertex_t(pcp::point_t* p, pcp::normal_t* n) : point_(p), normal_(n) {}
 

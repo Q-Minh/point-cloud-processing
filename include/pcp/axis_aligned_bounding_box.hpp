@@ -80,7 +80,7 @@ inline axis_aligned_bounding_box_t<Point> bounding_box(ForwardIter begin, Forwar
     aabb.max.y(std::numeric_limits<typename Point::coordinate_type>::min());
     aabb.max.z(std::numeric_limits<typename Point::coordinate_type>::min());
 
-    aabb = std::reduce(begin, end, aabb, [](aabb_type& bbox, point_view_type const& p) {
+    aabb = std::accumulate(begin, end, aabb, [](aabb_type& bbox, point_view_type const& p) {
         if (p.x() < bbox.min.x())
             bbox.min.x(p.x());
         if (p.y() < bbox.min.y())
