@@ -150,7 +150,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     /**
                      * Delete third vertex of original graph.
                      * Any edge that referenced the third vertex should be deleted.
-                     * In this test case, the edge (6, 2) references the third vertex 
+                     * In this test case, the edge (6, 2) references the third vertex
                      * and should be deleted.
                      */
                     auto const it2 = graph.remove_vertex(it1 + 1);
@@ -165,8 +165,10 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                         REQUIRE(graph.edge_count() == 9u);
                         auto const [edges_begin, edges_end] = graph.edges();
                         REQUIRE(std::distance(edges_begin, edges_end) == 9);
-                        auto const sum1 = std::reduce(edges_begin, edges_begin + 3, 0u, reduce_op);
-                        auto const sum2 = std::reduce(edges_begin + 3, edges_end, 0u, reduce_op);
+                        auto const sum1 =
+                            std::accumulate(edges_begin, edges_begin + 3, 0u, reduce_op);
+                        auto const sum2 =
+                            std::accumulate(edges_begin + 3, edges_end, 0u, reduce_op);
                         REQUIRE(sum1 == 16u);
                         REQUIRE(sum2 == 34u);
                     }

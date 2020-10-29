@@ -2,6 +2,7 @@
 
 #include "pcp/traits/knn_search_traits.hpp"
 
+#include <cstdint>
 #include <utility>
 #include <vector>
 
@@ -87,9 +88,8 @@ class static_knn_adjacency_list_t
         auto it = begin;
         for (size_t i = 0; i < vertex_count; ++i, ++it)
         {
-            vertex_type const& vertex      = *it;
-            auto const neighbors           = knn(vertex, k_);
-            auto const neighborhood_offset = i * k_;
+            vertex_type const& vertex = *it;
+            auto const neighbors      = knn(vertex, k_);
             vertices_.push_back(vertex);
             std::copy(
                 std::begin(neighbors),

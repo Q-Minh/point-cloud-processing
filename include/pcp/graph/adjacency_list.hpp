@@ -57,11 +57,11 @@ class adjacency_list_t
     size_type vertex_count() const { return vertices_.size(); }
     size_type edge_count() const
     {
-        return std::reduce(
+        return std::accumulate(
             std::cbegin(connectivity_),
             std::cend(connectivity_),
             size_type{},
-            [](size_type const& count, std::vector<size_type> const& edges) {
+            [](size_type const count, std::vector<size_type> const& edges) {
                 return count + edges.size();
             });
     }
@@ -94,10 +94,11 @@ class adjacency_list_t
 
     vertex_iterator_type add_vertex(vertex_type const& v)
     {
-        auto const idx = vertices_.size();
+        auto const idx    = vertices_.size();
+        auto const offset = static_cast<difference_type>(idx);
         vertices_.push_back(v);
         connectivity_.push_back({});
-        return std::begin(vertices_) + idx;
+        return std::begin(vertices_) + offset;
     }
 
     vertex_iterator_type remove_vertex(vertex_iterator_type const& vit)
@@ -105,7 +106,7 @@ class adjacency_list_t
         difference_type const offset = std::distance(std::begin(vertices_), vit);
         size_type const idx          = static_cast<size_type>(offset);
         auto next                    = vertices_.erase(vit);
-        connectivity_.erase(std::begin(connectivity_) + idx);
+        connectivity_.erase(std::begin(connectivity_) + offset);
         for (auto& neighbors : connectivity_)
         {
             if (neighbors.empty())
@@ -194,8 +195,10 @@ class adjacency_list_edge_iterator_t
 
     reference operator*() const
     {
-        auto u = std::begin(graph_.vertices_) + i_;
-        auto v = std::begin(graph_.vertices_) + graph_.connectivity_[i_][j_];
+        auto const ioffset         = static_cast<difference_type>(i_);
+        auto u                     = std::begin(graph_.vertices_) + ioffset;
+        auto const neighbor_offset = static_cast<difference_type>(graph_.connectivity_[i_][j_]);
+        auto v                     = std::begin(graph_.vertices_) + neighbor_offset;
         return {u, v};
     }
 
@@ -262,7 +265,7 @@ class adjacency_list_edge_iterator_t
                 static_cast<difference_type>(graph_.connectivity_[i].size() - j);
             if (remaining_increments > n)
             {
-                j += n;
+                j += static_cast<size_type>(n);
                 break;
             }
             n -= remaining_increments;
@@ -277,14 +280,18 @@ class adjacency_list_edge_iterator_t
 
     difference_type operator-(self_type const& other) const
     {
-        auto const reduce_op = [](auto const& s, auto const& edges) {
-            return s + edges.size();
+        auto const reduce_op = [](auto const s, auto const& edges) {
+            return s + static_cast<difference_type>(edges.size());
         };
-        auto const begin = std::cbegin(graph_.connectivity_);
-        auto const end1  = begin + i();
-        auto const sum1  = std::reduce(begin, end1, size_type{}, reduce_op) + j();
-        auto const end2  = begin + other.i();
-        auto const sum2  = std::reduce(begin, end2, size_type{}, reduce_op) + other.j();
+        auto const iself  = static_cast<difference_type>(i());
+        auto const jself  = static_cast<difference_type>(j());
+        auto const iother = static_cast<difference_type>(other.i());
+        auto const jother = static_cast<difference_type>(other.j());
+        auto const begin  = std::cbegin(graph_.connectivity_);
+        auto const end1   = begin + iself;
+        auto const sum1   = std::accumulate(begin, end1, difference_type{}, reduce_op) + jself;
+        auto const end2   = begin + iother;
+        auto const sum2   = std::accumulate(begin, end2, difference_type{}, reduce_op) + jother;
         return sum1 - sum2;
     }
     self_type operator-(difference_type n) const
