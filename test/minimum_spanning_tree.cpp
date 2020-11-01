@@ -73,20 +73,20 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
 
         WHEN("computing prim's minimum spanning tree")
         {
-            auto const cost = [](vertex_type const& v1, vertex_type const& v2) -> uint8_t {
-                if ((v1 == 0u && v2 == 1u) || (v1 == 1u && v2 == 0u))
+            auto const cost = [](vertex_type const& u, vertex_type const& v) -> uint8_t {
+                if ((u == 0u && v == 1u) || (u == 1u && v == 0u))
                     return 4u;
-                if ((v1 == 0u && v2 == 2u) || (v1 == 2u && v2 == 0u))
+                if ((u == 0u && v == 2u) || (u == 2u && v == 0u))
                     return 8u;
-                if ((v1 == 0u && v2 == 3u) || (v1 == 3u && v2 == 0u))
+                if ((u == 0u && v == 3u) || (u == 3u && v == 0u))
                     return 3u;
-                if ((v1 == 0u && v2 == 4u) || (v1 == 4u && v2 == 0u))
+                if ((u == 0u && v == 4u) || (u == 4u && v == 0u))
                     return 4u;
-                if ((v1 == 1u && v2 == 2u) || (v1 == 2u && v2 == 1u))
+                if ((u == 1u && v == 2u) || (u == 2u && v == 1u))
                     return 5u;
-                if ((v1 == 3u && v2 == 2u) || (v1 == 2u && v2 == 3u))
+                if ((u == 3u && v == 2u) || (u == 2u && v == 3u))
                     return 2u;
-                if ((v1 == 4u && v2 == 3u) || (v1 == 3u && v2 == 4u))
+                if ((u == 4u && v == 3u) || (u == 3u && v == 4u))
                     return 11u;
 
                 return std::numeric_limits<uint8_t>::max();
@@ -129,18 +129,22 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
 
                 REQUIRE(std::distance(out_edges_of_a_begin, out_edges_of_a_end) == 2);
                 // check for edge (a,b)
-                auto const is_vertex_b = [](auto const& e) {
-                    auto [u, v] = e;
+                auto const is_vertex_b = [](auto const& edge) {
+                    auto [u, v] = edge;
                     return *v == 1u;
                 };
-                REQUIRE(std::find_if(out_edges_of_a_begin, out_edges_of_a_end, is_vertex_b) != out_edges_of_a_end);
+                REQUIRE(
+                    std::find_if(out_edges_of_a_begin, out_edges_of_a_end, is_vertex_b) !=
+                    out_edges_of_a_end);
 
                 // check for edge (a,d)
-                auto const is_vertex_d = [](auto const& e) {
-                    auto [u, v] = e;
+                auto const is_vertex_d = [](auto const& edge) {
+                    auto [u, v] = edge;
                     return *v == 3u;
                 };
-                REQUIRE(std::find_if(out_edges_of_a_begin, out_edges_of_a_end, is_vertex_d) != out_edges_of_a_end);
+                REQUIRE(
+                    std::find_if(out_edges_of_a_begin, out_edges_of_a_end, is_vertex_d) !=
+                    out_edges_of_a_end);
 
                 // get the edge (a,d) to extract vertex d
                 auto [ad_edge_v1, ad_edge_v2] =

@@ -44,7 +44,6 @@ auto prim_minimum_spanning_tree(
         std::function<
             typename MutableDirectedGraph::vertex_iterator_type(MutableDirectedGraph&)>>
 {
-    using vertex_iterator_type       = typename DirectedGraph::vertex_iterator_type;
     using const_vertex_iterator_type = typename DirectedGraph::const_vertex_iterator_type;
     using edge_iterator_type         = typename DirectedGraph::edge_iterator_type;
     using vertex_type                = typename DirectedGraph::vertex_type;
@@ -68,7 +67,7 @@ auto prim_minimum_spanning_tree(
     auto const [vbegin, vend] = G.vertices();
     auto const vertex_count   = G.vertex_count();
 
-    auto const key_of = [vbegin](const_vertex_iterator_type it) -> size_t {
+    auto const key_of = [vbegin=vbegin](const_vertex_iterator_type it) -> size_t {
         return static_cast<size_t>(std::distance<const_vertex_iterator_type>(vbegin, it));
     };
 
@@ -141,8 +140,8 @@ auto prim_minimum_spanning_tree(
             auto const [e1, e2] = *(edge[vid].value());
             auto const id1      = key_of(e1);
             auto const id2      = key_of(e2);
-            auto const vit1     = std::next(mst_vbegin, id1);
-            auto const vit2     = std::next(mst_vbegin, id2);
+            auto const vit1     = std::next(mst_vbegin, static_cast<difference_type>(id1));
+            auto const vit2     = std::next(mst_vbegin, static_cast<difference_type>(id2));
             MST.add_edge(vit1, vit2);
         }
 
