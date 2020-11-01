@@ -11,6 +11,19 @@ namespace graph {
 template <class Vertex>
 class adjacency_list_edge_iterator_t;
 
+/**
+ * @brief Implementation of an adjacency list based graph.
+ *
+ * Uses a vector of vertices to stores the vertices and
+ * uses a vector of vectors of indices of neighbors to
+ * store connectivity information of the graph.
+ * 
+ * Space complexity is O(V * sizeof(Vertex) + E * sizeof(uint64_t))
+ *
+ * Satisfies MutableDirectedGraph concept.
+ * 
+ * @tparam Vertex Any type can be a vertex
+ */
 template <class Vertex>
 class adjacency_list_t
 {
@@ -38,6 +51,12 @@ class adjacency_list_t
     self_type& operator=(self_type const&) = default;
     self_type& operator=(self_type&&) = default;
 
+    /**
+     * @brief Constructs adjacency list using a range of elements convertible to Vertex
+     * @tparam ForwardIter Iterator type of the range
+     * @param begin
+     * @param end
+     */
     template <class ForwardIter>
     adjacency_list_t(ForwardIter begin, ForwardIter end)
     {
@@ -54,7 +73,21 @@ class adjacency_list_t
             add_vertex(*it);
     }
 
+    /**
+     * @brief Get number of vertices
+     * @return
+     */
     size_type vertex_count() const { return vertices_.size(); }
+
+    bool empty() const { return vertices_.empty(); }
+
+    /**
+     * @brief Get the number of edges in the graph.
+     *
+     * Complexity is linear in the number of vertices.
+     *
+     * @return Number of edges
+     */
     size_type edge_count() const
     {
         return std::accumulate(
@@ -66,20 +99,35 @@ class adjacency_list_t
             });
     }
 
+    /**
+     * @brief Returns a range over all vertices of this graph.
+     * @return The range 'auto range = [first, last]' of the vertices
+     */
     const_vertex_iterator_range vertices() const
     {
         return {std::cbegin(vertices_), std::cend(vertices_)};
     }
-
+    /**
+     * @brief Returns a range over all vertices of this graph.
+     * @return The range 'auto range = [first, last]' of the vertices
+     */
     vertex_iterator_range vertices() { return {std::begin(vertices_), std::end(vertices_)}; }
-
+    /**
+     * @brief Returns a range over all edges of this graph.
+     * @return The range 'auto range = [first, last]' of the edges
+     */
     edge_iterator_range edges() const
     {
         return {
             edge_iterator_type{const_cast<self_type&>(*this)},
             edge_iterator_type{const_cast<self_type&>(*this), connectivity_.size()}};
     }
-
+    /**
+     * @brief Get all outgoing edges of the vertex referenced by vit.
+     * Complexity is O(1).
+     * @param vit Iterator to the vertex from which we want to get the outgoing edges
+     * @return A range over the outgoing edges of vit
+     */
     edge_iterator_range out_edges_of(const_vertex_iterator_type vit) const
     {
         auto const begin   = std::begin(vertices_);
@@ -92,6 +140,11 @@ class adjacency_list_t
         return {edge_begin, edge_end};
     }
 
+    /**
+     * @brief Add a vertex to the graph.
+     * @param v
+     * @return Iterator to the newly added vertex
+     */
     vertex_iterator_type add_vertex(vertex_type const& v)
     {
         auto const idx    = vertices_.size();
@@ -100,7 +153,15 @@ class adjacency_list_t
         connectivity_.push_back({});
         return std::begin(vertices_) + offset;
     }
-
+    /**
+     * @brief Remove a vertex from the graph.
+     *
+     * Complexity is O(E + V)
+     *
+     * @param vit Iterator to the vertex to remove
+     * @return Iterator to the next vertex in the range of vertices [first, last] before removing
+     * vit
+     */
     vertex_iterator_type remove_vertex(vertex_iterator_type const& vit)
     {
         difference_type const offset = std::distance(std::begin(vertices_), vit);
@@ -126,6 +187,12 @@ class adjacency_list_t
         return next;
     }
 
+    /**
+     * @brief Add edge (uit, vit) to the graph
+     * @param uit Source vertex
+     * @param vit Destination vertex
+     * @return Iterator to the created edge
+     */
     edge_iterator_type add_edge(const_vertex_iterator_type uit, const_vertex_iterator_type vit)
     {
         auto const begin   = std::cbegin(vertices_);
@@ -139,6 +206,11 @@ class adjacency_list_t
         return edge_iterator_type{*this, i, j};
     }
 
+    /**
+     * @brief Removes an edge from the graph
+     * @param eit Iterator to the edge to remove
+     * @return Iterator to the next edge in the sequence [first, last]
+     */
     edge_iterator_type remove_edge(edge_iterator_type const& eit)
     {
         auto next     = eit;
@@ -151,6 +223,9 @@ class adjacency_list_t
         return next;
     }
 
+    /**
+     * @brief Clear all vertices and edges from the graph
+     */
     void clear()
     {
         vertices_.clear();

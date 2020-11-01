@@ -12,6 +12,19 @@ namespace graph {
 template <class Vertex>
 class knn_adjacency_list_edge_iterator_t;
 
+/**
+ * @brief Immutable graph of K nearest neighbors of vertices.
+ *
+ * Stores vertices as a vector of Vertex and every K
+ * neighborhood of vertices as vector of Vertex.
+ * Since all neighborhoods are of fixed size K, we
+ * store edges as chunks of K vertices sequentially
+ * in the vector of neighbors.
+ *
+ * Space complexity is O(V + K*V)
+ *
+ * @tparam Vertex Any vertex type
+ */
 template <class Vertex>
 class static_knn_adjacency_list_t
 {
@@ -33,6 +46,18 @@ class static_knn_adjacency_list_t
     static_knn_adjacency_list_t(self_type const& other) noexcept = default;
     static_knn_adjacency_list_t(self_type&& other) noexcept      = default;
 
+    /**
+     * @brief Constructs the graph from a range of vertices and a user-provided k nearest neighbors
+     * searcher.
+     *
+     * @tparam ForwardIter Type of the iterator where ForwardIter::value_type is convertible to
+     * Vertex
+     * @tparam KnnSearcher Type of callable satisfying KnnSearcher concept
+     * @param begin
+     * @param end
+     * @param k Number of neighbors to search for
+     * @param knn The knn searcher
+     */
     template <class ForwardIter, class KnnSearcher>
     static_knn_adjacency_list_t(ForwardIter begin, ForwardIter end, k_type k, KnnSearcher&& knn)
         : k_(k), vertices_(), vertex_neighborhoods_()
@@ -47,11 +72,28 @@ class static_knn_adjacency_list_t
     }
 
     bool empty() const { return vertices_.empty(); }
+
+    /**
+     * @brief Get the number of vertices in the graph
+     * @return
+     */
     size_type vertex_count() const { return vertices_.size(); }
+    /**
+     * @brief Get the number of edges in the graph
+     * @return
+     */
     size_type edge_count() const { return vertices_.size() * k_; }
 
+    /**
+     * @brief Get all vertices in the graph.
+     * @return Iterator range to all vertices of the graph
+     */
     vertex_iterator_range vertices() const { return {std::begin(vertices_), std::end(vertices_)}; };
 
+    /**
+     * @brief Get all edges in the graph.
+     * @return Iterator range to all edges of the graph
+     */
     edge_iterator_range edges() const
     {
         using diff_t = typename edge_iterator_type::difference_type;
@@ -62,6 +104,11 @@ class static_knn_adjacency_list_t
                 static_cast<diff_t>(vertex_neighborhoods_.size())}};
     }
 
+    /**
+     * @brief Get the outgoing edges of vertex v.
+     * @param v Iterator to the vertex from which we want to get the outgoing edges
+     * @return Outgoing edges of v
+     */
     edge_iterator_range out_edges_of(vertex_iterator_type const& v) const
     {
         auto const n      = std::distance<vertex_iterator_type>(std::begin(vertices_), v);
@@ -75,6 +122,15 @@ class static_knn_adjacency_list_t
     k_type const& k() const { return k_; }
     void k(k_type k) { k_ = k; }
 
+    /**
+     * @brief Construct graph from range of vertices and knn searcher.
+     * @tparam ForwardIter Type of the iterator where ForwardIter::value_type is convertible to
+     * Vertex
+     * @tparam KnnSearcher Type of callable satisfying KnnSearcher concept
+     * @param begin
+     * @param end
+     * @param knn The knn searcher
+     */
     template <class ForwardIter, class KnnSearcher>
     void build_from(ForwardIter begin, ForwardIter end, KnnSearcher&& knn)
     {
