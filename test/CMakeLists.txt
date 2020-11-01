@@ -117,7 +117,8 @@ PRIVATE
   "ply.cpp"
   "static_knn_adjacency_list.cpp"
   "tokenize.cpp"
-  "adjacency_list.cpp")
+  "directed_adjacency_list.cpp" 
+  "minimum_spanning_tree.cpp")
 
 include(FetchContent)
 FetchContent_Declare(

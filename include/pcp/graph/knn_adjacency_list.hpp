@@ -31,16 +31,19 @@ class static_knn_adjacency_list_t
     friend class knn_adjacency_list_edge_iterator_t<Vertex>;
 
   public:
-    using vertex_type               = std::remove_cv_t<Vertex>;
-    using self_type                 = static_knn_adjacency_list_t<Vertex>;
-    using k_type                    = std::uint32_t;
-    using vertices_type             = std::vector<Vertex>;
-    using vertex_neighborhoods_type = std::vector<Vertex>;
-    using vertex_iterator_type      = typename vertices_type::const_iterator;
-    using vertex_iterator_range     = std::pair<vertex_iterator_type, vertex_iterator_type>;
-    using edge_iterator_type        = knn_adjacency_list_edge_iterator_t<Vertex>;
-    using edge_iterator_range       = std::pair<edge_iterator_type, edge_iterator_type>;
-    using size_type                 = typename vertices_type::size_type;
+    using vertex_type                = std::remove_cv_t<Vertex>;
+    using self_type                  = static_knn_adjacency_list_t<Vertex>;
+    using k_type                     = std::uint32_t;
+    using vertices_type              = std::vector<Vertex>;
+    using vertex_neighborhoods_type  = std::vector<Vertex>;
+    using vertex_iterator_type       = typename vertices_type::const_iterator;
+    using const_vertex_iterator_type = typename vertices_type::const_iterator;
+    using vertex_iterator_range      = std::pair<vertex_iterator_type, vertex_iterator_type>;
+    using const_vertex_iterator_range =
+        std::pair<const_vertex_iterator_type, const_vertex_iterator_type>;
+    using edge_iterator_type  = knn_adjacency_list_edge_iterator_t<Vertex>;
+    using edge_iterator_range = std::pair<edge_iterator_type, edge_iterator_type>;
+    using size_type           = typename vertices_type::size_type;
 
     static_knn_adjacency_list_t() noexcept                       = default;
     static_knn_adjacency_list_t(self_type const& other) noexcept = default;

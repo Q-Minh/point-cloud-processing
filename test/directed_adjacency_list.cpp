@@ -1,6 +1,6 @@
 #include <algorithm>
 #include <catch2/catch.hpp>
-#include <pcp/graph/adjacency_list.hpp>
+#include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/traits/graph_traits.hpp>
 
 SCENARIO("mutable adjacency list", "[adjacency_list]")
@@ -8,7 +8,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
     GIVEN("a collection of vertices")
     {
         using vertex_type          = std::uint32_t;
-        using graph_type           = pcp::graph::adjacency_list_t<vertex_type>;
+        using graph_type           = pcp::graph::directed_adjacency_list_t<vertex_type>;
         using vertex_iterator_type = typename graph_type::vertex_iterator_type;
 
         static_assert(

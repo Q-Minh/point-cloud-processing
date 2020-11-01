@@ -36,8 +36,10 @@ struct is_directed_graph<
     std::void_t<
         typename DirectedGraph::vertex_type,
         typename DirectedGraph::vertex_iterator_type,
+        typename DirectedGraph::const_vertex_iterator_type,
         typename DirectedGraph::edge_iterator_type,
         typename DirectedGraph::vertex_iterator_range,
+        typename DirectedGraph::const_vertex_iterator_range,
         typename DirectedGraph::edge_iterator_range,
         decltype(std::declval<DirectedGraph&>().vertex_count()),
         decltype(std::declval<DirectedGraph&>().edge_count()),
