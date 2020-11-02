@@ -19,5 +19,5 @@ function(add_example folder_name target_name source_file)
   )
 endfunction()
 
-add_example("examples" pcp-normals-estimation normals_estimation.cpp)
-add_example("examples" pcp-ply ply.cpp)
+add_example("examples" pcp-example-normals-estimation normals_estimation.cpp)
+add_example("examples" pcp-example-ply ply.cpp)
