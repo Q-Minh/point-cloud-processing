@@ -28,8 +28,7 @@
 ```
 $ cd <path to repo>
 $ mkdir build
-$ cd build
-$ cmake .. -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
+$ cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=ON
 ```
 
 ## Building
@@ -43,8 +42,7 @@ $ cmake .. -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
 | `pcp-example-normals-estimation` | Reads a ply point cloud and exports it back with normals. |
 ```
 $ cd <path to repo>
-$ cd build
-$ cmake --build . --target <target to build>
+$ cmake --build build --target <target_name> # --config Release|Debug if you're on Windows
 ```
 
 ## Installing
@@ -73,8 +71,11 @@ Multiple includes:
 #include <pcp/graph/directed_adjacency_list.hpp>
 ```
 
-Find code usage examples [here](./examples/).  
-Find the tests [here](./test/).
+### Examples
+You can find more usage examples of `pcp` [here](./examples/).
+
+### Tests
+Explore `pcp`'s tests [here](./test/) for even more usage examples. The tests use [Catch2](https://github.com/catchorg/Catch2).
 
 ## Running
 Run tests, benchmarks and visualize benchmark results:
