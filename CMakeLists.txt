@@ -38,8 +38,9 @@ INTERFACE
 
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimal_spanning_tree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_knn_adjacency_list.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/undirected_knn_adjacency_list.hpp
 
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp

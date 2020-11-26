@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 #include <pcp/traits/graph_traits.hpp>
-#include <pcp/graph/knn_adjacency_list.hpp>
+#include <pcp/graph/directed_knn_adjacency_list.hpp>
 #include <pcp/octree.hpp>
 #include <pcp/point.hpp>
 #include <pcp/point_view.hpp>
@@ -11,7 +11,7 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
     {
         using point_type  = pcp::point_t;
         using vertex_type = pcp::point_view_t<point_type>;
-        using graph_type  = pcp::graph::static_knn_adjacency_list_t<vertex_type>;
+        using graph_type  = pcp::graph::directed_knn_adjacency_list_t<vertex_type>;
 
         static_assert(
             pcp::traits::is_directed_graph_v<graph_type>,
@@ -72,7 +72,7 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
             std::cend(vertices),
             params};
 
-        WHEN("creating a static_knn_adjacency_list_t from the octree")
+        WHEN("creating a directed_knn_adjacency_list_t from the octree")
         {
             graph_type graph{
                 std::cbegin(octree),
@@ -98,7 +98,7 @@ SCENARIO("static k nearest neighbours adjacency list", "[static_knn_adjacency_li
                 REQUIRE(vertex_count == vertices.size());
                 REQUIRE(vertex_count == octree.size());
             }
-            THEN("the static_knn_adjacency_list_t has the correct topology")
+            THEN("the directed_knn_adjacency_list_t has the correct topology")
             {
                 auto const [vertices_begin, vertices_end] = graph.vertices();
 

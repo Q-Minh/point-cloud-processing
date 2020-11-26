@@ -26,7 +26,7 @@ namespace graph {
  * @tparam DirectedGraph Type satisfying DirectedGraph concept
  * @tparam CostFunc Callable type with signature R(typename DirectedGraph::vertex_iterator_type,
  * typename DirectedGraph::vertex_iterator_type)
- * @tparam MutableDirectedGraph Type staisfying MutableDirectedGraph concept
+ * @tparam MutableDirectedGraph Type satisfying MutableDirectedGraph concept
  * @param G        The directed graph from which we compute the minimum spanning tree
  * @param get_cost The cost function used to add weight to edges between connected vertices
  * @param root     The starting point/vertex of the algorithm. This will be the root of the minimum

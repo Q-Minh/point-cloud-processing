@@ -10,7 +10,7 @@ namespace pcp {
 namespace graph {
 
 template <class Vertex>
-class knn_adjacency_list_edge_iterator_t;
+class directed_knn_adjacency_list_edge_iterator_t;
 
 /**
  * @brief Immutable graph of K nearest neighbors of vertices.
@@ -26,13 +26,13 @@ class knn_adjacency_list_edge_iterator_t;
  * @tparam Vertex Any vertex type
  */
 template <class Vertex>
-class static_knn_adjacency_list_t
+class directed_knn_adjacency_list_t
 {
-    friend class knn_adjacency_list_edge_iterator_t<Vertex>;
+    friend class directed_knn_adjacency_list_edge_iterator_t<Vertex>;
 
   public:
     using vertex_type                = std::remove_cv_t<Vertex>;
-    using self_type                  = static_knn_adjacency_list_t<Vertex>;
+    using self_type                  = directed_knn_adjacency_list_t<Vertex>;
     using k_type                     = std::uint32_t;
     using vertices_type              = std::vector<Vertex>;
     using vertex_neighborhoods_type  = std::vector<Vertex>;
@@ -41,13 +41,13 @@ class static_knn_adjacency_list_t
     using vertex_iterator_range      = std::pair<vertex_iterator_type, vertex_iterator_type>;
     using const_vertex_iterator_range =
         std::pair<const_vertex_iterator_type, const_vertex_iterator_type>;
-    using edge_iterator_type  = knn_adjacency_list_edge_iterator_t<Vertex>;
+    using edge_iterator_type  = directed_knn_adjacency_list_edge_iterator_t<Vertex>;
     using edge_iterator_range = std::pair<edge_iterator_type, edge_iterator_type>;
     using size_type           = typename vertices_type::size_type;
 
-    static_knn_adjacency_list_t() noexcept                       = default;
-    static_knn_adjacency_list_t(self_type const& other) noexcept = default;
-    static_knn_adjacency_list_t(self_type&& other) noexcept      = default;
+    directed_knn_adjacency_list_t() noexcept                       = default;
+    directed_knn_adjacency_list_t(self_type const& other) noexcept = default;
+    directed_knn_adjacency_list_t(self_type&& other) noexcept      = default;
 
     /**
      * @brief Constructs the graph from a range of vertices and a user-provided k nearest neighbors
@@ -62,7 +62,7 @@ class static_knn_adjacency_list_t
      * @param knn The knn searcher
      */
     template <class ForwardIter, class KnnSearcher>
-    static_knn_adjacency_list_t(ForwardIter begin, ForwardIter end, k_type k, KnnSearcher&& knn)
+    directed_knn_adjacency_list_t(ForwardIter begin, ForwardIter end, k_type k, KnnSearcher&& knn)
         : k_(k), vertices_(), vertex_neighborhoods_()
     {
         static_assert(
@@ -164,11 +164,11 @@ class static_knn_adjacency_list_t
 };
 
 template <class Vertex>
-class knn_adjacency_list_edge_iterator_t
+class directed_knn_adjacency_list_edge_iterator_t
 {
   public:
-    using self_type                 = knn_adjacency_list_edge_iterator_t<Vertex>;
-    using graph_type                = static_knn_adjacency_list_t<Vertex>;
+    using self_type                 = directed_knn_adjacency_list_edge_iterator_t<Vertex>;
+    using graph_type                = directed_knn_adjacency_list_t<Vertex>;
     using vertices_type             = typename graph_type::vertices_type;
     using vertex_iterator_type      = typename graph_type::vertex_iterator_type;
     using vertex_neighborhoods_type = typename graph_type::vertex_neighborhoods_type;
@@ -181,9 +181,9 @@ class knn_adjacency_list_edge_iterator_t
     using iterator_category = std::random_access_iterator_tag;
     using difference_type   = typename vertices_type::difference_type;
 
-    knn_adjacency_list_edge_iterator_t(self_type const&) = default;
-    knn_adjacency_list_edge_iterator_t(graph_type& graph) : graph_(graph), n_() {}
-    knn_adjacency_list_edge_iterator_t(graph_type& graph, difference_type n) : graph_(graph), n_(n)
+    directed_knn_adjacency_list_edge_iterator_t(self_type const&) = default;
+    directed_knn_adjacency_list_edge_iterator_t(graph_type& graph) : graph_(graph), n_() {}
+    directed_knn_adjacency_list_edge_iterator_t(graph_type& graph, difference_type n) : graph_(graph), n_(n)
     {
     }
 

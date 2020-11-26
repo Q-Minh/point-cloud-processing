@@ -107,6 +107,7 @@ PRIVATE
 target_sources(pcp-tests
 PRIVATE
   "main.cpp"
+  "custom_point.hpp"
   "obj.cpp"
   "octree_deletion.cpp"
   "octree_find.cpp"
@@ -115,10 +116,11 @@ PRIVATE
   "octree_knn.cpp"
   "octree_range_search.cpp"
   "ply.cpp"
-  "static_knn_adjacency_list.cpp"
+  "directed_knn_adjacency_list.cpp"
   "tokenize.cpp"
   "directed_adjacency_list.cpp" 
-  "minimum_spanning_tree.cpp")
+  "minimum_spanning_tree.cpp"
+)
 
 include(FetchContent)
 FetchContent_Declare(

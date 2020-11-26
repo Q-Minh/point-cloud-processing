@@ -61,6 +61,18 @@ template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
     -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
+/**
+ * @brief
+ * Reads a ply file into a point cloud (potentially with normals).
+ * The function supports ascii, binary little endian, binary big endian.
+ * The ply file must have x,y,z properties and nx,ny,nz properties if
+ * normals are available and ignores all other properties. The properties
+ * must be floats.
+ * @tparam Point Type of the point cloud's points to return.
+ * @tparam Normal Type of the point cloud's normals to return.
+ * @param is The input ply file stream.
+ * @return Returns the point cloud as a tuple of vector of points and vector of normals.
+ */
 template <class Point, class Normal>
 inline auto read_ply(std::filesystem::path const& path)
     -> std::tuple<std::vector<Point>, std::vector<Normal>>
@@ -208,6 +220,17 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
     }
 }
 
+/**
+ * @brief 
+ * Writes the given point cloud to a ply file in the ply 
+ * format of choice at the location given by filepath.
+ * @tparam Point The point cloud's point type
+ * @tparam Normal The point cloud's normal type
+ * @param filepath Path to the ply file to write to
+ * @param vertices The points
+ * @param normals The normals
+ * @param format The desired ply format with which to write
+*/
 template <class Point, class Normal>
 inline void write_ply(
     std::filesystem::path const& filepath,
@@ -236,14 +259,16 @@ inline void write_ply(
     std::vector<Normal> const& normals,
     ply_format_t format = ply_format_t::ascii)
 {
-    using point_type  = Point;
-    using normal_type = Normal;
+    using point_type            = Point;
+    using normal_type           = Normal;
+    using vertex_component_type = typename Point::coordinate_type;
+    using normal_component_type = typename Normal::component_type;
 
-    std::string const vertex_component_type =
-        std::is_same_v<typename Point::coordinate_type, double> ? "double" : "float";
+    std::string const vertex_component_type_str =
+        std::is_same_v<vertex_component_type, double> ? "double" : "float";
 
-    std::string const normal_component_type =
-        std::is_same_v<typename Normal::component_type, double> ? "double" : "float";
+    std::string const normal_component_type_str =
+        std::is_same_v<normal_component_type, double> ? "double" : "float";
 
     std::ostringstream header_stream{};
     header_stream << "ply\n";
@@ -256,13 +281,13 @@ inline void write_ply(
         header_stream << "format binary_big_endian 1.0\n";
 
     header_stream << "element vertex " << vertices.size() << "\n"
-                  << "property " << vertex_component_type << " x\n"
-                  << "property " << vertex_component_type << " y\n"
-                  << "property " << vertex_component_type << " z\n"
+                  << "property " << vertex_component_type_str << " x\n"
+                  << "property " << vertex_component_type_str << " y\n"
+                  << "property " << vertex_component_type_str << " z\n"
                   << "element normal " << normals.size() << "\n"
-                  << "property " << normal_component_type << " nx\n"
-                  << "property " << normal_component_type << " ny\n"
-                  << "property " << normal_component_type << " nz\n"
+                  << "property " << normal_component_type_str << " nx\n"
+                  << "property " << normal_component_type_str << " ny\n"
+                  << "property " << normal_component_type_str << " nz\n"
                   << "end_header\n";
 
     std::string const header = header_stream.str();
@@ -286,14 +311,50 @@ inline void write_ply(
         }
     }
 
+    // Note: disk I/O writes can be parallelized
     auto const write_binary_data =
         [&os](std::vector<point_type> const& p, std::vector<normal_type> const& n) {
-            os.write(
-                reinterpret_cast<const char*>(p.data()),
-                static_cast<std::streamsize>(p.size() * sizeof(point_type)));
-            os.write(
-                reinterpret_cast<const char*>(n.data()),
-                static_cast<std::streamsize>(n.size() * sizeof(normal_type)));
+            for (std::size_t i = 0u; i < p.size(); ++i)
+            {
+                auto constexpr size_of_vertex_component_type = sizeof(vertex_component_type);
+                std::array<std::byte, 3u * size_of_vertex_component_type> vertex_storage;
+
+                std::byte* const data = vertex_storage.data();
+
+                vertex_component_type* const x = reinterpret_cast<float*>(data);
+                vertex_component_type* const y =
+                    reinterpret_cast<float*>(data + (1u * size_of_vertex_component_type));
+                vertex_component_type* const z =
+                    reinterpret_cast<float*>(data + (2u * size_of_vertex_component_type));
+                *x = p[i].x();
+                *y = p[i].y();
+                *z = p[i].z();
+
+                os.write(
+                    reinterpret_cast<const char*>(data),
+                    static_cast<std::streamsize>(vertex_storage.size()));
+            }
+
+            for (std::size_t i = 0u; i < n.size(); ++i)
+            {
+                auto constexpr size_of_normal_component_type = sizeof(normal_component_type);
+                std::array<std::byte, 3u * size_of_normal_component_type> normal_storage;
+
+                std::byte* const data = normal_storage.data();
+
+                normal_component_type* const nx = reinterpret_cast<float*>(data);
+                normal_component_type* const ny =
+                    reinterpret_cast<float*>(data + (1u * size_of_normal_component_type));
+                normal_component_type* const nz =
+                    reinterpret_cast<float*>(data + (2u * size_of_normal_component_type));
+                *nx = n[i].x();
+                *ny = n[i].y();
+                *nz = n[i].z();
+
+                os.write(
+                    reinterpret_cast<const char*>(data),
+                    static_cast<std::streamsize>(normal_storage.size()));
+            }
         };
 
     auto const transform_endianness = [](std::vector<point_type>& p, std::vector<normal_type>& n) {
@@ -400,13 +461,45 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
     vertices.resize(params.vertex_count);
     normals.resize(params.normal_count);
 
-    is.read(
-        reinterpret_cast<char*>(vertices.data()),
-        static_cast<std::streamsize>(params.vertex_count * sizeof(point_type)));
+    auto const size_of_vertex_component = sizeof(float);
+    auto const size_of_normal_component = sizeof(float);
 
-    is.read(
-        reinterpret_cast<char*>(normals.data()),
-        static_cast<std::streamsize>(params.normal_count * sizeof(normal_type)));
+    std::vector<std::byte> vertex_component_storage;
+    vertex_component_storage.resize(3u * size_of_vertex_component);
+
+    std::vector<std::byte> normal_component_storage;
+    normal_component_storage.resize(3u * size_of_normal_component);
+
+    // Note: disk I/O reads could be parallelized, but checkout for memory consumption
+    for (std::size_t i = 0; i < vertices.size(); ++i)
+    {
+        std::byte* data = vertex_component_storage.data();
+        is.read(
+            reinterpret_cast<char*>(data),
+            static_cast<std::streamsize>(vertex_component_storage.size()));
+
+        float const* const x = reinterpret_cast<float const*>(data);
+        float const* const y = reinterpret_cast<float const*>(data + (1u * sizeof(float)));
+        float const* const z = reinterpret_cast<float const*>(data + (2u * sizeof(float)));
+        vertices[i].x(*x);
+        vertices[i].y(*y);
+        vertices[i].z(*z);
+    }
+
+    for (std::size_t i = 0; i < normals.size(); ++i)
+    {
+        std::byte* data = normal_component_storage.data();
+        is.read(
+            reinterpret_cast<char*>(data),
+            static_cast<std::streamsize>(normal_component_storage.size()));
+
+        float const* const nx = reinterpret_cast<float const*>(data);
+        float const* const ny = reinterpret_cast<float const*>(data + (1u * sizeof(float)));
+        float const* const nz = reinterpret_cast<float const*>(data + (2u * sizeof(float)));
+        normals[i].x(*nx);
+        normals[i].y(*ny);
+        normals[i].z(*nz);
+    }
 
     if (is.bad())
         return {};

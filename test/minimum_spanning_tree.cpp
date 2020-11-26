@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
-#include <pcp/graph/knn_adjacency_list.hpp>
-#include <pcp/graph/minimal_spanning_tree.hpp>
+#include <pcp/graph/directed_knn_adjacency_list.hpp>
+#include <pcp/graph/minimum_spanning_tree.hpp>
 
 SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
 {
