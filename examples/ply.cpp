@@ -1,7 +1,7 @@
 #include <iostream>
+#include <pcp/common/normals/normal.hpp>
+#include <pcp/common/points/point.hpp>
 #include <pcp/io/ply.hpp>
-#include <pcp/common/normal.hpp>
-#include <pcp/common/point.hpp>
 
 int main(int argc, char** argv)
 {

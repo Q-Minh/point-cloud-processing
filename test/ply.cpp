@@ -1,8 +1,8 @@
 #include "custom_point.hpp"
 
 #include <catch2/catch.hpp>
-#include <pcp/common/normal.hpp>
-#include <pcp/common/point.hpp>
+#include <pcp/common/normals/normal.hpp>
+#include <pcp/common/points/point.hpp>
 #include <pcp/common/point_predicates.hpp>
 #include <pcp/io/ply.hpp>
 

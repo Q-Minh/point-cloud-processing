@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/common/vertex.hpp>
+#include <pcp/common/points/vertex.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/undirected_knn_adjacency_list.hpp>
 #include <pcp/octree/octree.hpp>
@@ -26,7 +26,6 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
                 points.push_back(neighbor2);
             };
 
-        std::uint32_t k = 2u;
         std::vector<point_type> points{};
 
         /**
@@ -84,12 +83,9 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
             return octree.nearest_neighbours(v, k);
         };
 
-        using octree_type          = decltype(octree);
-        using octree_iterator_type = typename octree_type::iterator;
-        using knn_type             = decltype(knn);
-
         WHEN("creating a directed_knn_adjacency_list_t from the octree")
         {
+            std::uint32_t k = 2u;
             auto graph = pcp::graph::undirected_knn_graph(vertices.begin(), vertices.end(), knn, k);
 
             THEN("the graph's edge count is 'vertex_count * k nearest neighbours * 2'")

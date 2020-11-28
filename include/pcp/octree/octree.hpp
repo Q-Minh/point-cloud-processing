@@ -2,7 +2,7 @@
 
 #include "octree_node.hpp"
 
-#include <pcp/common/point.hpp>
+#include <pcp/common/points/point.hpp>
 #include <pcp/traits/range_traits.hpp>
 
 namespace pcp {

@@ -38,7 +38,6 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn, s
     -> directed_adjacency_list_t<typename std::iterator_traits<ForwardIter>::value_type>
 {
     using vertex_type = GraphVertex;
-    using id_type     = typename vertex_type::id_type;
 
     /**
      * Note:

@@ -29,15 +29,16 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normal.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree_iterator.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree_node.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_predicates.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_view.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/sphere.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vertex.hpp
+
+        # common/normals
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normals/normal.hpp
+
+        # common/points
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/point.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/point_view.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/vertex.hpp
 
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
@@ -50,6 +51,11 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
         
+        # octree
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree_iterator.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree_node.hpp
+
         # traits
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp

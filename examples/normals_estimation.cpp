@@ -1,11 +1,11 @@
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <iostream>
+#include <pcp/common/normals/normal.hpp>
+#include <pcp/common/points/point.hpp>
+#include <pcp/common/points/point_view.hpp>
 #include <pcp/io/ply.hpp>
-#include <pcp/common/normal.hpp>
 #include <pcp/octree/octree.hpp>
-#include <pcp/common/point.hpp>
-#include <pcp/common/point_view.hpp>
 
 struct vertex_t
 {

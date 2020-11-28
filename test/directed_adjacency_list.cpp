@@ -10,7 +10,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
         using id_type = std::uint32_t;
         struct vertex_t
         {
-            using id_type = id_type;
+            using id_type = std::uint32_t;
             id_type id_   = 0u;
             vertex_t(id_type id) : id_(id) {}
             void id(id_type id) { id_ = id; }
