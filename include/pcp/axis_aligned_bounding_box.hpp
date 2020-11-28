@@ -10,10 +10,10 @@
 namespace pcp {
 
 /**
- * @brief 
+ * @brief
  * https://en.wikipedia.org/wiki/Bounding_volume
  * @tparam Point Type satisfying Point concept
-*/
+ */
 template <class Point>
 struct axis_aligned_bounding_box_t
 {

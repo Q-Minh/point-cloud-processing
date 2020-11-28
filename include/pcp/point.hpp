@@ -9,7 +9,7 @@ namespace pcp {
 /**
  * @brief 3-dimensional point
  * @tparam T Type of the point's (x,y,z) coordinates
-*/
+ */
 template <class T>
 class basic_point_t
 {

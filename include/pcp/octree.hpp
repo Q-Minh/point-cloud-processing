@@ -103,7 +103,7 @@ class basic_octree_t
 
     /*
      * Returns the k-nearest-neighbours in 3d Euclidean space
-     * using the l2-norm as the notion of distance. 
+     * using the l2-norm as the notion of distance.
      * The implementation is recursive.
      *
      * @param k         The number of neighbors to return that are nearest to the specified point
@@ -111,8 +111,10 @@ class basic_octree_t
      * @param target    The reference point for which we want the k nearest neighbors
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
-    std::vector<point_view_type>
-    nearest_neighbours(point_view_type const& target, std::size_t k) const
+    std::vector<point_view_type> nearest_neighbours(
+        point_view_type const& target,
+        std::size_t k,
+        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
         return root_.nearest_neighbours(target, k);
     }

@@ -43,7 +43,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                 auto const reduce_op = [](auto cur, auto const& v) {
                     return cur + v.id();
                 };
-                auto const sum1         = std::accumulate(vertices.begin(), vertices.end(), 0u, reduce_op);
+                auto const sum1 = std::accumulate(vertices.begin(), vertices.end(), 0u, reduce_op);
                 auto const [begin, end] = graph.vertices();
                 auto const sum2         = std::accumulate(begin, end, 0u, reduce_op);
                 REQUIRE(sum1 == sum2);

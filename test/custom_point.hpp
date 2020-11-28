@@ -21,6 +21,8 @@ struct custom_point_t
     void y(component_type const& value) { y_ = value; }
     void z(component_type const& value) { z_ = value; }
 
+    std::uint32_t dummy() const { return dummy_; }
+
     custom_point_t()                           = default;
     custom_point_t(self_type const& other)     = default;
     custom_point_t(self_type&& other) noexcept = default;

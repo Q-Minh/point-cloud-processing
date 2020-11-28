@@ -88,7 +88,7 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
 
         using octree_type          = decltype(octree);
         using octree_iterator_type = typename octree_type::iterator;
-        using knn_type = decltype(knn);
+        using knn_type             = decltype(knn);
 
         WHEN("creating a directed_knn_adjacency_list_t from the octree")
         {

@@ -17,8 +17,7 @@ inline pcp::octree_t::const_iterator find<pcp::octree_t::const_iterator, pcp::po
 }
 
 template <>
-inline auto 
-count<pcp::octree_t::const_iterator, pcp::point_t>(
+inline auto count<pcp::octree_t::const_iterator, pcp::point_t>(
     pcp::octree_t::const_iterator begin,
     pcp::octree_t::const_iterator end,
     pcp::point_t const& value) -> pcp::octree_t::const_iterator::difference_type
@@ -156,7 +155,11 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                 REQUIRE(pcp::are_points_equal(minvpz, minopz));
                 REQUIRE(pcp::are_points_equal(maxvpz, maxopz));
 
-                REQUIRE(std::count<pcp::octree_t::const_iterator, pcp::point_t>(begin, end, test_point) == test_point_count);
+                REQUIRE(
+                    std::count<pcp::octree_t::const_iterator, pcp::point_t>(
+                        begin,
+                        end,
+                        test_point) == test_point_count);
             }
         }
     }

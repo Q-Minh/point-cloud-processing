@@ -11,13 +11,14 @@ namespace pcp {
  * @param p1 Point 1
  * @param p2 Point 2
  * @param eps Precision (margin of error)
- * @return 
-*/
+ * @return
+ */
 template <class PointView1, class PointView2>
 bool are_points_equal(
     PointView1 const& p1,
     PointView2 const& p2,
-    typename PointView1::component_type eps = 1e-5)
+    typename PointView1::component_type eps =
+        static_cast<typename PointView1::component_type>(1e-5))
 {
     using component_type    = typename PointView1::component_type;
     component_type const dx = std::abs(p1.x() - p2.x());

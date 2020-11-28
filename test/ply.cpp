@@ -36,8 +36,10 @@ static std::string get_binary_little_endian_ply_file(
     float nz,
     bool const with_normals = true);
 
-#pragma warning(push)
-#pragma warning(disable : 26444)
+#if defined(_MSC_VER)
+    #pragma warning(push)
+    #pragma warning(disable : 26444)
+#endif
 TEMPLATE_TEST_CASE(
     "ply file manipulation",
     "[ply][template]",
@@ -236,7 +238,9 @@ TEMPLATE_TEST_CASE(
         }
     }
 }
-#pragma warning(pop)
+#if defined(_MSC_VER)
+    #pragma warning(pop)
+#endif
 
 static std::string get_ascii_ply_file(
     std::size_t num_points,

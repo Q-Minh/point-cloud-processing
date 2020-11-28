@@ -35,8 +35,8 @@ class octree_iterator_t;
 
 /**
  * @brief
- * An octree node at any level of the octree. Contains a list of points 
- * up to its configured capacity and then delegates further points to its 
+ * An octree node at any level of the octree. Contains a list of points
+ * up to its configured capacity and then delegates further points to its
  * child octree nodes (octants).
  * @tparam PointView Type satisfying PointView concept
  * @tparam ParamsType Type containing the octree node's parameters
@@ -366,7 +366,7 @@ class basic_octree_node_t
     std::vector<point_view_type> nearest_neighbours(
         point_view_type const& target,
         std::size_t k,
-        coordinate_type eps = 1e-5) const
+        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
         if (k <= 0u)
             return {};

@@ -1,3 +1,5 @@
+#include "pcp/common/point_predicates.hpp"
+
 #include <benchmark/benchmark.h>
 #include <pcp/octree.hpp>
 #include <random>
@@ -198,7 +200,7 @@ static void bm_vector_iterator_traversal(benchmark::State& state)
     for (auto _ : state)
     {
         bool const all = std::all_of(std::cbegin(points), std::cend(points), [](auto const& p) {
-            return p == p;
+            return pcp::are_points_equal(p, p);
         });
         benchmark::DoNotOptimize(all);
     }
@@ -220,8 +222,8 @@ static void bm_octree_iterator_traversal(benchmark::State& state)
     pcp::octree_t octree(points.cbegin(), points.cend(), params);
     for (auto _ : state)
     {
-        bool const all = std::all_of(std::cbegin(octree), std::cend(octree), [](auto const& p) {
-            return p == p;
+        bool const all = std::all_of(octree.cbegin(), octree.cend(), [](auto const& p) {
+            return pcp::are_points_equal(p, p);
         });
         benchmark::DoNotOptimize(all);
     }
