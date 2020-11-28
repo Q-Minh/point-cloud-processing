@@ -32,6 +32,7 @@ class basic_octree_t
     using octree_node_type = basic_octree_node_t<PointView, ParamsType>;
     using point_view_type  = PointView;
     using params_type      = ParamsType;
+    using coordinate_type  = typename point_view_type::coordinate_type;
     using aabb_type        = typename ParamsType::aabb_type;
     using aabb_point_type  = typename aabb_type::point_type;
     using iterator         = octree_iterator_t<point_view_type, ParamsType>;
@@ -142,7 +143,7 @@ class basic_octree_t
     std::size_t size_;
 };
 
-using octree_t = pcp::basic_octree_t<point_t>;
+using octree_t = pcp::basic_octree_t<pcp::point_t>;
 
 template <class OctreeIterator, class PointView>
 OctreeIterator find(OctreeIterator first, OctreeIterator last, PointView const& value)
