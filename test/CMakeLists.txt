@@ -1,6 +1,25 @@
 add_executable(pcp-tests)
 set_target_properties(pcp-tests PROPERTIES FOLDER pcp-tests)
 
+target_sources(pcp-tests
+PRIVATE
+  "main.cpp"
+  "custom_point.hpp"
+  "obj.cpp"
+  "octree_deletion.cpp"
+  "octree_find.cpp"
+  "octree_insertion.cpp"
+  "octree_iterator.cpp"
+  "octree_knn.cpp"
+  "octree_range_search.cpp"
+  "ply.cpp"
+  "undirected_knn_adjacency_list.cpp"
+  "tangent_plane.cpp"
+  "tokenize.cpp"
+  "directed_adjacency_list.cpp" 
+  "minimum_spanning_tree.cpp"
+)
+
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     option(PCP_COVERAGE "Enable code coverage reports for gcc/clang" FALSE)
     if (PCP_COVERAGE)
@@ -102,24 +121,6 @@ PRIVATE
     /w44826
     /w44928
   >
-)
-
-target_sources(pcp-tests
-PRIVATE
-  "main.cpp"
-  "custom_point.hpp"
-  "obj.cpp"
-  "octree_deletion.cpp"
-  "octree_find.cpp"
-  "octree_insertion.cpp"
-  "octree_iterator.cpp"
-  "octree_knn.cpp"
-  "octree_range_search.cpp"
-  "ply.cpp"
-  "undirected_knn_adjacency_list.cpp"
-  "tokenize.cpp"
-  "directed_adjacency_list.cpp" 
-  "minimum_spanning_tree.cpp"
 )
 
 include(FetchContent)

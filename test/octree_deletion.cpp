@@ -66,14 +66,14 @@ SCENARIO("octree deletion", "[octree]")
         WHEN("removing existing points one at a time")
         {
             auto const is_first_point_to_remove = [&first_point_to_remove](pcp::point_t const& p) {
-                return pcp::are_points_equal(p, first_point_to_remove);
+                return pcp::common::are_vectors_equal(p, first_point_to_remove);
             };
             auto const is_second_point_to_remove =
                 [&second_point_to_remove](pcp::point_t const& p) {
-                    return pcp::are_points_equal(p, second_point_to_remove);
+                    return pcp::common::are_vectors_equal(p, second_point_to_remove);
                 };
             auto const is_third_point_to_remove = [&third_point_to_remove](pcp::point_t const& p) {
-                return pcp::are_points_equal(p, third_point_to_remove);
+                return pcp::common::are_vectors_equal(p, third_point_to_remove);
             };
 
             auto it = std::find_if(octree.cbegin(), octree.cend(), is_first_point_to_remove);

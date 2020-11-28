@@ -17,6 +17,13 @@ struct basic_normal_t
     void y(T value) { y_ = value; }
     void z(T value) { z_ = value; }
 
+    T const& nx() const { return x_; }
+    T const& ny() const { return y_; }
+    T const& nz() const { return z_; }
+    void nx(T value) { x_ = value; }
+    void ny(T value) { y_ = value; }
+    void nz(T value) { z_ = value; }
+
     friend basic_normal_t operator*(T k, basic_normal_t p)
     {
         return basic_normal_t{

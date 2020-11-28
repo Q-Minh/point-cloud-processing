@@ -64,7 +64,7 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
                 std::cbegin(vertices),
                 std::cend(vertices),
                 std::cbegin(points),
-                [](auto const& p1, auto const& p2) { return pcp::are_points_equal(p1, p2); });
+                [](auto const& p1, auto const& p2) { return pcp::common::are_vectors_equal(p1, p2); });
             REQUIRE(are_vertices_and_points_equal);
         }
 

@@ -21,10 +21,15 @@ struct is_vector3d<
         decltype(std::declval<typename Vector3d::component_type>() * std::declval<Vector3d&>()),
         decltype(std::declval<Vector3d&>() / std::declval<typename Vector3d::component_type>()),
         decltype(std::declval<Vector3d&>() + std::declval<Vector3d&>()),
-        decltype(std::declval<Vector3d&>() - std::declval<Vector3d&>()),
-        decltype(std::declval<Vector3d&>() == std::declval<Vector3d&>()),
-        decltype(std::declval<Vector3d&>() != std::declval<Vector3d&>())>> : std::true_type
+        decltype(std::declval<Vector3d&>() - std::declval<Vector3d&>())>> : std::true_type
 {
+    static_assert(
+        std::is_constructible_v<
+            Vector3d,
+            typename Vector3d::component_type,
+            typename Vector3d::component_type,
+            typename Vector3d::component_type>,
+        "Vector3d must be constructible from x,y,z components");
 };
 
 template <class Vector3d>

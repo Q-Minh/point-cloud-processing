@@ -100,7 +100,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
             {
                 float const erroneous_coordinate = 100.f;
                 REQUIRE(std::none_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
-                    return pcp::are_points_equal(p, pcp::point_t{t, t, t});
+                    return pcp::common::are_vectors_equal(p, pcp::point_t{t, t, t});
                 }));
                 REQUIRE(std::all_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
                     return p.x() < t && p.y() < t && p.z() < t;
@@ -110,7 +110,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                     std::accumulate(points.cbegin(), points.cend(), pcp::point_t{0.f, 0.f, 0.f});
                 auto const octree_sum = std::accumulate(begin, end, pcp::point_t{0.f, 0.f, 0.f});
 
-                REQUIRE(pcp::are_points_equal(vector_sum, octree_sum));
+                REQUIRE(pcp::common::are_vectors_equal(vector_sum, octree_sum));
 
                 auto const xless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
                     return p1.x() < p2.x();
@@ -147,12 +147,12 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                 auto const minopz = *octree_minmax_point_z.first;
                 auto const maxopz = *octree_minmax_point_z.second;
 
-                REQUIRE(pcp::are_points_equal(minvpx, minopx));
-                REQUIRE(pcp::are_points_equal(maxvpx, maxopx));
-                REQUIRE(pcp::are_points_equal(minvpy, minopy));
-                REQUIRE(pcp::are_points_equal(maxvpy, maxopy));
-                REQUIRE(pcp::are_points_equal(minvpz, minopz));
-                REQUIRE(pcp::are_points_equal(maxvpz, maxopz));
+                REQUIRE(pcp::common::are_vectors_equal(minvpx, minopx));
+                REQUIRE(pcp::common::are_vectors_equal(maxvpx, maxopx));
+                REQUIRE(pcp::common::are_vectors_equal(minvpy, minopy));
+                REQUIRE(pcp::common::are_vectors_equal(maxvpy, maxopy));
+                REQUIRE(pcp::common::are_vectors_equal(minvpz, minopz));
+                REQUIRE(pcp::common::are_vectors_equal(maxvpz, maxopz));
 
                 REQUIRE(
                     std::count<pcp::octree_t::const_iterator, pcp::point_t>(

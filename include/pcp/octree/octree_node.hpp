@@ -8,7 +8,7 @@
 #include <numeric>
 #include <pcp/common/intersections.hpp>
 #include <pcp/common/norm.hpp>
-#include <pcp/common/point_predicates.hpp>
+#include <pcp/common/vector3d_predicates.hpp>
 #include <pcp/traits/point_traits.hpp>
 #include <queue>
 #include <vector>
@@ -444,7 +444,7 @@ class basic_octree_node_t
             if (heap_node.is_point)
             {
                 auto const& p = *heap_node.p;
-                if (!are_points_equal(p, target, eps))
+                if (!common::are_vectors_equal(p, target, eps))
                     knearest_points.push_back(p);
                 continue;
             }
@@ -515,7 +515,7 @@ class basic_octree_node_t
         auto& non_const_points = const_cast<decltype(points_)&>(points_);
         auto target =
             std::find_if(non_const_points.begin(), non_const_points.end(), [&p](auto const& p2) {
-                return are_points_equal(p, p2);
+                return common::are_vectors_equal(p, p2);
             });
         it.it_ = target;
         if (it.it_ != non_const_points.end())

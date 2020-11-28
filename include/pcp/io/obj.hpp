@@ -120,8 +120,8 @@ write_obj(std::ostream& os, std::vector<Point> const& points, std::vector<Normal
 
         auto const& n = normals[i];
 
-        std::string const vn = "vn " + std::to_string(n.x()) + " " + std::to_string(n.y()) + " " +
-                               std::to_string(n.z()) + "\n";
+        std::string const vn = "vn " + std::to_string(n.nx()) + " " + std::to_string(n.ny()) + " " +
+                               std::to_string(n.nz()) + "\n";
 
         os << vn;
     }

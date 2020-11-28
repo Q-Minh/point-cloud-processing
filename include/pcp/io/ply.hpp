@@ -305,8 +305,8 @@ inline void write_ply(
         for (normal_type const& n : normals)
         {
             std::ostringstream oss{};
-            oss << std::to_string(n.x()) << " " << std::to_string(n.y()) << " "
-                << std::to_string(n.z()) << "\n";
+            oss << std::to_string(n.nx()) << " " << std::to_string(n.ny()) << " "
+                << std::to_string(n.nz()) << "\n";
             os << oss.str();
         }
     }
@@ -347,9 +347,9 @@ inline void write_ply(
                     reinterpret_cast<float*>(data + (1u * size_of_normal_component_type));
                 normal_component_type* const nz =
                     reinterpret_cast<float*>(data + (2u * size_of_normal_component_type));
-                *nx = n[i].x();
-                *ny = n[i].y();
-                *nz = n[i].z();
+                *nx = n[i].nx();
+                *ny = n[i].ny();
+                *nz = n[i].nz();
 
                 os.write(
                     reinterpret_cast<const char*>(data),
@@ -366,9 +366,9 @@ inline void write_ply(
         });
         std::transform(std::begin(n), std::end(n), std::begin(n), [](normal_type const& normal) {
             return normal_type{
-                reverse_endianness(normal.x()),
-                reverse_endianness(normal.y()),
-                reverse_endianness(normal.z())};
+                reverse_endianness(normal.nx()),
+                reverse_endianness(normal.ny()),
+                reverse_endianness(normal.nz())};
         });
     };
 
@@ -496,9 +496,9 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
         float const* const nx = reinterpret_cast<float const*>(data);
         float const* const ny = reinterpret_cast<float const*>(data + (1u * sizeof(float)));
         float const* const nz = reinterpret_cast<float const*>(data + (2u * sizeof(float)));
-        normals[i].x(*nx);
-        normals[i].y(*ny);
-        normals[i].z(*nz);
+        normals[i].nx(*nx);
+        normals[i].ny(*ny);
+        normals[i].nz(*nz);
     }
 
     if (is.bad())
@@ -538,9 +538,9 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
         std::begin(normals),
         [](normal_type const& n) {
             return normal_type{
-                reverse_endianness(n.x()),
-                reverse_endianness(n.y()),
-                reverse_endianness(n.z())};
+                reverse_endianness(n.nx()),
+                reverse_endianness(n.ny()),
+                reverse_endianness(n.nz())};
         });
 
     return point_cloud;
@@ -577,9 +577,9 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
         std::begin(normals),
         [](normal_type const& n) {
             return normal_type{
-                reverse_endianness(n.x()),
-                reverse_endianness(n.y()),
-                reverse_endianness(n.z())};
+                reverse_endianness(n.nx()),
+                reverse_endianness(n.ny()),
+                reverse_endianness(n.nz())};
         });
 
     return point_cloud;

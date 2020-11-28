@@ -47,7 +47,7 @@ SCENARIO("octree find", "[octree]")
             {
                 REQUIRE(it != octree.cend());
                 REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
-                REQUIRE(pcp::are_points_equal(*it, p));
+                REQUIRE(pcp::common::are_vectors_equal(*it, p));
             }
         }
         WHEN(

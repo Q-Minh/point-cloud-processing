@@ -61,14 +61,14 @@ SCENARIO("range searches on the octree", "[octree]")
                         points_in_range.cbegin(),
                         points_in_range.cend(),
                         [](auto const& p) {
-                            return pcp::are_points_equal(p, pcp::point_t{.5f, .5f, .5f});
+                            return pcp::common::are_vectors_equal(p, pcp::point_t{.5f, .5f, .5f});
                         }) == 1u);
                 REQUIRE(
                     std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
                         [](auto const& p) {
-                            return pcp::are_points_equal(p, pcp::point_t{.4f, .3f, .6f});
+                            return pcp::common::are_vectors_equal(p, pcp::point_t{.4f, .3f, .6f});
                         }) == 1u);
             }
         }
@@ -96,14 +96,14 @@ SCENARIO("range searches on the octree", "[octree]")
                         points_in_range.cbegin(),
                         points_in_range.cend(),
                         [](auto const& p) {
-                            return pcp::are_points_equal(pcp::point_t{-.5f, -.5f, -.5f}, p);
+                            return pcp::common::are_vectors_equal(pcp::point_t{-.5f, -.5f, -.5f}, p);
                         }) == 1u);
                 REQUIRE(
                     std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
                         [](auto const& p) {
-                            return pcp::are_points_equal(p, pcp::point_t{-.4f, -.3f, -.6f});
+                            return pcp::common::are_vectors_equal(p, pcp::point_t{-.4f, -.3f, -.6f});
                         }) == 1u);
             }
         }

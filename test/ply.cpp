@@ -3,7 +3,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
-#include <pcp/common/point_predicates.hpp>
+#include <pcp/common/vector3d_predicates.hpp>
 #include <pcp/io/ply.hpp>
 
 static std::string get_ascii_ply_file(
@@ -64,7 +64,7 @@ TEMPLATE_TEST_CASE(
                     REQUIRE(vertices.size() == num_points);
                     for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(pcp::are_points_equal(vertices[i], p));
+                        REQUIRE(pcp::common::are_vectors_equal(vertices[i], p));
                     }
                 }
             }
@@ -79,8 +79,8 @@ TEMPLATE_TEST_CASE(
                     REQUIRE(normals.size() == num_points);
                     for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(pcp::are_points_equal(vertices[i], p));
-                        REQUIRE(pcp::are_points_equal(normals[i], n));
+                        REQUIRE(pcp::common::are_vectors_equal(vertices[i], p));
+                        REQUIRE(pcp::common::are_vectors_equal(normals[i], n));
                     }
                 }
             }
