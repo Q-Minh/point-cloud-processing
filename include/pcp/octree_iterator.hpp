@@ -4,16 +4,21 @@
 
 namespace pcp {
 
-template <class Point, class ParamsType>
+template <class PointView, class ParamsType>
 class basic_octree_node_t;
 
-/*
- * Read-only forward iterator for points in the octree
+/**
+ * @brief
+ * Read-only forward iterator for points in the octree.
+ * Uses a stack of ancestor nodes under the hood to
+ * traverse the octree in postorder.
+ * @tparam PointView Type satisfying PointView concept
+ * @tparam ParamsType Type containg the octree parameters
  */
-template <class Point, class ParamsType>
+template <class PointView, class ParamsType>
 class octree_iterator_t
 {
-    using octree_node_type = basic_octree_node_t<Point, ParamsType>;
+    using octree_node_type = basic_octree_node_t<PointView, ParamsType>;
 
   public:
     using value_type        = typename octree_node_type::value_type;
@@ -25,21 +30,21 @@ class octree_iterator_t
     using const_reference = typename octree_node_type::const_reference;
 
   private:
-    using self_type             = octree_iterator_t<Point, ParamsType>;
+    using self_type             = octree_iterator_t<PointView, ParamsType>;
     using point_iterator        = typename octree_node_type::points_type::iterator;
     using const_point_iterator  = typename octree_node_type::points_type::const_iterator;
     using octant_iterator       = typename octree_node_type::octants_type::iterator;
     using const_octant_iterator = typename octree_node_type::octants_type::const_iterator;
 
   public:
-    friend class basic_octree_node_t<Point, ParamsType>;
+    friend class basic_octree_node_t<PointView, ParamsType>;
 
     octree_iterator_t() : octree_node_(nullptr), it_() {}
 
-    octree_iterator_t(octree_node_type const* octree_node) : octree_node_(nullptr), it_()
+    explicit octree_iterator_t(octree_node_type* octree_node) : octree_node_(nullptr), it_()
     {
         octree_node_ = get_next_node(octree_node, octree_node->octants_.cbegin());
-        it_          = octree_node_->points_.cbegin();
+        it_          = octree_node_->points_.begin();
     }
 
     octree_iterator_t(self_type const& other)     = default;
@@ -47,6 +52,10 @@ class octree_iterator_t
 
     self_type& operator=(self_type const& other) = default;
 
+    /**
+     * @brief Get the root of the octree
+     * @return
+     */
     octree_node_type const* root() const
     {
         using stack_type = decltype(ancestor_octree_nodes_);
@@ -73,6 +82,7 @@ class octree_iterator_t
     }
 
     const_reference operator*() const { return *it_; }
+    reference operator*() { return *it_; }
 
     self_type& operator++()
     {
@@ -123,14 +133,18 @@ class octree_iterator_t
 
     bool operator!=(self_type const& other) const { return !(*this == other); }
 
-    Point const* operator->() const { return &(*it_); }
+    PointView const* operator->() const { return &(*it_); }
+    PointView* operator->() { return &(*it_); }
 
   private:
-    /*
+    /**
+     * @brief
      * Returns the next node in post-order sequence.
+     * @param octree Node to start looking from.
+     * @param begin Iterator to the current node's child to start looking from.
+     * @return The next node to move to.
      */
-    octree_node_type const*
-    get_next_node(octree_node_type const* octree, const_octant_iterator begin)
+    octree_node_type* get_next_node(octree_node_type* octree, const_octant_iterator begin)
     {
         auto const end = octree->octants_.cend();
 
@@ -159,7 +173,7 @@ class octree_iterator_t
          * then it's time to go back to our parent and look
          * for the next point from there.
          */
-        auto const* parent = ancestor_octree_nodes_.top();
+        auto* parent = ancestor_octree_nodes_.top();
         ancestor_octree_nodes_.pop();
 
         auto const is_same_octant =
@@ -181,12 +195,12 @@ class octree_iterator_t
          * sequence, we initialize our internal iterator
          * to the first point of that octree node.
          */
-        it_ = octree_node_->points_.cbegin();
+        it_ = octree_node_->points_.begin();
     }
 
-    octree_node_type const* octree_node_;
-    std::stack<octree_node_type const*> ancestor_octree_nodes_;
-    const_point_iterator it_;
+    octree_node_type* octree_node_;
+    std::stack<octree_node_type*> ancestor_octree_nodes_;
+    point_iterator it_;
 };
 
 } // namespace pcp

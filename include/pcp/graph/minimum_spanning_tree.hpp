@@ -41,8 +41,7 @@ auto prim_minimum_spanning_tree(
     typename DirectedGraph::vertex_iterator_type root)
     -> std::pair<
         MutableDirectedGraph,
-        std::function<
-            typename MutableDirectedGraph::vertex_iterator_type(MutableDirectedGraph&)>>
+        std::function<typename MutableDirectedGraph::vertex_iterator_type(MutableDirectedGraph&)>>
 {
     using const_vertex_iterator_type = typename DirectedGraph::const_vertex_iterator_type;
     using edge_iterator_type         = typename DirectedGraph::edge_iterator_type;
@@ -67,7 +66,7 @@ auto prim_minimum_spanning_tree(
     auto const [vbegin, vend] = G.vertices();
     auto const vertex_count   = G.vertex_count();
 
-    auto const key_of = [vbegin=vbegin](const_vertex_iterator_type it) -> size_t {
+    auto const key_of = [vbegin = vbegin](const_vertex_iterator_type it) -> size_t {
         return static_cast<size_t>(std::distance<const_vertex_iterator_type>(vbegin, it));
     };
 

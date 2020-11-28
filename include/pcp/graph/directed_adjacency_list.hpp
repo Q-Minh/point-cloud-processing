@@ -1,5 +1,7 @@
 #pragma once
 
+#include "pcp/traits/graph_vertex_traits.hpp"
+
 #include <iterator>
 #include <numeric>
 #include <utility>
@@ -8,7 +10,7 @@
 namespace pcp {
 namespace graph {
 
-template <class Vertex>
+template <class GraphVertex>
 class adjacency_list_edge_iterator_t;
 
 /**
@@ -24,26 +26,30 @@ class adjacency_list_edge_iterator_t;
  *
  * @tparam Vertex Any type can be a vertex
  */
-template <class Vertex>
+template <class GraphVertex>
 class directed_adjacency_list_t
 {
+    static_assert(
+        traits::is_graph_vertex_v<GraphVertex>,
+        "GraphVertex must satisfy GraphVertex concept");
+
   public:
-    using self_type                  = directed_adjacency_list_t<Vertex>;
-    using vertex_type                = Vertex;
+    using self_type                  = directed_adjacency_list_t<GraphVertex>;
+    using vertex_type                = GraphVertex;
     using vertices_type              = std::vector<vertex_type>;
     using vertex_iterator_type       = typename vertices_type::iterator;
     using const_vertex_iterator_type = typename vertices_type::const_iterator;
     using vertex_iterator_range      = std::pair<vertex_iterator_type, vertex_iterator_type>;
     using const_vertex_iterator_range =
         std::pair<const_vertex_iterator_type, const_vertex_iterator_type>;
-    using edge_iterator_type  = adjacency_list_edge_iterator_t<Vertex>;
+    using edge_iterator_type  = adjacency_list_edge_iterator_t<GraphVertex>;
     using edge_iterator_range = std::pair<edge_iterator_type, edge_iterator_type>;
 
     using difference_type   = typename vertices_type::difference_type;
     using size_type         = typename vertices_type::size_type;
     using connectivity_type = std::vector<std::vector<size_type>>;
 
-    friend class adjacency_list_edge_iterator_t<Vertex>;
+    friend class adjacency_list_edge_iterator_t<GraphVertex>;
 
     directed_adjacency_list_t()                 = default;
     directed_adjacency_list_t(self_type const&) = default;
@@ -79,6 +85,10 @@ class directed_adjacency_list_t
      */
     size_type vertex_count() const { return vertices_.size(); }
 
+    /**
+     * @brief Check if any vertices are in the graph
+     * @return
+     */
     bool empty() const { return vertices_.empty(); }
 
     /**
@@ -153,6 +163,7 @@ class directed_adjacency_list_t
         connectivity_.push_back({});
         return std::begin(vertices_) + offset;
     }
+
     /**
      * @brief Remove a vertex from the graph.
      *
@@ -237,12 +248,21 @@ class directed_adjacency_list_t
     connectivity_type connectivity_;
 };
 
-template <class Vertex>
+/**
+ * @brief
+ * Iterator to the edges of a directed_adjacency_list_t.
+ * The edges returned by dereferencing this iterator aren't
+ * the actual edges as stored in the graph's implementation.
+ * The edges are considered to be pairs of the graph's
+ * vertex iterators.
+ * @tparam GraphVertex Vertex type satisfying GraphVertex concept
+ */
+template <class GraphVertex>
 class adjacency_list_edge_iterator_t
 {
   public:
-    using self_type            = adjacency_list_edge_iterator_t<Vertex>;
-    using graph_type           = directed_adjacency_list_t<Vertex>;
+    using self_type            = adjacency_list_edge_iterator_t<GraphVertex>;
+    using graph_type           = directed_adjacency_list_t<GraphVertex>;
     using vertices_type        = typename graph_type::vertices_type;
     using vertex_iterator_type = typename graph_type::vertex_iterator_type;
     using connectivity_type    = typename graph_type::connectivity_type;

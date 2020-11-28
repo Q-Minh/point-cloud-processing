@@ -7,7 +7,17 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
 {
     GIVEN("a collection of vertices")
     {
-        using vertex_type          = std::uint32_t;
+        using id_type = std::uint32_t;
+        struct vertex_t
+        {
+            using id_type = id_type;
+            id_type id_   = 0u;
+            vertex_t(id_type id) : id_(id) {}
+            void id(id_type id) { id_ = id; }
+            id_type id() const { return id_; }
+        };
+
+        using vertex_type          = vertex_t;
         using graph_type           = pcp::graph::directed_adjacency_list_t<vertex_type>;
         using vertex_iterator_type = typename graph_type::vertex_iterator_type;
 
@@ -16,8 +26,9 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
             "graph_type must satisfy MutableDirectedGraph concept");
 
         std::size_t n = 10u;
-        std::vector<vertex_type> vertices(n);
-        std::iota(std::begin(vertices), std::end(vertices), 0u);
+        std::vector<vertex_type> vertices;
+        for (id_type i = 0u; i < n; ++i)
+            vertices.emplace_back(i);
 
         WHEN("adding the vertices to the adjacency list")
         {
@@ -29,9 +40,12 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
             }
             THEN("the vertices are correctly added")
             {
-                auto const sum1         = std::accumulate(vertices.begin(), vertices.end(), 0u);
+                auto const reduce_op = [](auto cur, auto const& v) {
+                    return cur + v.id();
+                };
+                auto const sum1         = std::accumulate(vertices.begin(), vertices.end(), 0u, reduce_op);
                 auto const [begin, end] = graph.vertices();
-                auto const sum2         = std::accumulate(begin, end, 0u);
+                auto const sum2         = std::accumulate(begin, end, 0u, reduce_op);
                 REQUIRE(sum1 == sum2);
             }
             WHEN("removing vertices")
@@ -42,14 +56,14 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     REQUIRE(std::distance(begin1, end1) == 10);
                     auto it = graph.remove_vertex(begin1);
                     REQUIRE(graph.vertex_count() == 9u);
-                    REQUIRE(*it == 1u);
+                    REQUIRE(it->id() == 1u);
 
                     auto const [begin2, end2] = graph.vertices();
                     REQUIRE(std::distance(begin2, end2) == 9);
                     REQUIRE(it == begin2);
                     it = graph.remove_vertex(it + 4);
                     REQUIRE(graph.vertex_count() == 8u);
-                    REQUIRE(*it == 6u);
+                    REQUIRE(it->id() == 6u);
 
                     auto const [begin3, end3] = graph.vertices();
                     REQUIRE(std::distance(begin3, end3) == 8);
@@ -58,7 +72,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     REQUIRE(graph.vertex_count() == 7u);
                     auto const [begin4, end4] = graph.vertices();
                     REQUIRE(it == end4);
-                    REQUIRE(*(begin4 + 6) == 8u);
+                    REQUIRE((begin4 + 6)->id() == 8u);
                     REQUIRE(graph.edge_count() == 0u);
                 }
             }
@@ -68,30 +82,52 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                 std::vector<std::pair<vertex_iterator_type, vertex_iterator_type>> edges;
 
                 // 1 + 3 + 4 + 6 = 14
-                edges.emplace_back(vertices_begin, vertices_begin + vertices[1]);
-                edges.emplace_back(vertices_begin, vertices_begin + vertices[3]);
-                edges.emplace_back(vertices_begin, vertices_begin + vertices[4]);
-                edges.emplace_back(vertices_begin, vertices_begin + vertices[6]);
+                edges.emplace_back(vertices_begin, vertices_begin + vertices[1].id());
+                edges.emplace_back(vertices_begin, vertices_begin + vertices[3].id());
+                edges.emplace_back(vertices_begin, vertices_begin + vertices[4].id());
+                edges.emplace_back(vertices_begin, vertices_begin + vertices[6].id());
                 // 0 + 3 + 6 + 7 = 16
-                edges.emplace_back(vertices_begin + vertices[1], vertices_begin + vertices[0]);
-                edges.emplace_back(vertices_begin + vertices[1], vertices_begin + vertices[3]);
-                edges.emplace_back(vertices_begin + vertices[1], vertices_begin + vertices[6]);
-                edges.emplace_back(vertices_begin + vertices[1], vertices_begin + vertices[7]);
+                edges.emplace_back(
+                    vertices_begin + vertices[1].id(),
+                    vertices_begin + vertices[0].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[1].id(),
+                    vertices_begin + vertices[3].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[1].id(),
+                    vertices_begin + vertices[6].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[1].id(),
+                    vertices_begin + vertices[7].id());
                 // 2 + 3 + 4 + 4 + 6 + 8 + 9 = 36
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[2]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[3]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[4]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[4]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[6]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[8]);
-                edges.emplace_back(vertices_begin + vertices[6], vertices_begin + vertices[9]);
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[2].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[3].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[4].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[4].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[6].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[8].id());
+                edges.emplace_back(
+                    vertices_begin + vertices[6].id(),
+                    vertices_begin + vertices[9].id());
 
                 for (auto const& e : edges)
                     graph.add_edge(e.first, e.second);
 
                 auto const reduce_op = [](auto cur, auto const& e) {
                     auto [u, v] = e;
-                    return cur + *v;
+                    return cur + v->id();
                 };
 
                 THEN("the adjacency list's vertex and edge counts are correct")
@@ -109,16 +145,16 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     {
                         auto [u, v]   = *(begin + i);
                         auto [up, vp] = *(edges.cbegin() + i);
-                        REQUIRE(*u == *up);
-                        REQUIRE(*v == *vp);
+                        REQUIRE(u->id() == up->id());
+                        REQUIRE(v->id() == vp->id());
                     }
                     // using forward access
                     for (auto i = 0; i < edge_count; ++i)
                     {
                         auto [u, v]   = *begin++;
                         auto [up, vp] = *(edges.cbegin() + i);
-                        REQUIRE(*u == *up);
-                        REQUIRE(*v == *vp);
+                        REQUIRE(u->id() == up->id());
+                        REQUIRE(v->id() == vp->id());
                     }
                 }
                 WHEN("recovering out edges of vertices of degree > 0")
@@ -158,7 +194,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     THEN("remaining vertices can be retrieved")
                     {
                         REQUIRE(graph.vertex_count() == 8u);
-                        REQUIRE(*it2 == 3u);
+                        REQUIRE(it2->id() == 3u);
                     }
                     THEN("correct edges are removed")
                     {

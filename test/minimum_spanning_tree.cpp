@@ -1,6 +1,5 @@
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
-#include <pcp/graph/directed_knn_adjacency_list.hpp>
 #include <pcp/graph/minimum_spanning_tree.hpp>
 
 SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
@@ -28,7 +27,21 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
          *        |   |                     |
          *        ----e                     ----e
          */
-        using vertex_type = uint32_t;
+        using id_type = std::uint32_t;
+        struct vertex_t
+        {
+            using id_type = id_type;
+            id_type id_   = 0u;
+            vertex_t(id_type id) : id_(id) {}
+            void id(id_type id) { id_ = id; }
+            id_type id() const { return id_; }
+
+            // STL algorithms need equality comparisons
+            bool operator==(vertex_t const& other) const { return id_ == other.id_; }
+            bool operator==(id_type id) const { return id_ == id; }
+        };
+
+        using vertex_type = vertex_t;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
         graph_type G;
         auto v1 = 0u;
@@ -74,19 +87,19 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
         WHEN("computing prim's minimum spanning tree")
         {
             auto const cost = [](vertex_type const& u, vertex_type const& v) -> uint8_t {
-                if ((u == 0u && v == 1u) || (u == 1u && v == 0u))
+                if ((u.id() == 0u && v.id() == 1u) || (u.id() == 1u && v.id() == 0u))
                     return 4u;
-                if ((u == 0u && v == 2u) || (u == 2u && v == 0u))
+                if ((u.id() == 0u && v.id() == 2u) || (u.id() == 2u && v.id() == 0u))
                     return 8u;
-                if ((u == 0u && v == 3u) || (u == 3u && v == 0u))
+                if ((u.id() == 0u && v.id() == 3u) || (u.id() == 3u && v.id() == 0u))
                     return 3u;
-                if ((u == 0u && v == 4u) || (u == 4u && v == 0u))
+                if ((u.id() == 0u && v.id() == 4u) || (u.id() == 4u && v.id() == 0u))
                     return 4u;
-                if ((u == 1u && v == 2u) || (u == 2u && v == 1u))
+                if ((u.id() == 1u && v.id() == 2u) || (u.id() == 2u && v.id() == 1u))
                     return 5u;
-                if ((u == 3u && v == 2u) || (u == 2u && v == 3u))
+                if ((u.id() == 3u && v.id() == 2u) || (u.id() == 2u && v.id() == 3u))
                     return 2u;
-                if ((u == 4u && v == 3u) || (u == 3u && v == 4u))
+                if ((u.id() == 4u && v.id() == 3u) || (u.id() == 3u && v.id() == 4u))
                     return 11u;
 
                 return std::numeric_limits<uint8_t>::max();
@@ -105,7 +118,7 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
                 auto const root                    = get_root(MST);
 
                 // the root should be vertex e, which has value 4u
-                REQUIRE(*root == 4u);
+                REQUIRE(root->id() == 4u);
                 REQUIRE(std::find(mst_vbegin, mst_vvend, 0u) != mst_vvend);
                 REQUIRE(std::find(mst_vbegin, mst_vvend, 1u) != mst_vvend);
                 REQUIRE(std::find(mst_vbegin, mst_vvend, 2u) != mst_vvend);
@@ -122,7 +135,7 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
                 auto [root_edge_v1, root_edge_v2] = *out_edges_of_root_begin;
                 REQUIRE(root_edge_v1 == root);
                 // should be vertex a
-                REQUIRE(*root_edge_v2 == 0u);
+                REQUIRE(root_edge_v2->id() == 0u);
 
                 // vertex a should have 2 out edges, which are (a,b), (a,d)
                 auto [out_edges_of_a_begin, out_edges_of_a_end] = MST.out_edges_of(root_edge_v2);
@@ -154,7 +167,7 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
                 REQUIRE(std::distance(out_edges_of_d_begin, out_edges_of_d_end) == 1);
                 auto [dc_edge_v1, dc_edge_v2] = *out_edges_of_d_begin;
                 // should be vertex c
-                REQUIRE(*dc_edge_v2 == 2u);
+                REQUIRE(dc_edge_v2->id() == 2u);
             }
         }
     }

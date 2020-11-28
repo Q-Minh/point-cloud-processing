@@ -57,15 +57,19 @@ SCENARIO("range searches on the octree", "[octree]")
             {
                 REQUIRE(points_in_range.size() == 2u);
                 REQUIRE(
-                    std::count(
+                    std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
-                        pcp::point_t{.5f, .5f, .5f}) == 1u);
+                        [](auto const& p) {
+                            return pcp::are_points_equal(p, pcp::point_t{.5f, .5f, .5f});
+                        }) == 1u);
                 REQUIRE(
-                    std::count(
+                    std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
-                        pcp::point_t{.4f, .3f, .6f}) == 1u);
+                        [](auto const& p) {
+                            return pcp::are_points_equal(p, pcp::point_t{.4f, .3f, .6f});
+                        }) == 1u);
             }
         }
         WHEN("searching for points that are not contained in the queried aabb")
@@ -88,15 +92,19 @@ SCENARIO("range searches on the octree", "[octree]")
             {
                 REQUIRE(points_in_range.size() == 2u);
                 REQUIRE(
-                    std::count(
+                    std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
-                        pcp::point_t{-.5f, -.5f, -.5f}) == 1u);
+                        [](auto const& p) {
+                            return pcp::are_points_equal(pcp::point_t{-.5f, -.5f, -.5f}, p);
+                        }) == 1u);
                 REQUIRE(
-                    std::count(
+                    std::count_if(
                         points_in_range.cbegin(),
                         points_in_range.cend(),
-                        pcp::point_t{-.4f, -.3f, -.6f}) == 1u);
+                        [](auto const& p) {
+                            return pcp::are_points_equal(p, pcp::point_t{-.4f, -.3f, -.6f});
+                        }) == 1u);
             }
         }
     }

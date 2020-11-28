@@ -1,6 +1,7 @@
 #pragma once
 
 #include "common/norm.hpp"
+#include "common/point_predicates.hpp"
 #include "intersections.hpp"
 #include "octree_iterator.hpp"
 #include "traits/point_traits.hpp"
@@ -14,6 +15,10 @@
 
 namespace pcp {
 
+/**
+ * @brief Default type used to parameterize octrees.
+ * @tparam Point Type of point used by the voxel grid to define its AABB.
+ */
 template <class Point>
 struct octree_parameters_t
 {
@@ -28,6 +33,14 @@ struct octree_parameters_t
 template <class PointView, class ParamsType>
 class octree_iterator_t;
 
+/**
+ * @brief
+ * An octree node at any level of the octree. Contains a list of points 
+ * up to its configured capacity and then delegates further points to its 
+ * child octree nodes (octants).
+ * @tparam PointView Type satisfying PointView concept
+ * @tparam ParamsType Type containing the octree node's parameters
+ */
 template <class PointView, class ParamsType>
 class basic_octree_node_t
 {
@@ -38,6 +51,7 @@ class basic_octree_node_t
 
     using self_type       = basic_octree_node_t<PointView, ParamsType>;
     using point_view_type = PointView;
+    using coordinate_type = typename point_view_type::coordinate_type;
     using params_type     = ParamsType;
     using aabb_type       = typename ParamsType::aabb_type;
     using aabb_point_type = typename aabb_type::point_type;
@@ -305,7 +319,7 @@ class basic_octree_node_t
          */
         if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
         {
-            next.it_ = octree_node->points_.cbegin();
+            next.it_ = octree_node->points_.begin();
             return next;
         }
 
@@ -349,8 +363,10 @@ class basic_octree_node_t
         return next;
     }
 
-    std::vector<point_view_type>
-    nearest_neighbours(point_view_type const& target, std::size_t k) const
+    std::vector<point_view_type> nearest_neighbours(
+        point_view_type const& target,
+        std::size_t k,
+        coordinate_type eps = 1e-5) const
     {
         if (k <= 0u)
             return {};
@@ -428,7 +444,7 @@ class basic_octree_node_t
             if (heap_node.is_point)
             {
                 auto const& p = *heap_node.p;
-                if (p != target)
+                if (!are_points_equal(p, target, eps))
                     knearest_points.push_back(p);
                 continue;
             }
@@ -495,9 +511,14 @@ class basic_octree_node_t
   protected:
     const_iterator do_find(point_view_type const& p, iterator& it) const
     {
-        it.octree_node_ = this;
-        it.it_          = std::find(points_.cbegin(), points_.cend(), p);
-        if (it.it_ != points_.cend())
+        it.octree_node_        = const_cast<self_type*>(this);
+        auto& non_const_points = const_cast<decltype(points_)&>(points_);
+        auto target =
+            std::find_if(non_const_points.begin(), non_const_points.end(), [&p](auto const& p2) {
+                return are_points_equal(p, p2);
+            });
+        it.it_ = target;
+        if (it.it_ != non_const_points.end())
             return it;
 
         auto const center             = voxel_grid_.center();
@@ -515,7 +536,7 @@ class basic_octree_node_t
         if (!octant)
             return const_iterator{};
 
-        it.ancestor_octree_nodes_.push(this);
+        it.ancestor_octree_nodes_.push(const_cast<self_type*>(this));
         return octant->do_find(p, it);
     }
 

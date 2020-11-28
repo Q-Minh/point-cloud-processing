@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <pcp/common/point_predicates.hpp>
 #include <pcp/octree.hpp>
 
 SCENARIO("octree find", "[octree]")
@@ -46,8 +47,8 @@ SCENARIO("octree find", "[octree]")
             THEN("the corresponding iterator is returned")
             {
                 REQUIRE(it != octree.cend());
-                REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
-                REQUIRE(*it == p);
+                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
+                REQUIRE(pcp::are_points_equal(*it, p));
             }
         }
         WHEN(
@@ -60,7 +61,7 @@ SCENARIO("octree find", "[octree]")
             THEN("the end iterator is returned")
             {
                 REQUIRE(it == octree.cend());
-                REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
+                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
             }
         }
         WHEN("searching for a point that is not contained in the octree's voxel grid")
@@ -71,7 +72,7 @@ SCENARIO("octree find", "[octree]")
             THEN("the end iterator is returned")
             {
                 REQUIRE(it == octree.cend());
-                REQUIRE(it == std::find(octree.cbegin(), octree.cend(), p));
+                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
             }
         }
     }

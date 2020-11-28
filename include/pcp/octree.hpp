@@ -6,13 +6,24 @@
 
 namespace pcp {
 
-/*
+/**
+ * @brief
  * An octree is a tree data structure for 3-dimensional quantities which
  * recursively subdivides a regular grid into its 8 octants by having
  * 8 child octrees. Octrees, much like binary trees, offer efficient
  * searching and insertion of those 3-d quantities (logarithmic time).
  * Interesting applications of octrees include efficient collision detection,
- * k-nearest-neighbor searches and range queries.
+ * k-nearest-neighbor searches and range queries, among others.
+ *
+ * Our octree implementation is sparse, as it only grows nodes when
+ * the number of vertices in a parent node exceeds its configured
+ * capacity to reduce memory usage. Vertices are not all stored at
+ * the same level. The implementation is pointer-based to create
+ * a linked tree structure. The octree is also dynamic, so erasing
+ * points from the octree is possible.
+ *
+ * @tparam PointView Type satisfying PointView concept
+ * @tparam ParamsType Type containing the parameters for this octree
  */
 template <class PointView, class ParamsType = octree_parameters_t<point_t>>
 class basic_octree_t
@@ -45,9 +56,9 @@ class basic_octree_t
     std::size_t size() const { return size_; }
     bool empty() const { return size() == 0u; }
     void clear() { root_.clear(); }
-    const_iterator begin() const { return iterator(&root_); }
-    const_iterator end() const { return iterator{}; }
-    const_iterator cbegin() const { return const_iterator(&root_); }
+    iterator begin() { return iterator(&root_); }
+    iterator end() { return iterator{}; }
+    const_iterator cbegin() const { return const_iterator(const_cast<octree_node_type*>(&root_)); }
     const_iterator cend() const { return const_iterator{}; }
 
     template <class ForwardIter>
@@ -92,7 +103,8 @@ class basic_octree_t
 
     /*
      * Returns the k-nearest-neighbours in 3d Euclidean space
-     * using the l2-norm as the notion of distance.
+     * using the l2-norm as the notion of distance. 
+     * The implementation is recursive.
      *
      * @param k         The number of neighbors to return that are nearest to the specified point
      * for all points of the octree
@@ -107,6 +119,7 @@ class basic_octree_t
 
     /*
      * Returns all points that reside in the given range.
+     * The implementation is recursive.
      *
      * @param range A range satisfying the Range type requirements
      * @return A list of all points that reside in the given range
@@ -127,24 +140,17 @@ class basic_octree_t
     std::size_t size_;
 };
 
-using octree_t = basic_octree_t<point_t>;
+using octree_t = pcp::basic_octree_t<point_t>;
 
-} // namespace pcp
-
-/*
- * Overload STL algorithms to optimize certain operations
- */
-namespace std {
-
-template <template <class> class InputIt, class PointView>
-InputIt<PointView> find(InputIt<PointView> first, InputIt<PointView> last, PointView const& value)
+template <class OctreeIterator, class PointView>
+OctreeIterator find(OctreeIterator first, OctreeIterator last, PointView const& value)
 {
     static_assert(
         pcp::traits::is_point_view_v<PointView>,
         "PointView must satisfy PointView concept");
     static_assert(
         std::is_same_v<
-            std::remove_cv_t<InputIt<PointView>>,
+            std::remove_cv_t<OctreeIterator>,
             std::remove_cv_t<typename pcp::basic_octree_t<PointView>::const_iterator>>,
         "InputIt must be octree iterator");
     if (first == last)
@@ -154,16 +160,16 @@ InputIt<PointView> find(InputIt<PointView> first, InputIt<PointView> last, Point
     return root->find(value);
 }
 
-template <template <class> class InputIt, class PointView>
-auto count(InputIt<PointView> first, InputIt<PointView> const last, PointView const& value) ->
-    typename InputIt<PointView>::difference_type
+template <class OctreeIterator, class PointView>
+auto count(OctreeIterator first, OctreeIterator last, PointView const& value) ->
+    typename OctreeIterator::difference_type
 {
     static_assert(
         pcp::traits::is_point_view_v<PointView>,
         "PointView must satisfy PointView concept");
     static_assert(
         std::is_same_v<
-            std::remove_cv_t<InputIt<PointView>>,
+            std::remove_cv_t<OctreeIterator>,
             std::remove_cv_t<typename pcp::basic_octree_t<PointView>::const_iterator>>,
         "InputIt must be octree iterator");
     if (first == last)
@@ -175,4 +181,4 @@ auto count(InputIt<PointView> first, InputIt<PointView> const last, PointView co
     return points.size();
 }
 
-} // namespace std
+} // namespace pcp

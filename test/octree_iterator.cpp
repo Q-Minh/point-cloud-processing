@@ -1,5 +1,32 @@
 #include <catch2/catch.hpp>
+#include <pcp/common/point_predicates.hpp>
 #include <pcp/octree.hpp>
+
+/*
+ * Overload STL algorithms to optimize certain operations
+ */
+namespace std {
+
+template <>
+inline pcp::octree_t::const_iterator find<pcp::octree_t::const_iterator, pcp::point_t>(
+    pcp::octree_t::const_iterator begin,
+    pcp::octree_t::const_iterator end,
+    pcp::point_t const& value)
+{
+    return pcp::find(begin, end, value);
+}
+
+template <>
+inline auto 
+count<pcp::octree_t::const_iterator, pcp::point_t>(
+    pcp::octree_t::const_iterator begin,
+    pcp::octree_t::const_iterator end,
+    pcp::point_t const& value) -> pcp::octree_t::const_iterator::difference_type
+{
+    return pcp::count(begin, end, value);
+}
+
+} // namespace std
 
 SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
 {
@@ -75,7 +102,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
             {
                 float const erroneous_coordinate = 100.f;
                 REQUIRE(std::none_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
-                    return p == pcp::point_t{t, t, t};
+                    return pcp::are_points_equal(p, pcp::point_t{t, t, t});
                 }));
                 REQUIRE(std::all_of(begin, end, [t = erroneous_coordinate](pcp::point_t const& p) {
                     return p.x() < t && p.y() < t && p.z() < t;
@@ -85,7 +112,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                     std::accumulate(points.cbegin(), points.cend(), pcp::point_t{0.f, 0.f, 0.f});
                 auto const octree_sum = std::accumulate(begin, end, pcp::point_t{0.f, 0.f, 0.f});
 
-                REQUIRE(vector_sum == octree_sum);
+                REQUIRE(pcp::are_points_equal(vector_sum, octree_sum));
 
                 auto const xless = [](pcp::point_t const& p1, pcp::point_t const& p2) -> bool {
                     return p1.x() < p2.x();
@@ -122,14 +149,14 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                 auto const minopz = *octree_minmax_point_z.first;
                 auto const maxopz = *octree_minmax_point_z.second;
 
-                REQUIRE(minvpx == minopx);
-                REQUIRE(maxvpx == maxopx);
-                REQUIRE(minvpy == minopy);
-                REQUIRE(maxvpy == maxopy);
-                REQUIRE(minvpz == minopz);
-                REQUIRE(maxvpz == maxopz);
+                REQUIRE(pcp::are_points_equal(minvpx, minopx));
+                REQUIRE(pcp::are_points_equal(maxvpx, maxopx));
+                REQUIRE(pcp::are_points_equal(minvpy, minopy));
+                REQUIRE(pcp::are_points_equal(maxvpy, maxopy));
+                REQUIRE(pcp::are_points_equal(minvpz, minopz));
+                REQUIRE(pcp::are_points_equal(maxvpz, maxopz));
 
-                REQUIRE(std::count(begin, end, test_point) == test_point_count);
+                REQUIRE(std::count<pcp::octree_t::const_iterator, pcp::point_t>(begin, end, test_point) == test_point_count);
             }
         }
     }

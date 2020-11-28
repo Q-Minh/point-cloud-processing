@@ -11,6 +11,7 @@ struct is_point_view : std::false_type
 };
 
 /**
+ * @brief
  * PointView requirements:
  * - coordinate_type type member
  * - copy constructible
@@ -20,6 +21,7 @@ struct is_point_view : std::false_type
  * - x,y,z getters
  * - x,y,z setters
  * - equality/inequality operator
+ * @tparam PointView Type to inspect
  */
 template <class PointView>
 struct is_point_view<
@@ -31,9 +33,8 @@ struct is_point_view<
         decltype(std::declval<PointView&>().z()),
         decltype(std::declval<PointView&>().x(std::declval<typename PointView::coordinate_type>())),
         decltype(std::declval<PointView&>().y(std::declval<typename PointView::coordinate_type>())),
-        decltype(std::declval<PointView&>().z(std::declval<typename PointView::coordinate_type>())),
-        decltype(std::declval<PointView&>() == std::declval<PointView&>()),
-        decltype(std::declval<PointView&>() != std::declval<PointView&>())>> : std::true_type
+        decltype(std::declval<PointView&>().z(
+            std::declval<typename PointView::coordinate_type>()))>> : std::true_type
 {
     static_assert(std::is_copy_constructible_v<PointView>, "PointView must be copy constructible");
     static_assert(std::is_move_constructible_v<PointView>, "PointView must be move constructible");

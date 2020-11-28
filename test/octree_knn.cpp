@@ -92,10 +92,10 @@ SCENARIO("KNN searches on the octree", "[octree]")
             THEN("nearest points are the 4 points in that same octant")
             {
                 REQUIRE(nearest_neighbors.size() == k);
-                REQUIRE(nearest_neighbors[0] == first_nearest);
-                REQUIRE(nearest_neighbors[1] == second_nearest);
-                REQUIRE(nearest_neighbors[2] == third_nearest);
-                REQUIRE(nearest_neighbors[3] == fourth_nearest);
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[0], first_nearest));
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[1], second_nearest));
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[2], third_nearest));
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[3], fourth_nearest));
             }
         }
         WHEN("searching for k nearest neighbors with k=3 in the octant with 4 points")
@@ -106,9 +106,9 @@ SCENARIO("KNN searches on the octree", "[octree]")
             THEN("nearest points are the 3 nearest points in that same octant")
             {
                 REQUIRE(nearest_neighbors.size() == k);
-                REQUIRE(nearest_neighbors[0] == first_nearest);
-                REQUIRE(nearest_neighbors[1] == second_nearest);
-                REQUIRE(nearest_neighbors[2] == third_nearest);
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[0], first_nearest));
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[1], second_nearest));
+                REQUIRE(pcp::are_points_equal(nearest_neighbors[2], third_nearest));
             }
         }
     }
@@ -166,8 +166,12 @@ SCENARIO("KNN searches on the octree", "[octree]")
                 REQUIRE(nearest_neighbours.size() == k);
 
                 auto const contains = [&k_inserted_points](pcp::point_t const& p) -> bool {
-                    return std::find(k_inserted_points.cbegin(), k_inserted_points.cend(), p) !=
-                           k_inserted_points.cend();
+                    return std::find_if(
+                               k_inserted_points.cbegin(),
+                               k_inserted_points.cend(),
+                               [&p](auto const& other) {
+                                   return pcp::are_points_equal(p, other);
+                               }) != k_inserted_points.cend();
                 };
 
                 bool const found_nearest_points =

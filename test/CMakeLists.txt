@@ -116,7 +116,7 @@ PRIVATE
   "octree_knn.cpp"
   "octree_range_search.cpp"
   "ply.cpp"
-  "directed_knn_adjacency_list.cpp"
+  "undirected_knn_adjacency_list.cpp"
   "tokenize.cpp"
   "directed_adjacency_list.cpp" 
   "minimum_spanning_tree.cpp"

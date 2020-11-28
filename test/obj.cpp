@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <pcp/common/point_predicates.hpp>
 #include <pcp/io/obj.hpp>
 #include <pcp/normal.hpp>
 #include <pcp/point.hpp>
@@ -27,8 +28,8 @@ SCENARIO("obj file manipulation", "[obj]")
                 REQUIRE(normals.size() == 3u);
                 for (std::size_t i = 0; i < 3u; ++i)
                 {
-                    REQUIRE(vertices[i] == point_truth);
-                    REQUIRE(normals[i] == normal_truth);
+                    REQUIRE(pcp::are_points_equal(vertices[i], point_truth));
+                    REQUIRE(pcp::are_points_equal(normals[i], normal_truth));
                 }
             }
         }
@@ -50,7 +51,7 @@ SCENARIO("obj file manipulation", "[obj]")
                 REQUIRE(normals.empty());
                 for (std::size_t i = 0; i < 3u; ++i)
                 {
-                    REQUIRE(vertices[i] == point_truth);
+                    REQUIRE(pcp::are_points_equal(vertices[i], point_truth));
                 }
             }
         }

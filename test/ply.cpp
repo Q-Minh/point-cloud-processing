@@ -1,9 +1,10 @@
+#include "custom_point.hpp"
+
 #include <catch2/catch.hpp>
+#include <pcp/common/point_predicates.hpp>
 #include <pcp/io/ply.hpp>
 #include <pcp/normal.hpp>
 #include <pcp/point.hpp>
-
-#include "custom_point.hpp"
 
 static std::string get_ascii_ply_file(
     std::size_t num_points,
@@ -36,8 +37,12 @@ static std::string get_binary_little_endian_ply_file(
     bool const with_normals = true);
 
 #pragma warning(push)
-#pragma warning(disable: 26444)
-TEMPLATE_TEST_CASE("ply file manipulation", "[ply][template]", pcp::point_t, pcp::test::custom_point_t)
+#pragma warning(disable : 26444)
+TEMPLATE_TEST_CASE(
+    "ply file manipulation",
+    "[ply][template]",
+    pcp::point_t,
+    pcp::test::custom_point_t)
 {
     float const x = 1.1f, y = 2.2f, z = 3.3f;
     float const nx = 1.f, ny = 0.f, nz = 0.f;
@@ -57,7 +62,7 @@ TEMPLATE_TEST_CASE("ply file manipulation", "[ply][template]", pcp::point_t, pcp
                     REQUIRE(vertices.size() == num_points);
                     for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(vertices[i] == p);
+                        REQUIRE(pcp::are_points_equal(vertices[i], p));
                     }
                 }
             }
@@ -72,8 +77,8 @@ TEMPLATE_TEST_CASE("ply file manipulation", "[ply][template]", pcp::point_t, pcp
                     REQUIRE(normals.size() == num_points);
                     for (std::size_t i = 0; i < 3u; ++i)
                     {
-                        REQUIRE(vertices[i] == p);
-                        REQUIRE(normals[i] == n);
+                        REQUIRE(pcp::are_points_equal(vertices[i], p));
+                        REQUIRE(pcp::are_points_equal(normals[i], n));
                     }
                 }
             }

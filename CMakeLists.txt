@@ -31,14 +31,15 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point_view.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/vertex.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
         
         # common
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_predicates.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
 
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_knn_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/undirected_knn_adjacency_list.hpp
 
@@ -50,6 +51,7 @@ INTERFACE
         
         # traits
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_search_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp

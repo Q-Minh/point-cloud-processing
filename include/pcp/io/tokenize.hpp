@@ -7,6 +7,11 @@
 
 namespace pcp {
 
+/**
+ * @brief Tokenize a string by whitespace
+ * @param s String to tokenize
+ * @return Vector of tokens
+ */
 inline auto tokenize(std::string const& s) -> std::vector<std::string>
 {
     std::istringstream iss(s);
