@@ -1,11 +1,9 @@
 #include <catch2/catch.hpp>
-#include <pcp/common/point_predicates.hpp>
+#include <pcp/common/vertex.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/undirected_knn_adjacency_list.hpp>
-#include <pcp/octree.hpp>
-#include <pcp/point.hpp>
+#include <pcp/octree/octree.hpp>
 #include <pcp/traits/graph_traits.hpp>
-#include <pcp/vertex.hpp>
 
 SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adjacency_list]")
 {

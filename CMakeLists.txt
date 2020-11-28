@@ -22,21 +22,22 @@ target_link_libraries(pcp INTERFACE eigen)
 target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/axis_aligned_bounding_box.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/intersections.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_iterator.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree_node.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/normal.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/point_view.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/sphere.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/vertex.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp.hpp
+
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/pcp.hpp
         
         # common
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_predicates.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normal.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree_iterator.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/octree_node.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_predicates.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/point_view.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/sphere.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vertex.hpp
 
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp

@@ -1,7 +1,8 @@
 #pragma once
 
 #include "point.hpp"
-#include "traits/point_traits.hpp"
+
+#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 

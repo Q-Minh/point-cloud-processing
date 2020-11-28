@@ -1,10 +1,10 @@
 #include "custom_point.hpp"
 
 #include <catch2/catch.hpp>
+#include <pcp/common/normal.hpp>
+#include <pcp/common/point.hpp>
 #include <pcp/common/point_predicates.hpp>
 #include <pcp/io/ply.hpp>
-#include <pcp/normal.hpp>
-#include <pcp/point.hpp>
 
 static std::string get_ascii_ply_file(
     std::size_t num_points,

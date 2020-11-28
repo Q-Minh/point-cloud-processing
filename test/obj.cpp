@@ -1,8 +1,8 @@
 #include <catch2/catch.hpp>
+#include <pcp/common/normal.hpp>
+#include <pcp/common/point.hpp>
 #include <pcp/common/point_predicates.hpp>
 #include <pcp/io/obj.hpp>
-#include <pcp/normal.hpp>
-#include <pcp/point.hpp>
 
 SCENARIO("obj file manipulation", "[obj]")
 {

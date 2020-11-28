@@ -1,9 +1,8 @@
 #pragma once
 
-#include "pcp/traits/point_traits.hpp"
-#include "pcp/traits/vector3d_traits.hpp"
-
 #include <cmath>
+#include <pcp/traits/point_traits.hpp>
+#include <pcp/traits/vector3d_traits.hpp>
 
 namespace pcp {
 namespace common {

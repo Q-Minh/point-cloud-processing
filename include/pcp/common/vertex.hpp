@@ -2,10 +2,10 @@
 
 #include "point.hpp"
 #include "point_view.hpp"
-#include "traits/graph_vertex_traits.hpp"
-#include "traits/point_traits.hpp"
 
 #include <cstdint>
+#include <pcp/traits/graph_vertex_traits.hpp>
+#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 

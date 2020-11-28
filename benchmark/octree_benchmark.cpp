@@ -1,7 +1,5 @@
-#include "pcp/common/point_predicates.hpp"
-
 #include <benchmark/benchmark.h>
-#include <pcp/octree.hpp>
+#include <pcp/octree/octree.hpp>
 #include <random>
 
 float constexpr get_bm_min()

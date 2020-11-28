@@ -1,6 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/common/point_predicates.hpp>
-#include <pcp/octree.hpp>
+#include <pcp/octree/octree.hpp>
 
 SCENARIO("octree deletion", "[octree]")
 {

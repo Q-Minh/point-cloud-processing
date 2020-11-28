@@ -1,7 +1,6 @@
 #pragma once
 
-#include "pcp/intersections.hpp"
-
+#include <pcp/common/intersections.hpp>
 #include <type_traits>
 
 namespace pcp {

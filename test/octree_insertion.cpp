@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree.hpp>
+#include <pcp/octree/octree.hpp>
 
 SCENARIO("octree insertion", "[octree]")
 {
