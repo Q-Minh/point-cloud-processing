@@ -1,9 +1,13 @@
 #pragma once
 
 #include <pcp/common/norm.hpp>
+#include <pcp/common/normals/normal.hpp>
+#include <pcp/common/normals/normal_estimation.hpp>
+#include <pcp/common/points/point.hpp>
 #include <pcp/common/vector3d.hpp>
 #include <pcp/common/vector3d_queries.hpp>
 #include <pcp/traits/normal_traits.hpp>
+#include <pcp/traits/plane_traits.hpp>
 #include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
@@ -15,7 +19,7 @@ namespace common {
  * @tparam Normal Type of normal used by the plane
  */
 template <class Point, class Normal>
-class plane3d_t
+class basic_plane3d_t
 {
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
@@ -24,12 +28,12 @@ class plane3d_t
     using point_type     = Point;
     using normal_type    = Normal;
     using component_type = typename point_type::component_type;
-    using self_type      = plane3d_t<Point, Normal>;
+    using self_type      = basic_plane3d_t<Point, Normal>;
 
-    plane3d_t()                 = default;
-    plane3d_t(self_type const&) = default;
-    plane3d_t(self_type&&)      = default;
-    plane3d_t(point_type const& p, normal_type const& n) : point_(p), normal_(n) {}
+    basic_plane3d_t()                 = default;
+    basic_plane3d_t(self_type const&) = default;
+    basic_plane3d_t(self_type&&)      = default;
+    basic_plane3d_t(point_type const& p, normal_type const& n) : point_(p), normal_(n) {}
 
     normal_type const& normal() const { return normal_; }
     point_type const& point() const { return point_; }
@@ -58,6 +62,30 @@ class plane3d_t
     normal_type normal_;
     point_type point_;
 };
+
+using plane3d_t = pcp::common::basic_plane3d_t<pcp::point_t, pcp::normal_t>;
+
+/**
+ * @brief Computes an estimated tangent plane from a sequence of 3d points
+ * @tparam ForwardIter Iterator to points
+ * @tparam Plane Type of plan to compute
+ * @param begin
+ * @param end
+ * @return
+ */
+template <class ForwardIter, class Plane = pcp::common::plane3d_t>
+Plane tangent_plane(ForwardIter begin, ForwardIter end)
+{
+    static_assert(traits::is_plane_v<Plane>, "Plane must satisfy Plane concept");
+
+    using normal_type = typename Plane::normal_type;
+    using point_type  = typename Plane::point_type;
+
+    normal_type normal = estimate_normal(begin, end);
+    point_type point   = center_of_geometry(begin, end);
+
+    return Plane(point, normal);
+}
 
 } // namespace common
 } // namespace pcp

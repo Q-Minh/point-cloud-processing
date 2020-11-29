@@ -38,13 +38,20 @@ bool are_vectors_equal(
     /*static_assert(traits::is_vector3d_v<Vector3d1>, "Vector3d1 must satisfy Vector3d concept");
     static_assert(traits::is_vector3d_v<Vector3d2>, "Vector3d2 must satisfy Vector3d concept");*/
 
-    using component_type = typename Vector3d1::component_type;
     bool const equals    = floating_point_equals(v1.x(), v2.x(), eps) &&
                         floating_point_equals(v1.y(), v2.y(), eps) &&
                         floating_point_equals(v1.z(), v2.z(), eps);
     return equals;
 }
 
+/**
+ * @brief Returns the center of geometry of a range of 3d vectors
+ * @tparam ForwardIter Type of iterator to Vector3d
+ * @tparam Vector3d Type of the 3d vectors in the range
+ * @param begin 
+ * @param end 
+ * @return The center of geometry of the range as a Vector3d
+*/
 template <
     class ForwardIter,
     class Vector3d = typename std::iterator_traits<ForwardIter>::value_type>
@@ -52,7 +59,7 @@ Vector3d center_of_geometry(ForwardIter begin, ForwardIter end)
 {
     static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
     static_assert(
-        std::is_convertible_v<typename ForwardIter::value_type, Vector3d>,
+        std::is_same_v<typename ForwardIter::value_type, Vector3d>,
         "Type of dereferenced ForwardIter must be convertible to Vector3d");
     auto const n   = std::distance(begin, end);
     // Note: Can be parallelized
