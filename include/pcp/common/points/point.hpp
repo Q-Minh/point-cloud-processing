@@ -72,6 +72,8 @@ class basic_point_t
         return self_type{x() - other.x(), y() - other.y(), z() - other.z()};
     }
 
+    self_type operator-() const { return self_type{-x(), -y(), -z()}; }
+
   private:
     coordinate_type x_ = 0., y_ = 0., z_ = 0.;
 };

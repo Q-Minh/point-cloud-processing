@@ -1,9 +1,9 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/normals/normal.hpp>
-#include <pcp/common/normals/tangent_plane.hpp>
+#include <pcp/common/normals/plane3d.hpp>
 
-SCENARIO("3d tangent planes", "[tangent_plane]") 
+SCENARIO("3d planes", "[plane3d]") 
 {
     GIVEN("a point and a normal") 
     { 

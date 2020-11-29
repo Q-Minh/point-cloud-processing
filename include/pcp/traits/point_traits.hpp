@@ -63,7 +63,8 @@ struct is_point<
         decltype(std::declval<typename Point::coordinate_type>() * std::declval<Point&>()),
         decltype(std::declval<Point&>() / std::declval<typename Point::coordinate_type>()),
         decltype(std::declval<Point&>() + std::declval<Point&>()),
-        decltype(std::declval<Point&>() - std::declval<Point&>())>> : is_point_view<Point>
+        decltype(std::declval<Point&>() - std::declval<Point&>()),
+        decltype(-std::declval<Point&>())>> : is_point_view<Point>
 {
     static_assert(std::is_default_constructible_v<Point>, "Point must be default constructible");
     static_assert(

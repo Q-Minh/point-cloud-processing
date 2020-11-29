@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
-#include <pcp/common/vector3d_predicates.hpp>
+#include <pcp/common/vector3d_queries.hpp>
 #include <pcp/io/obj.hpp>
 
 SCENARIO("obj file manipulation", "[obj]")

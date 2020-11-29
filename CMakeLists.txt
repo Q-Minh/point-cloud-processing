@@ -29,12 +29,14 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vector3d_predicates.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vector3d.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vector3d_queries.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/sphere.hpp
 
         # common/normals
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normals/normal.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normals/tangent_plane.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normals/normal_estimation.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/normals/plane3d.hpp
 
         # common/points
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/point.hpp

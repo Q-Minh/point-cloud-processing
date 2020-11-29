@@ -8,7 +8,7 @@
 #include <numeric>
 #include <pcp/common/intersections.hpp>
 #include <pcp/common/norm.hpp>
-#include <pcp/common/vector3d_predicates.hpp>
+#include <pcp/common/vector3d_queries.hpp>
 #include <pcp/traits/point_traits.hpp>
 #include <queue>
 #include <vector>

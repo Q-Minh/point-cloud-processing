@@ -198,7 +198,7 @@ static void bm_vector_iterator_traversal(benchmark::State& state)
     for (auto _ : state)
     {
         bool const all = std::all_of(std::cbegin(points), std::cend(points), [](auto const& p) {
-            return pcp::are_points_equal(p, p);
+            return pcp::common::are_vectors_equal(p, p);
         });
         benchmark::DoNotOptimize(all);
     }
@@ -221,7 +221,7 @@ static void bm_octree_iterator_traversal(benchmark::State& state)
     for (auto _ : state)
     {
         bool const all = std::all_of(octree.cbegin(), octree.cend(), [](auto const& p) {
-            return pcp::are_points_equal(p, p);
+            return pcp::common::are_vectors_equal(p, p);
         });
         benchmark::DoNotOptimize(all);
     }

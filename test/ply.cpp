@@ -3,7 +3,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
-#include <pcp/common/vector3d_predicates.hpp>
+#include <pcp/common/vector3d_queries.hpp>
 #include <pcp/io/ply.hpp>
 
 static std::string get_ascii_ply_file(

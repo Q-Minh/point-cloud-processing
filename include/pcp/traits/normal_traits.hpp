@@ -39,8 +39,7 @@ struct is_normal<
         decltype(std::declval<Normal&>() / std::declval<typename Normal::component_type>()),
         decltype(std::declval<Normal&>() + std::declval<Normal&>()),
         decltype(std::declval<Normal&>() - std::declval<Normal&>()),
-        decltype(std::declval<Normal&>() == std::declval<Normal&>()),
-        decltype(std::declval<Normal&>() != std::declval<Normal&>())>> : std::true_type
+        decltype(-std::declval<Normal&>())>> : std::true_type
 {
     static_assert(std::is_default_constructible_v<Normal>, "Normal must be default constructible");
     static_assert(std::is_copy_constructible_v<Normal>, "Normal must be copy constructible");

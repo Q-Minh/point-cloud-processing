@@ -53,26 +53,6 @@ struct custom_point_t
     }
 
     template <class PointView>
-    bool operator==(PointView const& p) const
-    {
-        static_assert(
-            pcp::traits::is_point_view_v<PointView>,
-            "PointView must satisfy PointView concept");
-
-        coordinate_type constexpr e = static_cast<coordinate_type>(1e-5);
-        coordinate_type const dx    = std::abs(x() - p.x());
-        coordinate_type const dy    = std::abs(y() - p.y());
-        coordinate_type const dz    = std::abs(z() - p.z());
-        bool const equals           = (dx < e) && (dy < e) && (dz < e);
-        return equals;
-    }
-    template <class PointView>
-    bool operator!=(PointView const& p) const
-    {
-        return !(*this == p);
-    }
-
-    template <class PointView>
     self_type operator+(PointView const& other) const
     {
         static_assert(
@@ -89,6 +69,8 @@ struct custom_point_t
             "PointView must satisfy PointView concept");
         return self_type{x() - other.x(), y() - other.y(), z() - other.z()};
     }
+
+    self_type operator-() const { return self_type{-x(), -y(), -z()}; }
 
   private:
     coordinate_type x_ = 0., y_ = 0., z_ = 0.;

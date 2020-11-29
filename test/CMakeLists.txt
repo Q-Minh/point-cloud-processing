@@ -14,10 +14,11 @@ PRIVATE
   "octree_range_search.cpp"
   "ply.cpp"
   "undirected_knn_adjacency_list.cpp"
-  "tangent_plane.cpp"
+  "plane3d.cpp"
   "tokenize.cpp"
   "directed_adjacency_list.cpp" 
   "minimum_spanning_tree.cpp"
+  "normal_estimation.cpp"
 )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
