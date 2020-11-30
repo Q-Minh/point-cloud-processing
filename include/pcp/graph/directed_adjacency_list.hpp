@@ -143,10 +143,13 @@ class directed_adjacency_list_t
         auto const begin   = std::cbegin(vertices_);
         auto const voffset = std::distance<const_vertex_iterator_type>(begin, vit);
         auto const vidx    = static_cast<size_type>(voffset);
-        auto edge_begin    = edge_iterator_type{const_cast<self_type*>(this), vidx};
-        auto edge_end      = edge_iterator_type{const_cast<self_type*>(this), vidx + 1u};
-        if (vidx + 1 < connectivity_.size() && connectivity_[vidx + 1u].empty())
-            ++edge_end;
+        if (connectivity_[vidx].empty())
+        {
+            auto const end = edge_iterator_type{const_cast<self_type*>(this), connectivity_.size()};
+            return {end, end};
+        }
+        auto edge_begin = edge_iterator_type{const_cast<self_type*>(this), vidx};
+        auto edge_end   = edge_iterator_type{const_cast<self_type*>(this), vidx + 1u};
         return {edge_begin, edge_end};
     }
 
@@ -276,11 +279,18 @@ class adjacency_list_edge_iterator_t
     using difference_type   = typename connectivity_type::difference_type;
     using size_type         = typename connectivity_type::size_type;
 
-    adjacency_list_edge_iterator_t(graph_type* graph) : graph_(graph), i_(), j_() {}
-    adjacency_list_edge_iterator_t(graph_type* graph, size_type i) : graph_(graph), i_(i), j_() {}
+    adjacency_list_edge_iterator_t(graph_type* graph) : graph_(graph), i_(), j_()
+    {
+        try_next_valid_edge();
+    }
+    adjacency_list_edge_iterator_t(graph_type* graph, size_type i) : graph_(graph), i_(i), j_()
+    {
+        try_next_valid_edge();
+    }
     adjacency_list_edge_iterator_t(graph_type* graph, size_type i, size_type j)
         : graph_(graph), i_(i), j_(j)
     {
+        try_next_valid_edge();
     }
 
     adjacency_list_edge_iterator_t(self_type const&) = default;
@@ -430,6 +440,23 @@ class adjacency_list_edge_iterator_t
     size_type j() const { return j_; }
 
   private:
+    void try_next_valid_edge()
+    {
+        if (i_ >= graph_->connectivity_.size())
+            return;
+
+        if (j_ >= graph_->connectivity_[i_].size())
+        {
+            ++(*this);
+            return;
+        }
+        if (graph_->connectivity_[i_].empty())
+        {
+            ++(*this);
+            return;
+        }
+    }
+
     graph_type* graph_;
     size_type i_;
     size_type j_;

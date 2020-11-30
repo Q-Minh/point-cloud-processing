@@ -1,3 +1,5 @@
+#include "graph/dumb_vertex.hpp"
+
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/minimum_spanning_tree.hpp>
@@ -27,21 +29,8 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
          *        |   |                     |
          *        ----e                     ----e
          */
-        using id_type = std::uint32_t;
-        struct vertex_t
-        {
-            using id_type = std::uint32_t;
-            id_type id_   = 0u;
-            vertex_t(id_type id) : id_(id) {}
-            void id(id_type id) { id_ = id; }
-            id_type id() const { return id_; }
-
-            // STL algorithms need equality comparisons
-            bool operator==(vertex_t const& other) const { return id_ == other.id_; }
-            bool operator==(id_type id) const { return id_ == id; }
-        };
-
-        using vertex_type = vertex_t;
+        using vertex_type = pcp::test::dumb_vertex_t;
+        using id_type     = typename vertex_type::id_type;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
         graph_type G;
         auto v1 = 0u;
@@ -105,11 +94,7 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
                 return std::numeric_limits<uint8_t>::max();
             };
 
-            auto [MST, get_root] =
-                pcp::graph::prim_minimum_spanning_tree<graph_type, graph_type, decltype(cost)>(
-                    G,
-                    cost,
-                    e);
+            auto [MST, get_root] = pcp::graph::prim_minimum_spanning_tree(G, cost, e);
 
             THEN("the correct minimum spanning tree is found")
             {

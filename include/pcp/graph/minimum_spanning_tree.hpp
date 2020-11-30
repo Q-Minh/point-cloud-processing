@@ -1,13 +1,12 @@
 #pragma once
 
-#include "pcp/traits/graph_traits.hpp"
-
 #include <algorithm>
 #include <functional>
 #include <limits>
 #include <numeric>
 #include <optional>
 #include <queue>
+#include <pcp/traits/graph_traits.hpp>
 
 namespace pcp {
 namespace graph {
@@ -34,7 +33,7 @@ namespace graph {
  * @return         The minimum spanning tree of graph G with root root using edge costs determined
  * by get_cost. Return type is a pair<graph, root>
  */
-template <class DirectedGraph, class MutableDirectedGraph, class CostFunc>
+template <class DirectedGraph, class CostFunc, class MutableDirectedGraph = DirectedGraph>
 auto prim_minimum_spanning_tree(
     DirectedGraph const& G,
     CostFunc get_cost,

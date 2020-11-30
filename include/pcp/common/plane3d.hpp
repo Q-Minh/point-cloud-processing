@@ -59,8 +59,8 @@ class basic_plane3d_t
     }
 
   private:
-    normal_type normal_;
     point_type point_;
+    normal_type normal_;
 };
 
 using plane3d_t = pcp::common::basic_plane3d_t<pcp::point_t, pcp::normal_t>;

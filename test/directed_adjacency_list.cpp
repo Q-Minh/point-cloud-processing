@@ -1,3 +1,5 @@
+#include "graph/dumb_vertex.hpp"
+
 #include <algorithm>
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
@@ -7,17 +9,8 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
 {
     GIVEN("a collection of vertices")
     {
-        using id_type = std::uint32_t;
-        struct vertex_t
-        {
-            using id_type = std::uint32_t;
-            id_type id_   = 0u;
-            vertex_t(id_type id) : id_(id) {}
-            void id(id_type id) { id_ = id; }
-            id_type id() const { return id_; }
-        };
-
-        using vertex_type          = vertex_t;
+        using vertex_type          = pcp::test::dumb_vertex_t;
+        using id_type              = typename vertex_type::id_type;
         using graph_type           = pcp::graph::directed_adjacency_list_t<vertex_type>;
         using vertex_iterator_type = typename graph_type::vertex_iterator_type;
 

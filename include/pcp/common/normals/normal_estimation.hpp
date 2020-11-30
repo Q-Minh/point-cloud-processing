@@ -22,7 +22,7 @@ Normal estimate_normal(ForwardIter it, ForwardIter end)
     auto const n = std::distance(it, end);
     Eigen::Matrix3Xf V;
     V.resize(3, n);
-    for (std::size_t i = 0; i < n; ++i, ++it)
+    for (auto i = 0; i < n; ++i, ++it)
     {
         V.block(0, i, 3, 1) = Eigen::Vector3f(it->x(), it->y(), it->z());
     }

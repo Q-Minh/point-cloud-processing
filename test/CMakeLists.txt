@@ -19,6 +19,8 @@ PRIVATE
   "directed_adjacency_list.cpp" 
   "minimum_spanning_tree.cpp"
   "normal_estimation.cpp"
+  "graph/dumb_vertex.hpp"
+  "graph/search.cpp"
 )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")

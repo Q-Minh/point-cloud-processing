@@ -31,8 +31,11 @@ class basic_vertex_t : public basic_point_view_t<PointView>
     id_type id() const { return id_; }
     void id(id_type value) { id_ = value; }
 
-    basic_vertex_t() = default;
-
+    basic_vertex_t()                 = default;
+    basic_vertex_t(self_type const&) = default;
+    basic_vertex_t(self_type&&)      = default;
+    self_type& operator=(self_type const&) = default;
+    self_type& operator=(self_type&&) = default;
     explicit basic_vertex_t(PointView* point) : parent_type(point), id_(0u) {}
     explicit basic_vertex_t(id_type id) : parent_type(), id_(id) {}
     explicit basic_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id) {}

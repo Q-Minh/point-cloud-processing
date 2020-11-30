@@ -27,7 +27,7 @@ struct l2
 };
 
 template <class Vector3d, class Norm = l2>
-typename Vector3d::component_type norm(Vector3d const& v, Norm const& kind = Norm())
+typename Vector3d::component_type norm(Vector3d const& v, Norm const& = Norm())
 {
     static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
 
@@ -38,6 +38,10 @@ typename Vector3d::component_type norm(Vector3d const& v, Norm const& kind = Nor
         auto const zz = v.z() * v.z();
 
         return std::sqrt(xx + yy + zz);
+    }
+    else 
+    {
+        static_assert(false, "Unsupported Norm type");
     }
 }
 

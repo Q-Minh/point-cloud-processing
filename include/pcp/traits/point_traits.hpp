@@ -37,9 +37,7 @@ struct is_point_view<
             std::declval<typename PointView::coordinate_type>()))>> : std::true_type
 {
     static_assert(std::is_copy_constructible_v<PointView>, "PointView must be copy constructible");
-    static_assert(std::is_move_constructible_v<PointView>, "PointView must be move constructible");
     static_assert(std::is_copy_assignable_v<PointView>, "PointView must be copy assignable");
-    static_assert(std::is_move_assignable_v<PointView>, "PointView must be move assignable");
 };
 
 template <class PointView>

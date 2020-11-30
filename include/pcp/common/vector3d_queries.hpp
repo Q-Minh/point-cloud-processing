@@ -61,10 +61,14 @@ Vector3d center_of_geometry(ForwardIter begin, ForwardIter end)
     static_assert(
         std::is_same_v<typename ForwardIter::value_type, Vector3d>,
         "Type of dereferenced ForwardIter must be convertible to Vector3d");
+
+    using component_type = typename Vector3d::component_type;
+    
     auto const n   = std::distance(begin, end);
     // Note: Can be parallelized
     auto const sum = std::reduce(begin, end);
-    return sum / n;
+    auto const np = static_cast<component_type>(n);
+    return sum / np;
 }
 
 } // namespace common

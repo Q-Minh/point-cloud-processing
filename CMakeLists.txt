@@ -25,6 +25,10 @@ INTERFACE
 
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/pcp.hpp
         
+        # algorithm
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/compute_normals.hpp
+
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
@@ -46,6 +50,7 @@ INTERFACE
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/search.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/undirected_knn_adjacency_list.hpp
 
         # io
