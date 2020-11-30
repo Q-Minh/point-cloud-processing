@@ -11,35 +11,35 @@ namespace pcp {
 
 /**
  * @brief
- * The basic_vertex_t type is a basic_point_view_t. It does not
+ * The basic_point_view_vertex_t type is a basic_point_view_t. It does not
  * hold ownership over the underlying point. It stores an
  * identifier, and exposes it through id() and id(id_type).
- * basic_vertex_t should satify the GraphVertex concept.
+ * basic_point_view_vertex_t should satify the GraphVertex concept.
  * Use this type as an adaptor to points so that they are
  * useable in graph algorithms without copying.
  * @tparam PointView Type satisfying PointView concept
  */
 template <class PointView>
-class basic_vertex_t : public basic_point_view_t<PointView>
+class basic_point_view_vertex_t : public basic_point_view_t<PointView>
 {
   public:
     using id_type     = std::uint64_t;
-    using self_type   = basic_vertex_t<PointView>;
+    using self_type   = basic_point_view_vertex_t<PointView>;
     using point_type  = basic_point_view_t<PointView>;
     using parent_type = point_type;
 
     id_type id() const { return id_; }
     void id(id_type value) { id_ = value; }
 
-    basic_vertex_t()                 = default;
-    basic_vertex_t(self_type const&) = default;
-    basic_vertex_t(self_type&&)      = default;
+    basic_point_view_vertex_t()                 = default;
+    basic_point_view_vertex_t(self_type const&) = default;
+    basic_point_view_vertex_t(self_type&&)      = default;
     self_type& operator=(self_type const&) = default;
     self_type& operator=(self_type&&) = default;
-    explicit basic_vertex_t(PointView* point) : parent_type(point), id_(0u) {}
-    explicit basic_vertex_t(id_type id) : parent_type(), id_(id) {}
-    explicit basic_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id) {}
-    basic_vertex_t(point_type const& other) : parent_type(other), id_(0u) {}
+    explicit basic_point_view_vertex_t(PointView* point) : parent_type(point), id_(0u) {}
+    explicit basic_point_view_vertex_t(id_type id) : parent_type(), id_(id) {}
+    explicit basic_point_view_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id) {}
+    basic_point_view_vertex_t(point_type const& other) : parent_type(other), id_(0u) {}
 
     /**
      * @brief
@@ -50,7 +50,7 @@ class basic_vertex_t : public basic_point_view_t<PointView>
      * @param other GraphVertex to copy from
      */
     template <class GraphVertex>
-    basic_vertex_t(GraphVertex const& other) : parent_type(), id_(other.id())
+    basic_point_view_vertex_t(GraphVertex const& other) : parent_type(), id_(other.id())
     {
         static_assert(
             traits::is_graph_vertex_v<GraphVertex>,
@@ -59,7 +59,7 @@ class basic_vertex_t : public basic_point_view_t<PointView>
 
     /**
      * @brief
-     * Assigns id of other GraphVertex to this basic_vertex_t.
+     * Assigns id of other GraphVertex to this basic_point_view_vertex_t.
      * If other is also a PointView, also assign x,y,z coordinates.
      * @tparam GraphVertex Type satisfying GraphVertex concept
      * @param other GraphVertex to assign from
@@ -100,6 +100,6 @@ class basic_vertex_t : public basic_point_view_t<PointView>
     id_type id_ = 0u;
 };
 
-using vertex_t = basic_vertex_t<pcp::point_t>;
+using vertex_t = basic_point_view_vertex_t<pcp::point_t>;
 
 } // namespace pcp

@@ -25,8 +25,8 @@ struct octree_parameters_t
     using aabb_type  = axis_aligned_bounding_box_t<Point>;
     using point_type = Point;
 
-    std::uint32_t node_capacity = 4u;
-    std::uint8_t max_depth      = 21;
+    std::uint32_t node_capacity = 32u;
+    std::uint8_t max_depth      = 21u;
     aabb_type voxel_grid{};
 };
 

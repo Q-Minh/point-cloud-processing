@@ -10,7 +10,7 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
     GIVEN("an octree of 8 clusters of 3 points")
     {
         using point_type  = pcp::point_t;
-        using vertex_type = pcp::basic_vertex_t<point_type>;
+        using vertex_type = pcp::basic_point_view_vertex_t<point_type>;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
 
         static_assert(
@@ -79,14 +79,14 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
             std::cend(vertices),
             params};
 
-        auto knn = [&octree](vertex_type const& v, std::uint64_t k) {
+        std::uint64_t k = 2u;
+        auto knn = [&octree, k](vertex_type const& v) {
             return octree.nearest_neighbours(v, k);
         };
 
         WHEN("creating a directed_knn_adjacency_list_t from the octree")
         {
-            std::uint32_t k = 2u;
-            auto graph = pcp::graph::undirected_knn_graph(vertices.begin(), vertices.end(), knn, k);
+            auto graph = pcp::graph::undirected_knn_graph(vertices.begin(), vertices.end(), knn);
 
             THEN("the graph's edge count is 'vertex_count * k nearest neighbours * 2'")
             {

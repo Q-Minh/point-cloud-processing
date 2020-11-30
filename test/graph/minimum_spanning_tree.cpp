@@ -1,8 +1,7 @@
-#include "graph/dumb_vertex.hpp"
-
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/minimum_spanning_tree.hpp>
+#include <pcp/graph/vertex.hpp>
 
 SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
 {
@@ -29,8 +28,8 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
          *        |   |                     |
          *        ----e                     ----e
          */
-        using vertex_type = pcp::test::dumb_vertex_t;
-        using id_type     = typename vertex_type::id_type;
+        using id_type = std::uint32_t;
+        using vertex_type = pcp::graph::vertex_t<id_type>;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
         graph_type G;
         auto v1 = 0u;

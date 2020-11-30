@@ -5,26 +5,27 @@
 namespace pcp {
 namespace traits {
 
-template <class Iterable, class Element, class = void>
-struct is_iterable : std::false_type
+template <class Iterable, class = void>
+struct iterable : std::false_type
 {
 };
 
-template <class Iterable, class Element>
-struct is_iterable<
+template <class Iterable>
+struct iterable<
     Iterable,
-    Element,
     std::void_t<
         decltype(std::declval<Iterable&>().begin()),
         decltype(std::declval<Iterable&>().end())>> : std::true_type
 {
-    static_assert(
-        std::is_convertible_v<decltype(*std::declval<Iterable&>().begin()), Element>,
-        "Iterable does not provide iterators to Element");
+    using iterator_type = decltype(std::declval<Iterable&>().begin());
+    using value_type = typename std::iterator_traits<iterator_type>::value_type;
 };
 
-template <class Iterable, class Element>
-static constexpr bool is_iterable_v = is_iterable<Iterable, Element>::value;
+template <class Iterable>
+static constexpr bool is_iterable_v = iterable<Iterable>::value;
+
+template <class Iterable>
+using value_type_of_iterable_t = typename iterable<Iterable>::value_type;
 
 } // namespace traits
 } // namespace pcp

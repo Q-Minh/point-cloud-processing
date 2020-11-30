@@ -1,14 +1,13 @@
-#include "dumb_vertex.hpp"
-
 #include <catch2/catch.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/search.hpp>
+#include <pcp/graph/vertex.hpp>
 
 SCENARIO("graph searching algorithms", "[graph]")
 {
     GIVEN("a graph with cycles")
     {
-        using vertex_type = pcp::test::dumb_vertex_t;
+        using vertex_type = pcp::graph::vertex_t<>;
         using id_type     = typename vertex_type::id_type;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
         graph_type G;

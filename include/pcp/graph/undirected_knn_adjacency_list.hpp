@@ -27,14 +27,13 @@ namespace graph {
  * @param begin
  * @param end
  * @param knn Callable object implementing the knn searches for each vertex
- * @param k The number of neighbors to consider in the knn search for each vertex
  * @return The undirected graph of k nearest neighbors of each of its vertices
  */
 template <
     class ForwardIter,
     class KnnSearcher,
     class GraphVertex = typename std::iterator_traits<ForwardIter>::value_type>
-auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn, std::uint64_t k = 5)
+auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
     -> directed_adjacency_list_t<typename std::iterator_traits<ForwardIter>::value_type>
 {
     using vertex_type = GraphVertex;
@@ -52,9 +51,9 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn, s
         "GraphVertex must satisfy GraphVertex concept");
     static_assert(
         std::is_convertible_v<typename std::iterator_traits<ForwardIter>::value_type, vertex_type>,
-        "RandomAccessIter must be iterator to a type convertible to GraphVertex");
+        "ForwardIter must be iterator to a type convertible to GraphVertex");
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, GraphVertex, std::uint64_t>,
+        traits::is_knn_searcher_v<KnnSearcher, GraphVertex>,
         "knn must satisfy KnnSearcher concept");
 
     std::vector<vertex_type> sorted_vertices(begin, end);
@@ -69,7 +68,7 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn, s
     auto const [vbegin, vend] = g.vertices();
     for (auto it = vbegin; it != vend; ++it)
     {
-        auto const& neighbors = knn(*it, k);
+        auto const& neighbors = knn(*it);
         for (auto const& neighbor : neighbors)
         {
             auto const neighbor_it = std::next(vbegin, neighbor.id());
