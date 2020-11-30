@@ -34,12 +34,12 @@ SCENARIO("computing point cloud normals", "[normals]")
             auto const knn = [&octree, k](pcp::point_t const& p) {
                 return octree.nearest_neighbours(p, k);
             };
-            pcp::compute_normals(
+            pcp::algorithm::compute_normals(
                 point_cloud.cbegin(),
                 point_cloud.cend(),
                 std::back_inserter(normals),
                 knn,
-                [](pcp::point_t const&, pcp::normal_t const& n) { return n; });
+                pcp::algorithm::default_normal_transform<pcp::point_t, pcp::normal_t>);
 
             THEN(
                 "the normals are at least as precise as performing tangent plane normal estimation")
@@ -123,7 +123,7 @@ SCENARIO("computing point cloud normals", "[normals]")
                 normals[v.id()] = n;
             };
 
-            pcp::compute_normal_orientations(
+            pcp::algorithm::compute_normal_orientations(
                 vertices.begin(),
                 vertices.end(),
                 knn,

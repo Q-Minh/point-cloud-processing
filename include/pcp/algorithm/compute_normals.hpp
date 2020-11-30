@@ -15,6 +15,12 @@
 #include <utility>
 
 namespace pcp {
+namespace algorithm {
+
+template <class Input, class Normal>
+inline auto const default_normal_transform = [](Input const&, Normal const& n) {
+    return n;
+};
 
 /**
  * @brief
@@ -26,7 +32,7 @@ namespace pcp {
  * @tparam KnnSearcher Callable type returning k neighborhood of input element
  * @tparam TransformOp Callable type returning a Normal with parameters (input element, normal)
  * @tparam Normal Type of normal
- * @param begin 
+ * @param begin
  * @param end
  * @param out_begin Start iterator of output sequence
  * @param knn The callable object to query k nearest neighbors
@@ -76,8 +82,8 @@ void compute_normals(
 
 /**
  * @brief
- * Adjusts the orientations of a point cloud's normals using a minimum spanning tree 
- * of the KNN graph of the point cloud, and propagating the MST's root's normal 
+ * Adjusts the orientations of a point cloud's normals using a minimum spanning tree
+ * of the KNN graph of the point cloud, and propagating the MST's root's normal
  * through the MST.
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam GetNormalOp Callable type returning a normal from an input element
@@ -126,7 +132,7 @@ void compute_normal_orientations(
         std::is_invocable_v<TransformOp, input_element_type, normal_type>,
         "TransformOp must be callable as op(*begin, get_normal(...))");
 
-    auto graph          = graph::undirected_knn_graph(begin, end, std::forward<KnnSearcher>(knn));
+    auto graph          = graph::directed_knn_graph(begin, end, std::forward<KnnSearcher>(knn));
     auto [vbegin, vend] = graph.vertices();
 
     auto const is_higher =
@@ -138,20 +144,60 @@ void compute_normal_orientations(
 
     auto const root = std::max_element(vbegin, vend, is_higher);
 
-    auto const cost = [get_normal](auto const& v1, auto const& v2) {
-        auto const& n1            = get_normal(v1);
-        auto const& n2            = get_normal(v2);
-        auto const prod           = common::inner_product(n1, n2);
-        using floating_point_type = decltype(prod);
-        auto const one            = static_cast<floating_point_type>(1.0);
-        return one - std::abs(prod);
-    };
+    using floating_point_type = typename normal_type::component_type;
+    op(*root,
+       normal_type{
+           static_cast<floating_point_type>(0.0),
+           static_cast<floating_point_type>(0.0),
+           static_cast<floating_point_type>(1.0)});
 
-    auto [mst, get_root] = graph::prim_minimum_spanning_tree(graph, cost, root);
-    auto mst_root        = get_root(mst);
-    graph::depth_first_search(
-        mst,
-        mst_root,
+    /**
+     * In Hoppe '92, normal orientation adjustments use a minimum spanning tree
+     * using a cost function that assigns low weights to similarly oriented 
+     * normals, and high weights to normals approaching orthogonality. He then 
+     * traverses the MST and flips normal orientations when their inner-product 
+     * is negative. It seems that in our case, prim's minimum spanning tree algorithm
+     * cannot work, since our knn graphs are directed rather than undirected. The 
+     * reason for the MST not working is not clear. We thought that having an 
+     * undirected graph in the form a directed graph where each undirected edge 
+     * is split into two parallel and opposite directed edges would be enough 
+     * for prim's mst algorithm to work, but I think it doesn't and I believe 
+     * that that is the culprit for the normal orientation adjustments not 
+     * working when using the MST version.
+     */
+    // auto const cost = [get_normal](auto const& v1, auto const& v2) {
+    //    auto const& n1            = get_normal(v1);
+    //    auto const& n2            = get_normal(v2);
+    //    auto const prod           = common::inner_product(n1, n2);
+    //    using floating_point_type = decltype(prod);
+    //    auto const one            = static_cast<floating_point_type>(1.0);
+    //    return one - std::abs(prod);
+    //};
+    //
+    // auto [mst, get_root]      = graph::prim_minimum_spanning_tree(graph, cost, root);
+    // auto mst_root             = get_root(mst);
+    // graph::depth_first_search(
+    //    mst,
+    //    mst_root,
+    //    [op = std::forward<TransformOp>(op), get_normal](auto const& v1, auto const& v2) {
+    //        auto const& n1            = get_normal(v1);
+    //        auto const& n2            = get_normal(v2);
+    //        auto const prod           = common::inner_product(n1, n2);
+    //        using floating_point_type = decltype(prod);
+    //        auto const zero           = static_cast<floating_point_type>(0.0);
+    //        // flip normal orientation if
+    //        // the angle between n1, n2 is
+    //        // > 90 degrees
+    //        if (prod < zero)
+    //        {
+    //            op(v2, -n2);
+    //        }
+    //    });
+
+    // Use BFS instead of Hoppe '92 MST propagation
+    graph::breadth_first_search(
+        graph,
+        root,
         [op = std::forward<TransformOp>(op), get_normal](auto const& v1, auto const& v2) {
             auto const& n1            = get_normal(v1);
             auto const& n2            = get_normal(v2);
@@ -162,8 +208,11 @@ void compute_normal_orientations(
             // the angle between n1, n2 is
             // > 90 degrees
             if (prod < zero)
+            {
                 op(v2, -n2);
+            }
         });
 }
 
+} // namespace algorithm
 } // namespace pcp

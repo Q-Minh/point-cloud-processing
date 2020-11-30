@@ -6,3 +6,4 @@ compile_commands.json
 Testing
 CMakeSettings.json
 .vs
+*.ply

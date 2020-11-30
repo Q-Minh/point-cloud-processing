@@ -5,6 +5,19 @@
 
 SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
 {
+    /*
+    * TODO: 
+    * This test case passes, but this Prim's MST algorithm might not actually be 
+    * sure to succeed with directed graphs as we use them, even though the directed 
+    * graphs are undirected in the sense that each of their "undirected" edges are 
+    * stored as parallel opposite edges. We should probably implement an undirected 
+    * adjacency list graph data structure.
+    * 
+    * We found out about this problem, because we attempted to use Hoppe '92 's 
+    * technique for normal estimation in function pcp::algorithm::compute_normal_orientations 
+    * of pcp/algorithm/compute_normals.hpp and the normals were still not correctly oriented.
+    * Using BFS for normal orientation propagation instead of MST worked instead.
+    */
     GIVEN("an adjacency list graph")
     {
         /**
