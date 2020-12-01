@@ -66,12 +66,14 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
     // such that the vertices will be sorted by their id
     graph_type g(sorted_vertices.cbegin(), sorted_vertices.cend());
     auto const [vbegin, vend] = g.vertices();
+    using difference_type = typename std::iterator_traits<decltype(vbegin)>::difference_type;
     for (auto it = vbegin; it != vend; ++it)
     {
         auto const& neighbors = knn(*it);
         for (auto const& neighbor : neighbors)
         {
-            auto const neighbor_it = std::next(vbegin, neighbor.id());
+            auto const offset      = static_cast<difference_type>(neighbor.id());
+            auto const neighbor_it = std::next(vbegin, offset);
             // add edges in both directions so that the graph
             // is undirected
             g.add_edge(it, neighbor_it);
