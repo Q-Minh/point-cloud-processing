@@ -34,6 +34,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
 
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp

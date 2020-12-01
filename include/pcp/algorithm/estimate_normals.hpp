@@ -1,5 +1,6 @@
 #pragma once
 
+#include <execution>
 #include <iterator>
 #include <pcp/common/norm.hpp>
 #include <pcp/common/normals/normal.hpp>
@@ -25,7 +26,71 @@ namespace algorithm {
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator
  * @tparam KnnSearcher Callable type returning k neighborhood of input element
- * @tparam TransformOp Callable type returning an output element with parameters (input element, normal)
+ * @tparam TransformOp Callable type returning an output element with parameters (input element,
+ * normal)
+ * @tparam Normal Type of normal
+ * @tparam ExecutionPolicy Type of STL execution policy
+ * @param policy
+ * @param begin
+ * @param end
+ * @param out_begin Start iterator of output sequence
+ * @param knn The callable object to query k nearest neighbors
+ * @param op Transformation callable object taking an input element and its computed normal and
+ * returning an output sequence element
+ */
+template <
+    class ExecutionPolicy,
+    class ForwardIter1,
+    class ForwardIter2,
+    class KnnSearcher,
+    class TransformOp,
+    class Normal = pcp::normal_t>
+void estimate_normals(
+    ExecutionPolicy&& policy,
+    ForwardIter1 begin,
+    ForwardIter1 end,
+    ForwardIter2 out_begin,
+    KnnSearcher&& knn,
+    TransformOp&& op)
+{
+    using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
+    static_assert(
+        traits::is_knn_searcher_v<KnnSearcher, value_type>,
+        "knn must satisfy KnnSearcher concept");
+
+    using normal_type = Normal;
+    static_assert(traits::is_normal_v<normal_type>, "Normal must satisfy Normal concept");
+
+    using result_type = typename std::iterator_traits<ForwardIter2>::value_type;
+
+    static_assert(
+        std::is_invocable_r_v<result_type, TransformOp, value_type, normal_type>,
+        "op must be callable by result = op(Normal, *begin) where type of result is same as "
+        "dereferencing out_begin decltype(*out_begin)");
+
+    auto const transform_op = [knn = std::forward<KnnSearcher>(knn),
+                               op  = std::forward<TransformOp>(op)](value_type const& v) {
+        auto const neighbor_points = knn(v);
+        using iterator_type        = decltype(neighbor_points.begin());
+        auto normal                = pcp::estimate_normal<iterator_type, normal_type>(
+            std::begin(neighbor_points),
+            std::end(neighbor_points));
+        return op(v, normal);
+    };
+
+    std::transform(std::forward<ExecutionPolicy>(policy), begin, end, out_begin, transform_op);
+}
+
+/**
+ * @brief
+ * Performs normal estimation on each knn neighborhood of the given sequence
+ * of elements using tangent plane estimation through PCA. Results are stored
+ * in the out sequence through op.
+ * @tparam ForwardIter1 Type of input sequence iterator
+ * @tparam ForwardIter2 Type of output sequence iterator
+ * @tparam KnnSearcher Callable type returning k neighborhood of input element
+ * @tparam TransformOp Callable type returning an output element with parameters (input element,
+ * normal)
  * @tparam Normal Type of normal
  * @param begin
  * @param end
@@ -47,6 +112,13 @@ void estimate_normals(
     KnnSearcher&& knn,
     TransformOp&& op)
 {
+    /**
+     * Ideally, we would just want to delegate the call to the version of estimate_normals
+     * that uses an execution policy, and simply give it the sequenced policy, but doing so
+     * does not support std::back_inserter. STL execution policies only work with at least
+     * forward iterators, which back_inserter is not. For this reason, we have to duplicate 
+     * the normals estimation implementation.
+     */
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
     static_assert(
         traits::is_knn_searcher_v<KnnSearcher, value_type>,
@@ -148,16 +220,16 @@ void propagate_normal_orientations(
 
     /**
      * In Hoppe '92, normal orientation adjustments use a minimum spanning tree
-     * using a cost function that assigns low weights to similarly oriented 
-     * normals, and high weights to normals approaching orthogonality. He then 
-     * traverses the MST and flips normal orientations when their inner-product 
+     * using a cost function that assigns low weights to similarly oriented
+     * normals, and high weights to normals approaching orthogonality. He then
+     * traverses the MST and flips normal orientations when their inner-product
      * is negative. It seems that in our case, prim's minimum spanning tree algorithm
-     * cannot work, since our knn graphs are directed rather than undirected. The 
-     * reason for the MST not working is not clear. We thought that having an 
-     * undirected graph in the form a directed graph where each undirected edge 
-     * is split into two parallel and opposite directed edges would be enough 
-     * for prim's mst algorithm to work, but I think it doesn't and I believe 
-     * that that is the culprit for the normal orientation adjustments not 
+     * cannot work, since our knn graphs are directed rather than undirected. The
+     * reason for the MST not working is not clear. We thought that having an
+     * undirected graph in the form a directed graph where each undirected edge
+     * is split into two parallel and opposite directed edges would be enough
+     * for prim's mst algorithm to work, but I think it doesn't and I believe
+     * that that is the culprit for the normal orientation adjustments not
      * working when using the MST version.
      */
     // auto const cost = [get_normal](auto const& v1, auto const& v2) {
@@ -194,10 +266,10 @@ void propagate_normal_orientations(
         graph,
         root,
         [op = std::forward<TransformOp>(op), get_normal](auto const& v1, auto const& v2) {
-            auto const& n1            = get_normal(v1);
-            auto const& n2            = get_normal(v2);
-            auto const prod           = common::inner_product(n1, n2);
-            auto const zero           = static_cast<floating_point_type>(0.0);
+            auto const& n1  = get_normal(v1);
+            auto const& n2  = get_normal(v2);
+            auto const prod = common::inner_product(n1, n2);
+            auto const zero = static_cast<floating_point_type>(0.0);
             // flip normal orientation if
             // the angle between n1, n2 is
             // > 90 degrees
