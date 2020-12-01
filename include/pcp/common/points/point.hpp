@@ -33,7 +33,7 @@ class basic_point_t
     basic_point_t(T x, T y, T z) noexcept : x_(x), y_(y), z_(z) {}
 
     template <class PointView>
-    basic_point_t(PointView const& other) noexcept(traits::is_point_v<PointView>) : x_(other.x()), y_(other.y()), z_(other.z())
+    basic_point_t(PointView const& other) noexcept : x_(other.x()), y_(other.y()), z_(other.z())
     {
         static_assert(
             traits::is_point_view_v<PointView>,
@@ -55,7 +55,7 @@ class basic_point_t
     }
 
     template <class PointView>
-    self_type operator+(PointView const& other) const noexcept(traits::is_point_v<PointView>)
+    self_type operator+(PointView const& other) const noexcept
     {
         static_assert(
             traits::is_point_view_v<PointView>,
@@ -64,7 +64,7 @@ class basic_point_t
     }
 
     template <class PointView>
-    self_type operator-(PointView const& other) const noexcept(traits::is_point_v<PointView>)
+    self_type operator-(PointView const& other) const noexcept
     {
         static_assert(
             traits::is_point_view_v<PointView>,
