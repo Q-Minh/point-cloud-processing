@@ -39,12 +39,12 @@ class vector3d_t
 
     friend self_type operator*(component_type k, self_type const& v)
     {
-        return self_type{k * x(), k * y(), k * z()};
+        return self_type{k * v.x(), k * v.y(), k * v.z()};
     }
 
     friend self_type operator/(self_type const& v, component_type k)
     {
-        return self_type{x() / k, y() / k, z() / k};
+        return self_type{v.x() / k, v.y() / k, v.z() / k};
     }
 
     self_type operator+(self_type const& v)

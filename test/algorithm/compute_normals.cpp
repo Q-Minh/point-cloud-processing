@@ -31,7 +31,7 @@ SCENARIO("computing point cloud normals", "[normals]")
         WHEN("computing the point cloud's normals")
         {
             std::vector<pcp::normal_t> normals;
-            auto const knn = [&octree, k](pcp::point_t const& p) {
+            auto const knn = [&octree](pcp::point_t const& p) {
                 return octree.nearest_neighbours(p, k);
             };
             pcp::algorithm::compute_normals(

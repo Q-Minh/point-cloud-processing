@@ -46,7 +46,7 @@ int main(int argc, char** argv)
     auto const zpow = static_cast<int>(std::log2f(nz));
 
     auto const maxpow = std::max(std::max(xpow, ypow), zpow);
-    auto const n      = std::pow(2.f, maxpow + 1);
+    auto const n      = static_cast<float>(std::pow(2.f, maxpow + 1));
 
     pcp::octree_parameters_t<pcp::point_t> params;
     params.voxel_grid = {{-n, -n, -n}, {n, n, n}};

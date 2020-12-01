@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <cstdint>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/search.hpp>
 #include <pcp/graph/vertex.hpp>
@@ -8,7 +9,6 @@ SCENARIO("graph searching algorithms", "[graph]")
     GIVEN("a graph with cycles")
     {
         using vertex_type = pcp::graph::vertex_t<>;
-        using id_type     = typename vertex_type::id_type;
         using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
         graph_type G;
         auto v1  = 0u;
@@ -75,10 +75,11 @@ SCENARIO("graph searching algorithms", "[graph]")
         G.add_edge(i, d);
 
         auto const count = static_cast<std::size_t>(n);
-        std::vector<std::uint8_t> visits(count, 0u);
-        std::vector<std::uint8_t> visiting_order(count, 0u);
+        std::vector<std::uint32_t> visits(count, 0u);
+        std::vector<std::int32_t> visiting_order(count, 0u);
         auto visited_nodes_counter = 0u;
         auto starting_id           = -1;
+        using starting_id_type = decltype(starting_id);
 
         auto const visitor = [&visits, &visiting_order, &visited_nodes_counter, &starting_id](
                                  vertex_type const& source,
@@ -93,13 +94,13 @@ SCENARIO("graph searching algorithms", "[graph]")
             // for the it.
             if (starting_id == -1)
             {
-                starting_id = source_id;
+                starting_id = static_cast<starting_id_type>(source_id);
                 ++visits[source_id];
                 ++visited_nodes_counter;
             }
 
             ++visits[dest_id];
-            visiting_order[dest_id] = visited_nodes_counter;
+            visiting_order[dest_id] = static_cast<std::int32_t>(visited_nodes_counter);
             ++visited_nodes_counter;
         };
 
@@ -112,8 +113,8 @@ SCENARIO("graph searching algorithms", "[graph]")
                 REQUIRE(starting_id == 0);
 
                 bool const all_nodes_visited_once =
-                    std::all_of(visits.cbegin(), visits.cend(), [](auto const& count) {
-                        return count == 1u;
+                    std::all_of(visits.cbegin(), visits.cend(), [](auto const& visit_count) {
+                        return visit_count == 1u;
                     });
                 REQUIRE(all_nodes_visited_once);
 
@@ -136,8 +137,8 @@ SCENARIO("graph searching algorithms", "[graph]")
                 REQUIRE(starting_id == 0);
 
                 bool const all_nodes_visited_once =
-                    std::all_of(visits.cbegin(), visits.cend(), [](auto const& count) {
-                        return count == 1u;
+                    std::all_of(visits.cbegin(), visits.cend(), [](auto const& visit_count) {
+                        return visit_count == 1u;
                     });
                 REQUIRE(all_nodes_visited_once);
 

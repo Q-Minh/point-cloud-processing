@@ -202,7 +202,6 @@ void compute_normal_orientations(
             auto const& n1            = get_normal(v1);
             auto const& n2            = get_normal(v2);
             auto const prod           = common::inner_product(n1, n2);
-            using floating_point_type = decltype(prod);
             auto const zero           = static_cast<floating_point_type>(0.0);
             // flip normal orientation if
             // the angle between n1, n2 is

@@ -19,6 +19,11 @@ add_library(pcp INTERFACE)
 add_library(pcp::pcp ALIAS pcp)
 target_compile_features(pcp INTERFACE cxx_std_17)
 target_link_libraries(pcp INTERFACE eigen)
+
+# disable all warnings emanating from eigen include directories
+get_target_property(eigen_include_dirs eigen INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(SYSTEM ${eigen_include_dirs})
+
 target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:
