@@ -113,12 +113,13 @@ class basic_octree_t
      * @param target    The reference point for which we want the k nearest neighbors
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
+    template <class TPointView>
     std::vector<point_view_type> nearest_neighbours(
-        point_view_type const& target,
+        TPointView const& target,
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
-        return root_.nearest_neighbours(target, k, eps);
+        return root_.nearest_neighbours<TPointView>(target, k, eps);
     }
 
     /*

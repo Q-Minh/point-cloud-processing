@@ -21,3 +21,6 @@ endfunction()
 
 add_example("examples" pcp-example-normals-estimation normals_estimation.cpp)
 add_example("examples" pcp-example-ply ply.cpp)
+add_example("examples" 
+  pcp-example-tangent-plane-surface-reconstruction 
+  tangent_plane_surface_reconstruction.cpp)

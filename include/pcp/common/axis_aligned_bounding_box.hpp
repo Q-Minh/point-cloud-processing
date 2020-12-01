@@ -23,7 +23,7 @@ struct axis_aligned_bounding_box_t
 
     /**
      * Containment predicate.
-     * @return <code>true</code> if point <code>p</code> is contained in this AABB
+     * @return true if point p is contained in this AABB
      */
     template <class TPoint>
     bool contains(TPoint const& p) const

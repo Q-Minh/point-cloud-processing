@@ -6,6 +6,7 @@ PRIVATE
   "main.cpp"
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
+  "algorithm/surface_nets.cpp"
   "graph/undirected_knn_adjacency_list.cpp"
   "graph/directed_adjacency_list.cpp" 
   "graph/minimum_spanning_tree.cpp"

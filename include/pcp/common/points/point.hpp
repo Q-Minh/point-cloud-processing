@@ -1,6 +1,7 @@
 #pragma once
 
 #include <cmath>
+#include <pcp/common/vector3d.hpp>
 #include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
@@ -54,22 +55,20 @@ class basic_point_t
         return self_type{p.x_ / k, p.y_ / k, p.z_ / k};
     }
 
-    template <class PointView>
-    self_type operator+(PointView const& other) const noexcept
+    template <class Vector3d>
+    self_type operator+(Vector3d const& v) const noexcept
     {
-        static_assert(
-            traits::is_point_view_v<PointView>,
-            "PointView must satisfy PointView concept");
-        return self_type{x() + other.x(), y() + other.y(), z() + other.z()};
+        static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
+        return self_type{x() + v.x(), y() + v.y(), z() + v.z()};
     }
 
-    template <class PointView>
-    self_type operator-(PointView const& other) const noexcept
+    template <class PointView, class Vector3d = common::vector3d_t<coordinate_type>>
+    Vector3d operator-(PointView const& other) const noexcept
     {
         static_assert(
             traits::is_point_view_v<PointView>,
             "PointView must satisfy PointView concept");
-        return self_type{x() - other.x(), y() - other.y(), z() - other.z()};
+        return Vector3d{x() - other.x(), y() - other.y(), z() - other.z()};
     }
 
     self_type operator-() const noexcept { return self_type{-x(), -y(), -z()}; }

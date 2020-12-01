@@ -39,9 +39,12 @@ INTERFACE
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/plane3d.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/regular_grid3d.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/sphere.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/timer.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vector3d.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/vector3d_queries.hpp
 
@@ -73,6 +76,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree_node.hpp
 
         # traits
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/function_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
@@ -81,6 +85,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/plane_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/triangle_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/vector3d_traits.hpp
     >
 )

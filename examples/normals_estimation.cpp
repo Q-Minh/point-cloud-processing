@@ -2,29 +2,12 @@
 #include <iostream>
 #include <pcp/algorithm/common.hpp>
 #include <pcp/algorithm/estimate_normals.hpp>
+#include <pcp/common/timer.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/points/vertex.hpp>
 #include <pcp/io/ply.hpp>
 #include <pcp/octree/octree.hpp>
-
-struct basic_timer_t
-{
-    using time_type     = std::chrono::high_resolution_clock::time_point;
-    using duration_type = std::chrono::high_resolution_clock::duration;
-
-    void start() { begin = std::chrono::high_resolution_clock::now(); }
-    void stop()
-    {
-        end               = std::chrono::high_resolution_clock::now();
-        ops.back().second = (end - begin);
-    }
-    void register_op(std::string const& op_name) { ops.push_back({op_name, {}}); }
-
-    time_type begin;
-    time_type end;
-    std::vector<std::pair<std::string, duration_type>> ops;
-};
 
 int main(int argc, char** argv)
 {
@@ -36,15 +19,15 @@ int main(int argc, char** argv)
         return -1;
     }
 
-    std::uint64_t const k                 = argc == 4 ? std::stoull(argv[3]) : 10u;
-    bool const parallel                   = argc == 5 ? std::string(argv[4]) == "parallel" : false;
+    std::uint64_t const k                 = argc >= 4 ? std::stoull(argv[3]) : 10u;
+    bool const parallel                   = argc >= 5 ? std::string(argv[4]) == "parallel" : false;
     std::filesystem::path ply_point_cloud = argv[1];
 
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
     using vertex_type = pcp::vertex_t;
 
-    basic_timer_t timer;
+    pcp::common::basic_timer_t timer;
 
     timer.register_op("parse ply point cloud");
     timer.start();
@@ -75,8 +58,7 @@ int main(int argc, char** argv)
 
     timer.stop();
 
-    auto const knn = [&octree, &vertices](vertex_type const& v) {
-        std::uint64_t const k = 15u;
+    auto const knn = [=, &octree, &vertices](vertex_type const& v) {
         return octree.nearest_neighbours(vertices[v.id()], k);
     };
     auto const get_point = [&vertices](vertex_type const& v) {

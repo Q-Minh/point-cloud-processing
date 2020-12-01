@@ -16,13 +16,27 @@ class vector3d_t
     using component_type = T;
     using self_type      = vector3d_t<T>;
 
-    vector3d_t()                 = default;
-    vector3d_t(self_type const&) = default;
-    vector3d_t(self_type&&)      = default;
-    vector3d_t(component_type x, component_type y, component_type z) : x_(x), y_(y), z_(z) {}
+    vector3d_t() noexcept                 = default;
+    vector3d_t(self_type const&) noexcept = default;
+    vector3d_t(self_type&&) noexcept      = default;
+    self_type& operator=(self_type const&) noexcept = default;
+    self_type& operator=(self_type&&) noexcept = default;
+
+    vector3d_t(component_type x, component_type y, component_type z) noexcept : x_(x), y_(y), z_(z)
+    {
+    }
 
     template <class Vector3d>
     vector3d_t(Vector3d const& other)
+    {
+        static_assert(traits::is_vector3d_v<Vector3d>, "other must satisfy Vector3d concept");
+        x(other.x());
+        y(other.y());
+        z(other.z());
+    }
+
+    template <class Vector3d>
+    vector3d_t(Vector3d&& other)
     {
         static_assert(traits::is_vector3d_v<Vector3d>, "other must satisfy Vector3d concept");
         x(other.x());

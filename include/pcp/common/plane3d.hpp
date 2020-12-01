@@ -30,9 +30,11 @@ class basic_plane3d_t
     using component_type = typename point_type::component_type;
     using self_type      = basic_plane3d_t<Point, Normal>;
 
-    basic_plane3d_t()                 = default;
-    basic_plane3d_t(self_type const&) = default;
-    basic_plane3d_t(self_type&&)      = default;
+    basic_plane3d_t() noexcept                 = default;
+    basic_plane3d_t(self_type const&) noexcept = default;
+    basic_plane3d_t(self_type&&) noexcept      = default;
+    self_type& operator=(self_type const&) noexcept = default;
+    self_type& operator=(self_type&&) noexcept = default;
     basic_plane3d_t(point_type const& p, normal_type const& n) : point_(p), normal_(n) {}
 
     normal_type const& normal() const { return normal_; }

@@ -39,7 +39,7 @@ class basic_point_view_vertex_t : public basic_point_view_t<PointView>
     explicit basic_point_view_vertex_t(PointView* point) : parent_type(point), id_(0u) {}
     explicit basic_point_view_vertex_t(id_type id) : parent_type(), id_(id) {}
     explicit basic_point_view_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id) {}
-    basic_point_view_vertex_t(point_type const& other) : parent_type(other), id_(0u) {}
+    basic_point_view_vertex_t(point_type const& other) : parent_type(&other), id_(0u) {}
 
     /**
      * @brief

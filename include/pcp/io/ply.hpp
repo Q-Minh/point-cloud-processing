@@ -3,6 +3,7 @@
 #include "endianness.hpp"
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/triangle_traits.hpp"
 #include "tokenize.hpp"
 
 #include <algorithm>
@@ -221,8 +222,8 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 }
 
 /**
- * @brief 
- * Writes the given point cloud to a ply file in the ply 
+ * @brief
+ * Writes the given point cloud to a ply file in the ply
  * format of choice at the location given by filepath.
  * @tparam Point The point cloud's point type
  * @tparam Normal The point cloud's normal type
@@ -230,8 +231,8 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
  * @param vertices The points
  * @param normals The normals
  * @param format The desired ply format with which to write
-*/
-template <class Point, class Normal>
+ */
+template <class Point, class Normal, std::enable_if_t<traits::is_normal_v<Normal>, int> = 0>
 inline void write_ply(
     std::filesystem::path const& filepath,
     std::vector<Point> const& vertices,
@@ -252,7 +253,7 @@ inline void write_ply(
     write_ply<Point, Normal>(ofs, vertices, normals, format);
 }
 
-template <class Point, class Normal>
+template <class Point, class Normal, std::enable_if_t<traits::is_normal_v<Normal>, int> = 0>
 inline void write_ply(
     std::ostream& os,
     std::vector<Point> const& vertices,
@@ -399,6 +400,204 @@ inline void write_ply(
         else
         {
             write_binary_data(vertices, normals);
+        }
+    }
+}
+
+/**
+ * @brief
+ * Writes the given mesh to a ply file in the ply
+ * format of choice at the location given by filepath.
+ * @tparam Point The mesh's point type
+ * @tparam SharedVertexMeshTriangle The mesh's triangle type
+ * @param filepath Path to the ply file to write to
+ * @param vertices 
+ * @param triangles 
+ * @param format The desired ply format with which to write
+ */
+template <
+    class Point,
+    class SharedVertexMeshTriangle,
+    std::enable_if_t<traits::is_shared_vertex_mesh_triangle_v<SharedVertexMeshTriangle>, int> = 0>
+void write_ply(
+    std::filesystem::path const& filepath,
+    std::vector<Point> const& vertices,
+    std::vector<SharedVertexMeshTriangle> const& triangles,
+    ply_format_t format = ply_format_t::ascii)
+{
+    if (!filepath.has_extension() || filepath.extension() != ".ply")
+        return;
+
+    if (vertices.empty())
+        return;
+
+    if (triangles.empty())
+        return;
+
+    std::ofstream ofs{filepath.c_str(), std::ios::binary};
+
+    if (!ofs.is_open())
+        return;
+
+    write_ply<Point, SharedVertexMeshTriangle>(ofs, vertices, triangles, format);
+}
+
+template <
+    class Point,
+    class SharedVertexMeshTriangle,
+    std::enable_if_t<traits::is_shared_vertex_mesh_triangle_v<SharedVertexMeshTriangle>, int> = 0>
+void write_ply(
+    std::ostream& os,
+    std::vector<Point> const& vertices,
+    std::vector<SharedVertexMeshTriangle> const& triangles,
+    ply_format_t format = ply_format_t::ascii)
+{
+    using point_type            = Point;
+    using triangle_type         = SharedVertexMeshTriangle;
+    using vertex_component_type = typename point_type::coordinate_type;
+    // cannot use typename triangle_type::index_type because it
+    // might not fit into a ply int/uint which is 4 bytes
+    using index_type = std::uint32_t;
+
+    std::string const vertex_component_type_str =
+        std::is_same_v<vertex_component_type, double> ? "double" : "float";
+
+    // we will not be using ints, because indices should always be >= 0
+    std::string const index_component_type_str = "uint";
+
+    std::ostringstream header_stream{};
+    header_stream << "ply\n";
+
+    if (format == ply_format_t::ascii)
+        header_stream << "format ascii 1.0\n";
+    if (format == ply_format_t::binary_little_endian)
+        header_stream << "format binary_little_endian 1.0\n";
+    if (format == ply_format_t::binary_big_endian)
+        header_stream << "format binary_big_endian 1.0\n";
+
+    header_stream << "element vertex " << vertices.size() << "\n"
+                  << "property " << vertex_component_type_str << " x\n"
+                  << "property " << vertex_component_type_str << " y\n"
+                  << "property " << vertex_component_type_str << " z\n"
+                  << "element face " << triangles.size() << "\n"
+                  << "property list uchar " << index_component_type_str << " vertex_indices\n"
+                  << "end_header\n";
+
+    std::string const header = header_stream.str();
+    os << header;
+
+    if (format == ply_format_t::ascii)
+    {
+        for (point_type const& v : vertices)
+        {
+            std::ostringstream oss{};
+            oss << std::to_string(v.x()) << " " << std::to_string(v.y()) << " "
+                << std::to_string(v.z()) << "\n";
+            os << oss.str();
+        }
+        for (triangle_type const& f : triangles)
+        {
+            std::ostringstream oss{};
+            auto const& indices = f.indices();
+            oss << "3 " << std::to_string(indices[0]) << " " << std::to_string(indices[1]) << " "
+                << std::to_string(indices[2]) << "\n";
+            os << oss.str();
+        }
+    }
+
+    // Note: disk I/O writes can be parallelized
+    auto const write_binary_data =
+        [&os](std::vector<point_type> const& p, std::vector<triangle_type> const& t) {
+            for (std::size_t i = 0u; i < p.size(); ++i)
+            {
+                auto constexpr size_of_vertex_component_type = sizeof(vertex_component_type);
+                std::array<std::byte, 3u * size_of_vertex_component_type> vertex_storage;
+
+                std::byte* const data = vertex_storage.data();
+
+                vertex_component_type* const x = reinterpret_cast<float*>(data);
+                vertex_component_type* const y =
+                    reinterpret_cast<float*>(data + (1u * size_of_vertex_component_type));
+                vertex_component_type* const z =
+                    reinterpret_cast<float*>(data + (2u * size_of_vertex_component_type));
+                *x = p[i].x();
+                *y = p[i].y();
+                *z = p[i].z();
+
+                os.write(
+                    reinterpret_cast<const char*>(data),
+                    static_cast<std::streamsize>(vertex_storage.size()));
+            }
+
+            for (std::size_t i = 0u; i < t.size(); ++i)
+            {
+                auto constexpr size_of_index_type = sizeof(index_type);
+                std::array<std::byte, 3u * size_of_index_type> index_storage;
+
+                std::byte* const data = index_storage.data();
+
+                index_type* const id1 = reinterpret_cast<index_type*>(data);
+                index_type* const id2 = reinterpret_cast<index_type*>(data + (1u * size_of_index_type));
+                index_type* const id3 = reinterpret_cast<index_type*>(data + (2u * size_of_index_type));
+                auto const& indices   = t[i].indices();
+                *id1                  = indices[0];
+                *id2                  = indices[1];
+                *id3                  = indices[2];
+
+                os.write(
+                    reinterpret_cast<const char*>(data),
+                    static_cast<std::streamsize>(index_storage.size()));
+            }
+        };
+
+    auto const transform_endianness = [](std::vector<point_type>& p,
+                                         std::vector<triangle_type>& t) {
+        std::transform(std::begin(p), std::end(p), std::begin(p), [](point_type const& point) {
+            return point_type{
+                reverse_endianness(point.x()),
+                reverse_endianness(point.y()),
+                reverse_endianness(point.z())};
+        });
+        std::transform(
+            std::begin(t),
+            std::end(t),
+            std::begin(t),
+            [](triangle_type const& triangle) {
+                auto const& indices = triangle.indices();
+                return triangle_type{
+                    reverse_endianness(indices[0]),
+                    reverse_endianness(indices[1]),
+                    reverse_endianness(indices[2])};
+            });
+    };
+
+    if (format == ply_format_t::binary_little_endian)
+    {
+        if (!is_machine_little_endian())
+        {
+            auto endian_correct_vertices = vertices;
+            auto endian_correct_triangles  = triangles;
+            transform_endianness(endian_correct_vertices, endian_correct_triangles);
+            write_binary_data(endian_correct_vertices, endian_correct_triangles);
+        }
+        else
+        {
+            write_binary_data(vertices, triangles);
+        }
+    }
+
+    if (format == ply_format_t::binary_big_endian)
+    {
+        if (!is_machine_big_endian())
+        {
+            auto endian_correct_vertices = vertices;
+            auto endian_correct_triangles = triangles;
+            transform_endianness(endian_correct_vertices, endian_correct_triangles);
+            write_binary_data(endian_correct_vertices, endian_correct_triangles);
+        }
+        else
+        {
+            write_binary_data(vertices, triangles);
         }
     }
 }

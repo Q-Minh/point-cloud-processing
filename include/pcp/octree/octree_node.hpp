@@ -363,8 +363,9 @@ class basic_octree_node_t
         return next;
     }
 
+    template <class TPointView>
     std::vector<point_view_type> nearest_neighbours(
-        point_view_type const& target,
+        TPointView const& target,
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
