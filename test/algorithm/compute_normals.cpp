@@ -67,11 +67,11 @@ SCENARIO("computing point cloud normals", "[normals]")
         /*
          * Points:
          *
-         * 1 2   3
+         * 1 2           3
          *   o
-         *  / \--o
-         * o     |\-------o 4
-         *       ---------o 5
+         *  / \----------o
+         * o             |\---o 4
+         *               -----o 5
          *
          * Normals:
          *
@@ -81,9 +81,9 @@ SCENARIO("computing point cloud normals", "[normals]")
          * Y | | Y Y
          *
          */
-        point_cloud.push_back({-.1f, -.1f, -.1f});
-        point_cloud.push_back({0.f, 0.f, .2f});
-        point_cloud.push_back({.1f, .1f, .1f});
+        point_cloud.push_back({-1.f, -1.f, -.1f});
+        point_cloud.push_back({-.9f, -1.f, .2f});
+        point_cloud.push_back({.9f, .9f, .1f});
         point_cloud.push_back({1.1f, 1.1f, -.2f});
         point_cloud.push_back({1.1f, 1.1f, -.3f});
         normals.push_back({0.f, 0.f, -1.f});
