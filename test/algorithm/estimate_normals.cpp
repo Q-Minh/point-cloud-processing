@@ -1,6 +1,6 @@
 #include <catch2/catch.hpp>
 #include <pcp/algorithm/common.hpp>
-#include <pcp/algorithm/compute_normals.hpp>
+#include <pcp/algorithm/estimate_normals.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/normals/normal_estimation.hpp>
 #include <pcp/common/points/point.hpp>
@@ -31,10 +31,10 @@ SCENARIO("computing point cloud normals", "[normals]")
         WHEN("computing the point cloud's normals")
         {
             std::vector<pcp::normal_t> normals;
-            auto const knn = [&octree](pcp::point_t const& p) {
+            auto const knn = [=, &octree](pcp::point_t const& p) {
                 return octree.nearest_neighbours(p, k);
             };
-            pcp::algorithm::compute_normals(
+            pcp::algorithm::estimate_normals(
                 point_cloud.cbegin(),
                 point_cloud.cend(),
                 std::back_inserter(normals),
@@ -107,7 +107,7 @@ SCENARIO("computing point cloud normals", "[normals]")
                 vertices.cend(),
                 params);
 
-            // pcp::compute_normal_orientations requires the knn searcher to
+            // pcp::propagate_normal_orientations requires the knn searcher to
             // return vertices satisfying the GraphVertex concept
             auto const knn = [&octree, &vertices](vertex_type const& v) {
                 std::uint64_t const k = 2u;
@@ -123,7 +123,7 @@ SCENARIO("computing point cloud normals", "[normals]")
                 normals[v.id()] = n;
             };
 
-            pcp::algorithm::compute_normal_orientations(
+            pcp::algorithm::propagate_normal_orientations(
                 vertices.begin(),
                 vertices.end(),
                 knn,

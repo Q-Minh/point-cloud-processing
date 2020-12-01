@@ -17,11 +17,6 @@
 namespace pcp {
 namespace algorithm {
 
-template <class Input, class Normal>
-inline auto const default_normal_transform = [](Input const&, Normal const& n) {
-    return n;
-};
-
 /**
  * @brief
  * Performs normal estimation on each knn neighborhood of the given sequence
@@ -30,7 +25,7 @@ inline auto const default_normal_transform = [](Input const&, Normal const& n) {
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator
  * @tparam KnnSearcher Callable type returning k neighborhood of input element
- * @tparam TransformOp Callable type returning a Normal with parameters (input element, normal)
+ * @tparam TransformOp Callable type returning an output element with parameters (input element, normal)
  * @tparam Normal Type of normal
  * @param begin
  * @param end
@@ -45,7 +40,7 @@ template <
     class KnnSearcher,
     class TransformOp,
     class Normal = pcp::normal_t>
-void compute_normals(
+void estimate_normals(
     ForwardIter1 begin,
     ForwardIter1 end,
     ForwardIter2 out_begin,
@@ -103,7 +98,7 @@ template <
     class GetPointOp,
     class GetNormalOp,
     class TransformOp>
-void compute_normal_orientations(
+void propagate_normal_orientations(
     ForwardIter1 begin,
     ForwardIter1 end,
     KnnSearcher&& knn,

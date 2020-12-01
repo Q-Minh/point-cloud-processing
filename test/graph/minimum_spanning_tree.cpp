@@ -14,8 +14,8 @@ SCENARIO("minimum spanning tree algorithms", "[minimum_spanning_tree]")
     * adjacency list graph data structure.
     * 
     * We found out about this problem, because we attempted to use Hoppe '92 's 
-    * technique for normal estimation in function pcp::algorithm::compute_normal_orientations 
-    * of pcp/algorithm/compute_normals.hpp and the normals were still not correctly oriented.
+    * technique for normal estimation in function pcp::algorithm::propagate_normal_orientations 
+    * of pcp/algorithm/estimate_normals.hpp and the normals were still not correctly oriented.
     * Using BFS for normal orientation propagation instead of MST worked instead.
     */
     GIVEN("an adjacency list graph")

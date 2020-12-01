@@ -4,7 +4,8 @@ set_target_properties(pcp-tests PROPERTIES FOLDER pcp-tests)
 target_sources(pcp-tests
 PRIVATE
   "main.cpp"
-  "algorithm/compute_normals.cpp"
+  "algorithm/estimate_normals.cpp"
+  "algorithm/estimate_tangent_planes.cpp"
   "graph/undirected_knn_adjacency_list.cpp"
   "graph/directed_adjacency_list.cpp" 
   "graph/minimum_spanning_tree.cpp"
@@ -135,6 +136,9 @@ FetchContent_Declare(
 FetchContent_MakeAvailable(Catch2)
 
 target_link_libraries(pcp-tests PRIVATE pcp::pcp Catch2::Catch2)
+
+get_target_property(catch2_include_directories Catch2::Catch2 INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(SYSTEM ${catch2_include_directories})
 
 include(GNUInstallDirs)
 

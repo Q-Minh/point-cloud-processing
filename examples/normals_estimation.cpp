@@ -1,5 +1,6 @@
 #include <iostream>
-#include <pcp/algorithm/compute_normals.hpp>
+#include <pcp/algorithm/common.hpp>
+#include <pcp/algorithm/estimate_normals.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/points/vertex.hpp>
@@ -73,14 +74,14 @@ int main(int argc, char** argv)
         normals[v.id()] = n;
     };
 
-    pcp::algorithm::compute_normals(
+    pcp::algorithm::estimate_normals(
         vertices.begin(),
         vertices.end(),
         normals.begin(),
         knn,
         pcp::algorithm::default_normal_transform<vertex_type, normal_type>);
 
-    pcp::algorithm::compute_normal_orientations(
+    pcp::algorithm::propagate_normal_orientations(
         vertices.begin(),
         vertices.end(),
         knn,
