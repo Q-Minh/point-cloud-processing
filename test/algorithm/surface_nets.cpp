@@ -7,7 +7,7 @@ SCENARIO("isosurface extraction with surface nets", "[isosurface]")
     GIVEN("a 3d implicit function")
     {
         auto const unit_circle = [](float x, float y, float z) {
-            return std::sqrtf(x * x + y * y + z * z) - 1.f;
+            return std::sqrt(x * x + y * y + z * z) - 1.f;
         };
 
         GIVEN("a 3d regular grid domain")
@@ -34,9 +34,9 @@ SCENARIO("isosurface extraction with surface nets", "[isosurface]")
                     std::all_of(vertices.cbegin(), vertices.cend(), [=](auto const& v) {
                         pcp::point_t const min{grid.x, grid.y, grid.z};
                         pcp::point_t const max{
-                            grid.x + grid.sx * grid.dx,
-                            grid.x + grid.sx * grid.dx,
-                            grid.x + grid.sx * grid.dx};
+                            grid.x + static_cast<float>(grid.sx) * grid.dx,
+                            grid.x + static_cast<float>(grid.sx) * grid.dx,
+                            grid.x + static_cast<float>(grid.sx) * grid.dx};
                         pcp::axis_aligned_bounding_box_t<pcp::point_t> aabb{min, max};
                         return aabb.contains(v);
                     });
@@ -64,3 +64,4 @@ SCENARIO("isosurface extraction with surface nets", "[isosurface]")
         }
     }
 }
+

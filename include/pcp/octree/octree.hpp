@@ -119,7 +119,7 @@ class basic_octree_t
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
-        return root_.nearest_neighbours<TPointView>(target, k, eps);
+        return root_.template nearest_neighbours<TPointView>(target, k, eps);
     }
 
     /*

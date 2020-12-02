@@ -43,7 +43,6 @@ auto surface_nets(
     using point_type    = Point;
     using triangle_type = SharedVertexMeshTriangle;
     using index_type    = typename triangle_type::index_type;
-    using grid_type     = common::regular_grid3d_t<Scalar>;
     using scalar_type   = Scalar;
 
     // the shared vertex mesh
@@ -57,14 +56,13 @@ auto surface_nets(
 
     // mapping from 3d grid coordinates to 1d
     auto const get_active_cube_index =
-        [](std::size_t x, std::size_t y, std::size_t z, grid_type const& grid) -> std::size_t {
+        [&grid](std::size_t x, std::size_t y, std::size_t z) -> std::size_t {
         return x + (y * grid.sx) + (z * grid.sx * grid.sy);
     };
 
     // mapping from 1d index to 3d grid coordinates
     auto const get_ijk_from_idx =
-        [](std::size_t active_cube_index,
-           grid_type const& grid) -> std::tuple<std::size_t, std::size_t, std::size_t> {
+        [&grid](std::size_t active_cube_index) -> std::tuple<std::size_t, std::size_t, std::size_t> {
         std::size_t i = (active_cube_index) % grid.sx;
         std::size_t j = (active_cube_index / grid.sx) % grid.sy;
         std::size_t k = (active_cube_index) / (grid.sx * grid.sy);
@@ -76,7 +74,6 @@ auto surface_nets(
 
     bool const is_x_longest_dimension = grid.sx > grid.sy && grid.sx > grid.sz;
     bool const is_y_longest_dimension = grid.sy > grid.sx && grid.sy > grid.sz;
-    bool const is_z_longest_dimension = grid.sz > grid.sx && grid.sz > grid.sy;
 
     std::size_t longest_dimension_size =
         is_x_longest_dimension ? grid.sx : is_y_longest_dimension ? grid.sy : grid.sz;
@@ -163,68 +160,61 @@ auto surface_nets(
                         {2u, 6u},
                         {3u, 7u}};
 
-                    auto const is_scalar_positive = [](scalar_type scalar,
-                                                       scalar_type isovalue) -> bool {
+                    auto const is_scalar_positive = [&isovalue](scalar_type scalar) -> bool {
                         return scalar >= isovalue;
                     };
 
                     auto const are_edge_scalars_bipolar = [&is_scalar_positive](
                                                               scalar_type scalar1,
-                                                              scalar_type scalar2,
-                                                              scalar_type isovalue) -> bool {
-                        return is_scalar_positive(scalar1, isovalue) !=
-                               is_scalar_positive(scalar2, isovalue);
+                                                              scalar_type scalar2) -> bool {
+                        return is_scalar_positive(scalar1) !=
+                               is_scalar_positive(scalar2);
                     };
 
                     bool const edge_bipolarity_array[12] = {
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[0][0]],
-                            voxel_corner_values[edges[0][1]],
-                            isovalue),
+                            voxel_corner_values[edges[0][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[1][0]],
-                            voxel_corner_values[edges[1][1]],
-                            isovalue),
+                            voxel_corner_values[edges[1][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[2][0]],
-                            voxel_corner_values[edges[2][1]],
-                            isovalue),
+                            voxel_corner_values[edges[2][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[3][0]],
-                            voxel_corner_values[edges[3][1]],
-                            isovalue),
+                            voxel_corner_values[edges[3][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[4][0]],
-                            voxel_corner_values[edges[4][1]],
-                            isovalue),
+                            voxel_corner_values[edges[4][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[5][0]],
-                            voxel_corner_values[edges[5][1]],
-                            isovalue),
+                            voxel_corner_values[edges[5][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[6][0]],
-                            voxel_corner_values[edges[6][1]],
-                            isovalue),
+                            voxel_corner_values[edges[6][1]])
+                            ,
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[7][0]],
-                            voxel_corner_values[edges[7][1]],
-                            isovalue),
+                            voxel_corner_values[edges[7][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[8][0]],
-                            voxel_corner_values[edges[8][1]],
-                            isovalue),
+                            voxel_corner_values[edges[8][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[9][0]],
-                            voxel_corner_values[edges[9][1]],
-                            isovalue),
+                            voxel_corner_values[edges[9][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[10][0]],
-                            voxel_corner_values[edges[10][1]],
-                            isovalue),
+                            voxel_corner_values[edges[10][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[11][0]],
-                            voxel_corner_values[edges[11][1]],
-                            isovalue),
+                            voxel_corner_values[edges[11][1]])
                     };
 
                     // clang-format off
@@ -291,7 +281,7 @@ auto surface_nets(
                                 (static_cast<scalar_type>(grid.sz) - 0.f),
                     };
 
-                    std::size_t const active_cube_index = get_active_cube_index(i, j, k, grid);
+                    std::size_t const active_cube_index = get_active_cube_index(i, j, k);
 
                     std::lock_guard<std::mutex> lock(sync);
                     auto const vertex_index                            = vertices.size();
@@ -312,16 +302,16 @@ auto surface_nets(
             auto const active_cube_index = key_value.first;
             auto const vertex_index      = key_value.second;
 
-            auto const is_lower_boundary_cube = [](auto i, auto j, auto k, grid_type const& g) {
+            auto const is_lower_boundary_cube = [](auto i, auto j, auto k) {
                 return (i == 0 || j == 0 || k == 0);
             };
 
-            auto const ijk = get_ijk_from_idx(active_cube_index, grid);
+            auto const ijk = get_ijk_from_idx(active_cube_index);
             auto const i   = std::get<0>(ijk);
             auto const j   = std::get<1>(ijk);
             auto const k   = std::get<2>(ijk);
 
-            if (is_lower_boundary_cube(i, j, k, grid))
+            if (is_lower_boundary_cube(i, j, k))
                 return;
 
             // clang-format off
@@ -370,25 +360,22 @@ auto surface_nets(
 
             std::array<std::size_t, 3> const quad_neighbor_orders[2] = {{0, 1, 2}, {2, 1, 0}};
 
-            for (std::size_t i = 0; i < 3; ++i)
+            for (std::size_t idx = 0; idx < 3; ++idx)
             {
                 auto const neighbor1 = get_active_cube_index(
-                    neighbor_grid_positions[quad_neighbors[i][0]][0],
-                    neighbor_grid_positions[quad_neighbors[i][0]][1],
-                    neighbor_grid_positions[quad_neighbors[i][0]][2],
-                    grid);
+                    neighbor_grid_positions[quad_neighbors[idx][0]][0],
+                    neighbor_grid_positions[quad_neighbors[idx][0]][1],
+                    neighbor_grid_positions[quad_neighbors[idx][0]][2]);
 
                 auto const neighbor2 = get_active_cube_index(
-                    neighbor_grid_positions[quad_neighbors[i][1]][0],
-                    neighbor_grid_positions[quad_neighbors[i][1]][1],
-                    neighbor_grid_positions[quad_neighbors[i][1]][2],
-                    grid);
+                    neighbor_grid_positions[quad_neighbors[idx][1]][0],
+                    neighbor_grid_positions[quad_neighbors[idx][1]][1],
+                    neighbor_grid_positions[quad_neighbors[idx][1]][2]);
 
                 auto const neighbor3 = get_active_cube_index(
-                    neighbor_grid_positions[quad_neighbors[i][2]][0],
-                    neighbor_grid_positions[quad_neighbors[i][2]][1],
-                    neighbor_grid_positions[quad_neighbors[i][2]][2],
-                    grid);
+                    neighbor_grid_positions[quad_neighbors[idx][2]][0],
+                    neighbor_grid_positions[quad_neighbors[idx][2]][1],
+                    neighbor_grid_positions[quad_neighbors[idx][2]][2]);
 
                 if (active_cube_to_vertex_index_map.count(neighbor1) == 0 ||
                     active_cube_to_vertex_index_map.count(neighbor2) == 0 ||
@@ -401,7 +388,7 @@ auto surface_nets(
                     active_cube_to_vertex_index_map[neighbor3]};
 
                 auto const& neighbor_vertices_order =
-                    edge_scalar_values[i][1] > edge_scalar_values[i][0] ? quad_neighbor_orders[0] :
+                    edge_scalar_values[idx][1] > edge_scalar_values[idx][0] ? quad_neighbor_orders[0] :
                                                                           quad_neighbor_orders[1];
 
                 auto const v0 = vertex_index;
