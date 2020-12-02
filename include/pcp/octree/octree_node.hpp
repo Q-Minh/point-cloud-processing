@@ -87,6 +87,8 @@ class basic_octree_node_t
         insert(begin, end);
     }
 
+    aabb_type const& voxel_grid() const { return voxel_grid_; }
+
     void clear()
     {
         points_.clear();

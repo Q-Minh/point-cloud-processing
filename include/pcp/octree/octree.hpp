@@ -68,6 +68,7 @@ class basic_octree_t
     std::size_t size() const { return size_; }
     bool empty() const { return size() == 0u; }
     void clear() { root_.clear(); }
+    aabb_type const& voxel_grid() const { return root_.voxel_grid(); }
     iterator begin() { return iterator(&root_); }
     iterator end() { return iterator{}; }
     const_iterator cbegin() const { return const_iterator(const_cast<octree_node_type*>(&root_)); }
