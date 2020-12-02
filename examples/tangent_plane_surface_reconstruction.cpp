@@ -12,21 +12,23 @@
 
 int main(int argc, char** argv)
 {
-    if (argc < 3)
+    if (argc < 6)
     {
         std::cerr << "Usage:\n"
                   << "tangent-plane-surface-reconstruction.exe <input ply file> <output ply file> "
-                     "[number of cells per dimension to discretize] [k neighborhood size]"
+                     "<num cells in x axis> <num cells in y axis> <num cells in z axis> [k "
+                     "neighborhood size]"
                      " [parallel | seq]\n";
         return -1;
     }
 
-    std::uint64_t const k                 = argc >= 5 ? std::stoull(argv[4]) : 10u;
-    bool const parallel                   = argc >= 6 ? std::string(argv[5]) == "parallel" : false;
-    auto cwd                              = std::filesystem::current_path();
+    std::uint64_t const k                 = argc >= 7 ? std::stoull(argv[6]) : 10u;
+    bool const parallel                   = argc >= 8 ? std::string(argv[7]) == "parallel" : true;
     std::filesystem::path ply_point_cloud = argv[1];
     std::filesystem::path ply_mesh        = argv[2];
-    std::size_t const discretization      = std::stoull(argv[3]);
+    std::size_t const dx                  = std::stoull(argv[3]);
+    std::size_t const dy                  = std::stoull(argv[4]);
+    std::size_t const dz                  = std::stoull(argv[5]);
 
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
@@ -38,6 +40,7 @@ int main(int argc, char** argv)
     timer.register_op("parse ply point cloud");
     timer.start();
     auto [points, normals] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+    std::cout << "points: " << points.size() << "\n";
     timer.stop();
 
     timer.register_op("setup octree");
@@ -48,18 +51,7 @@ int main(int argc, char** argv)
     for (std::size_t i = 0; i < points.size(); ++i)
         vertices.push_back(vertex_type{&points[i], i});
 
-    using iterator_type = typename decltype(points)::const_iterator;
-    auto const bounding_box =
-        pcp::bounding_box<iterator_type, pcp::point_t>(std::cbegin(points), std::cend(points));
-
-    pcp::octree_parameters_t<pcp::point_t> params;
-    params.voxel_grid = bounding_box;
-    params.node_capacity = 4u;
-
-    pcp::basic_octree_t<vertex_type, decltype(params)> octree{
-        std::cbegin(vertices),
-        std::cend(vertices),
-        params};
+    pcp::basic_octree_t<vertex_type> octree{std::cbegin(vertices), std::cend(vertices)};
 
     timer.stop();
 
@@ -134,10 +126,8 @@ int main(int argc, char** argv)
 
     timer.register_op("surface nets");
     timer.start();
-    auto const grid = pcp::common::regular_grid_containing(
-        bounding_box.min,
-        bounding_box.max,
-        {discretization, discretization, discretization});
+    auto const grid =
+        pcp::common::regular_grid_containing(octree.voxel_grid().min, octree.voxel_grid().max, {dx, dy, dz});
 
     auto const mesh = [](auto const& sdf, auto const& grid, bool parallelize) {
         if (parallelize)
@@ -161,6 +151,9 @@ int main(int argc, char** argv)
                   << " ms"
                   << "\n";
     }
+
+    std::cout << "vertices: " << mesh_vertices.size() << "\n"
+              << "triangles: " << mesh_triangles.size() << "\n";
 
     return 0;
 }
