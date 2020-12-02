@@ -26,7 +26,7 @@ namespace pcp {
  * @tparam PointView Type satisfying PointView concept
  * @tparam ParamsType Type containing the parameters for this octree
  */
-template <class PointView, class ParamsType = octree_parameters_t<point_t>>
+template <class PointView, class ParamsType = octree_parameters_t<pcp::point_t>>
 class basic_octree_t
 {
   public:
@@ -53,6 +53,16 @@ class basic_octree_t
     explicit basic_octree_t(ForwardIter begin, ForwardIter end, params_type const& params)
         : root_(params), size_(root_.insert(begin, end))
     {
+    }
+
+    template <class ForwardIter>
+    explicit basic_octree_t(ForwardIter begin, ForwardIter end) : root_{}, size_{}
+    {
+        params_type params;
+        auto const bbox   = pcp::bounding_box<ForwardIter, aabb_point_type, aabb_type>(begin, end);
+        params.voxel_grid = bbox;
+        root_             = octree_node_type{params};
+        size_             = root_.insert(begin, end);
     }
 
     std::size_t size() const { return size_; }

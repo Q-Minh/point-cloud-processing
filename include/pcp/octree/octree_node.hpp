@@ -63,6 +63,7 @@ class basic_octree_node_t
     using pointer         = value_type*;
     using const_pointer   = value_type const*;
 
+    basic_octree_node_t() noexcept = default;
     explicit basic_octree_node_t(params_type const& params)
         : capacity_(params.node_capacity),
           max_depth_(params.max_depth),

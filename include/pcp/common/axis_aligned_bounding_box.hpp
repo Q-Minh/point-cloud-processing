@@ -65,15 +65,15 @@ struct axis_aligned_bounding_box_t
     }
 };
 
-template <class ForwardIter, class Point>
-inline axis_aligned_bounding_box_t<Point> bounding_box(ForwardIter begin, ForwardIter end)
+template <class ForwardIter, class Point, class AABB = axis_aligned_bounding_box_t<Point>>
+inline AABB bounding_box(ForwardIter begin, ForwardIter end)
 {
-    using aabb_type       = axis_aligned_bounding_box_t<Point>;
+    using aabb_type       = AABB;
     using point_view_type = typename std::iterator_traits<ForwardIter>::value_type;
 
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(
-        traits::is_point_v<point_view_type>,
+        traits::is_point_view_v<point_view_type>,
         "std::iterator_traits<ForwardIter>::value_type must satisfy PointView concept");
 
     aabb_type aabb;
