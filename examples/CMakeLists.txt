@@ -24,3 +24,6 @@ add_example("examples" pcp-example-ply ply.cpp)
 add_example("examples" 
   pcp-example-tangent-plane-surface-reconstruction 
   tangent_plane_surface_reconstruction.cpp)
+add_example("examples" 
+  pcp-example-add-noise-to-point-cloud 
+  add_noise_to_point_cloud.cpp)

@@ -52,7 +52,9 @@ auto surface_nets(
     // bounding box of the mesh in coordinate frame of the mesh
     pcp::axis_aligned_bounding_box_t<point_type> mesh_aabb = {
         {grid.x, grid.y, grid.z},
-        {grid.x + grid.sx * grid.dx, grid.y + grid.sy * grid.dy, grid.z + grid.sz * grid.dz}};
+        {grid.x + static_cast<scalar_type>(grid.sx) * grid.dx,
+         grid.y + static_cast<scalar_type>(grid.sy) * grid.dy,
+         grid.z + static_cast<scalar_type>(grid.sz) * grid.dz}};
 
     // mapping from 3d grid coordinates to 1d
     auto const get_active_cube_index =
@@ -62,7 +64,8 @@ auto surface_nets(
 
     // mapping from 1d index to 3d grid coordinates
     auto const get_ijk_from_idx =
-        [&grid](std::size_t active_cube_index) -> std::tuple<std::size_t, std::size_t, std::size_t> {
+        [&grid](
+            std::size_t active_cube_index) -> std::tuple<std::size_t, std::size_t, std::size_t> {
         std::size_t i = (active_cube_index) % grid.sx;
         std::size_t j = (active_cube_index / grid.sx) % grid.sy;
         std::size_t k = (active_cube_index) / (grid.sx * grid.sy);
@@ -103,31 +106,35 @@ auto surface_nets(
                         std::swap(j, k);
                     }
 
+                    auto const ifloat = static_cast<scalar_type>(i);
+                    auto const jfloat = static_cast<scalar_type>(j);
+                    auto const kfloat = static_cast<scalar_type>(k);
+
                     // coordinates of voxel corners in voxel grid coordinate frame
                     // clang-format off
 			        point_type const voxel_corner_grid_positions[8] =
 			        {
-				        { static_cast<scalar_type>(i),     static_cast<scalar_type>(j),     static_cast<scalar_type>(k) },
-				        { static_cast<scalar_type>(i + 1), static_cast<scalar_type>(j),     static_cast<scalar_type>(k) },
-				        { static_cast<scalar_type>(i + 1), static_cast<scalar_type>(j + 1), static_cast<scalar_type>(k) },
-				        { static_cast<scalar_type>(i),     static_cast<scalar_type>(j + 1), static_cast<scalar_type>(k) },
-				        { static_cast<scalar_type>(i),     static_cast<scalar_type>(j),     static_cast<scalar_type>(k + 1) },
-				        { static_cast<scalar_type>(i + 1), static_cast<scalar_type>(j),     static_cast<scalar_type>(k + 1) },
-				        { static_cast<scalar_type>(i + 1), static_cast<scalar_type>(j + 1), static_cast<scalar_type>(k + 1) },
-				        { static_cast<scalar_type>(i),     static_cast<scalar_type>(j + 1), static_cast<scalar_type>(k + 1) },
+				        { ifloat,        jfloat,       kfloat },
+				        { ifloat + 1.f,  jfloat,       kfloat },
+				        { ifloat + 1.f,  jfloat + 1.f, kfloat },
+				        { ifloat,        jfloat + 1.f, kfloat },
+				        { ifloat,        jfloat,       kfloat + 1.f },
+				        { ifloat + 1.f,  jfloat,       kfloat + 1.f },
+				        { ifloat + 1.f,  jfloat + 1.f, kfloat + 1.f },
+				        { ifloat,        jfloat + 1.f, kfloat + 1.f },
 			        };
 
 			        // coordinates of voxel corners in the mesh's coordinate frame
 			        point_type const voxel_corner_positions[8] =
 			        {
-				        { grid.x + i * grid.dx,       grid.y + j * grid.dy,       grid.z + k * grid.dz },
-				        { grid.x + (i + 1) * grid.dx, grid.y + j * grid.dy,       grid.z + k * grid.dz },
-				        { grid.x + (i + 1) * grid.dx, grid.y + (j + 1) * grid.dy, grid.z + k * grid.dz },
-				        { grid.x + i * grid.dx,       grid.y + (j + 1) * grid.dy, grid.z + k * grid.dz },
-				        { grid.x + i * grid.dx,       grid.y + j * grid.dy,       grid.z + (k + 1) * grid.dz },
-				        { grid.x + (i + 1) * grid.dx, grid.y + j * grid.dy,       grid.z + (k + 1) * grid.dz },
-				        { grid.x + (i + 1) * grid.dx, grid.y + (j + 1) * grid.dy, grid.z + (k + 1) * grid.dz },
-				        { grid.x + i * grid.dx,       grid.y + (j + 1) * grid.dy, grid.z + (k + 1) * grid.dz }
+				        { grid.x + ifloat * grid.dx,       grid.y + jfloat * grid.dy,       grid.z + kfloat * grid.dz },
+				        { grid.x + (ifloat + 1) * grid.dx, grid.y + jfloat * grid.dy,       grid.z + kfloat * grid.dz },
+				        { grid.x + (ifloat + 1) * grid.dx, grid.y + (jfloat + 1) * grid.dy, grid.z + kfloat * grid.dz },
+				        { grid.x + ifloat * grid.dx,       grid.y + (jfloat + 1) * grid.dy, grid.z + kfloat * grid.dz },
+				        { grid.x + ifloat * grid.dx,       grid.y + jfloat * grid.dy,       grid.z + (kfloat + 1) * grid.dz },
+				        { grid.x + (ifloat + 1) * grid.dx, grid.y + jfloat * grid.dy,       grid.z + (kfloat + 1) * grid.dz },
+				        { grid.x + (ifloat + 1) * grid.dx, grid.y + (jfloat + 1) * grid.dy, grid.z + (kfloat + 1) * grid.dz },
+				        { grid.x + ifloat * grid.dx,       grid.y + (jfloat + 1) * grid.dy, grid.z + (kfloat + 1) * grid.dz }
 			        };
 
 			        // scalar values of the implicit function evaluated at cube vertices (voxel corners)
@@ -164,42 +171,33 @@ auto surface_nets(
                         return scalar >= isovalue;
                     };
 
-                    auto const are_edge_scalars_bipolar = [&is_scalar_positive](
-                                                              scalar_type scalar1,
-                                                              scalar_type scalar2) -> bool {
-                        return is_scalar_positive(scalar1) !=
-                               is_scalar_positive(scalar2);
+                    auto const are_edge_scalars_bipolar =
+                        [&is_scalar_positive](scalar_type scalar1, scalar_type scalar2) -> bool {
+                        return is_scalar_positive(scalar1) != is_scalar_positive(scalar2);
                     };
 
                     bool const edge_bipolarity_array[12] = {
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[0][0]],
-                            voxel_corner_values[edges[0][1]])
-                            ,
+                            voxel_corner_values[edges[0][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[1][0]],
-                            voxel_corner_values[edges[1][1]])
-                            ,
+                            voxel_corner_values[edges[1][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[2][0]],
-                            voxel_corner_values[edges[2][1]])
-                            ,
+                            voxel_corner_values[edges[2][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[3][0]],
-                            voxel_corner_values[edges[3][1]])
-                            ,
+                            voxel_corner_values[edges[3][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[4][0]],
-                            voxel_corner_values[edges[4][1]])
-                            ,
+                            voxel_corner_values[edges[4][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[5][0]],
-                            voxel_corner_values[edges[5][1]])
-                            ,
+                            voxel_corner_values[edges[5][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[6][0]],
-                            voxel_corner_values[edges[6][1]])
-                            ,
+                            voxel_corner_values[edges[6][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[7][0]],
                             voxel_corner_values[edges[7][1]]),
@@ -214,8 +212,7 @@ auto surface_nets(
                             voxel_corner_values[edges[10][1]]),
                         are_edge_scalars_bipolar(
                             voxel_corner_values[edges[11][0]],
-                            voxel_corner_values[edges[11][1]])
-                    };
+                            voxel_corner_values[edges[11][1]])};
 
                     // clang-format off
 			        // an active voxel must have at least one bipolar edge
@@ -310,6 +307,9 @@ auto surface_nets(
             auto const i   = std::get<0>(ijk);
             auto const j   = std::get<1>(ijk);
             auto const k   = std::get<2>(ijk);
+            auto const ifloat = static_cast<scalar_type>(i);
+            auto const jfloat = static_cast<scalar_type>(j);
+            auto const kfloat = static_cast<scalar_type>(k);
 
             if (is_lower_boundary_cube(i, j, k))
                 return;
@@ -325,13 +325,13 @@ auto surface_nets(
 
             point_type const voxel_corners_of_interest[4] = {
                 // vertex 0
-                {grid.x + i * grid.dx,       grid.y + j * grid.dy,       grid.z + k * grid.dz},
+                {grid.x + ifloat * grid.dx,       grid.y + jfloat * grid.dy,       grid.z + kfloat * grid.dz},
                 // vertex 4                                              
-                {grid.x + i * grid.dx,       grid.y + j * grid.dy,       grid.z + (k + 1) * grid.dz},
+                {grid.x + ifloat * grid.dx,       grid.y + jfloat * grid.dy,       grid.z + (kfloat + 1) * grid.dz},
                 // vertex 3                  
-                {grid.x + i * grid.dx,       grid.y + (j + 1) * grid.dy, grid.z + k * grid.dz},
+                {grid.x + ifloat * grid.dx,       grid.y + (jfloat + 1) * grid.dy, grid.z + kfloat * grid.dz},
                 // vertex 1
-                {grid.x + (i + 1) * grid.dx, grid.y + j * grid.dy,       grid.z + k * grid.dz}};
+                {grid.x + (ifloat + 1) * grid.dx, grid.y + jfloat * grid.dy,       grid.z + kfloat * grid.dz}};
             // clang-format on
 
             float const edge_scalar_values[3][2] = {// directed edge (0,4)
@@ -388,8 +388,9 @@ auto surface_nets(
                     active_cube_to_vertex_index_map[neighbor3]};
 
                 auto const& neighbor_vertices_order =
-                    edge_scalar_values[idx][1] > edge_scalar_values[idx][0] ? quad_neighbor_orders[0] :
-                                                                          quad_neighbor_orders[1];
+                    edge_scalar_values[idx][1] > edge_scalar_values[idx][0] ?
+                        quad_neighbor_orders[0] :
+                        quad_neighbor_orders[1];
 
                 auto const v0 = vertex_index;
                 auto const v1 = neighbor_vertices[neighbor_vertices_order[0]];
