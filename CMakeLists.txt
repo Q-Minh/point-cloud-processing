@@ -14,11 +14,11 @@ FetchContent_Declare(
   GIT_TAG        3.3.8
 )
 FetchContent_MakeAvailable(eigen3)
-
+add_library(Eigen3::Eigen ALIAS eigen)
 add_library(pcp INTERFACE)
 add_library(pcp::pcp ALIAS pcp)
 target_compile_features(pcp INTERFACE cxx_std_17)
-target_link_libraries(pcp INTERFACE eigen)
+target_link_libraries(pcp INTERFACE Eigen3::Eigen)
 
 # disable all warnings emanating from eigen include directories
 get_target_property(eigen_include_dirs eigen INTERFACE_INCLUDE_DIRECTORIES)

@@ -411,8 +411,8 @@ inline void write_ply(
  * @tparam Point The mesh's point type
  * @tparam SharedVertexMeshTriangle The mesh's triangle type
  * @param filepath Path to the ply file to write to
- * @param vertices 
- * @param triangles 
+ * @param vertices
+ * @param triangles
  * @param format The desired ply format with which to write
  */
 template <
@@ -532,21 +532,12 @@ void write_ply(
             for (std::size_t i = 0u; i < t.size(); ++i)
             {
                 auto constexpr size_of_index_type = sizeof(index_type);
-                std::array<std::byte, 3u * size_of_index_type> index_storage;
-
-                std::byte* const data = index_storage.data();
-
-                index_type* const id1 = reinterpret_cast<index_type*>(data);
-                index_type* const id2 = reinterpret_cast<index_type*>(data + (1u * size_of_index_type));
-                index_type* const id3 = reinterpret_cast<index_type*>(data + (2u * size_of_index_type));
-                auto const& indices   = t[i].indices();
-                *id1                  = indices[0];
-                *id2                  = indices[1];
-                *id3                  = indices[2];
-
+                auto const& indices               = t[i].indices();
+                std::uint8_t const num_indices    = 3;
+                os.write(reinterpret_cast<const char*>(&num_indices), std::streamsize{1u});
                 os.write(
-                    reinterpret_cast<const char*>(data),
-                    static_cast<std::streamsize>(index_storage.size()));
+                    reinterpret_cast<const char*>(indices.data()),
+                    static_cast<std::streamsize>(indices.size() * size_of_index_type));
             }
         };
 
@@ -575,8 +566,8 @@ void write_ply(
     {
         if (!is_machine_little_endian())
         {
-            auto endian_correct_vertices = vertices;
-            auto endian_correct_triangles  = triangles;
+            auto endian_correct_vertices  = vertices;
+            auto endian_correct_triangles = triangles;
             transform_endianness(endian_correct_vertices, endian_correct_triangles);
             write_binary_data(endian_correct_vertices, endian_correct_triangles);
         }
@@ -590,7 +581,7 @@ void write_ply(
     {
         if (!is_machine_big_endian())
         {
-            auto endian_correct_vertices = vertices;
+            auto endian_correct_vertices  = vertices;
             auto endian_correct_triangles = triangles;
             transform_endianness(endian_correct_vertices, endian_correct_triangles);
             write_binary_data(endian_correct_vertices, endian_correct_triangles);

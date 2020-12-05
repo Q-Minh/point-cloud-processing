@@ -744,7 +744,7 @@ auto surface_nets(
          grid.y + static_cast<scalar_type>(grid.sy) * grid.dy,
          grid.z + static_cast<scalar_type>(grid.sz) * grid.dz}};
 
-    std::size_t constexpr edges[12][2] = {
+    std::uint8_t constexpr edges[12][2] = {
         {0u, 1u},
         {1u, 2u},
         {2u, 3u},

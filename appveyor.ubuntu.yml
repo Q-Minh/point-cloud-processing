@@ -32,7 +32,7 @@ before_build:
       if [ "$configuration" = "Debug" ]; then
         coverage=ON  
       fi
-      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DCMAKE_BUILD_TYPE=$configuration -DPCP_COVERAGE=$coverage
+      cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=$configuration -DPCP_COVERAGE=$coverage
 build_script:
   - sh: |
       cmake --build build --target pcp-tests

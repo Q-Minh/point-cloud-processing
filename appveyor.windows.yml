@@ -20,7 +20,7 @@ branches:
 before_build:
   - cmd: |
       mkdir build;
-      cmake -G "Visual Studio 16 2019" -A "%platform%" -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON
+      cmake -G "Visual Studio 16 2019" -A "%platform%" -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=OFF
 build_script:
   - cmd: |
       cmake --build build --target pcp-tests --config "%configuration%"
