@@ -73,9 +73,8 @@ int main(int argc, char** argv)
     float const mu = std::reduce(
         std::execution::par,
         mean_distances.cbegin(),
-        mean_distances.cend(),
-        0.f,
-        [=](float current, float mean) { return current + (mean / static_cast<float>(n)); });
+        mean_distances.cend(), 0.f) /
+        static_cast<float>(n);
     float const var = std::reduce(
         std::execution::par,
         mean_distances.cbegin(),

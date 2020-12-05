@@ -27,3 +27,6 @@ add_example("examples"
 add_example("examples" 
   pcp-example-add-noise-to-point-cloud 
   add_noise_to_point_cloud.cpp)
+add_example("examples" 
+  pcp-example-filter-point-cloud-by-density 
+  filter_point_cloud_noise_by_density.cpp)

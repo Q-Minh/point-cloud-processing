@@ -61,6 +61,19 @@ SCENARIO("isosurface extraction with surface nets", "[isosurface]")
 
                 check_mesh_validity(vertices, triangles);
             }
+            WHEN("extracting the level set f(x,y,z)=0 as a 3d triangle mesh in parallel with a hint")
+            {
+                // give a hint that the surface might be close to 
+                // the point (0.0, 0.0, 0.99)
+                pcp::point_t const hint{0.f, 0.f, 0.99f};
+                auto const [vertices, triangles] = pcp::algorithm::isosurface::surface_nets(
+                    std::execution::par,
+                    unit_circle,
+                    grid,
+                    hint);
+
+                check_mesh_validity(vertices, triangles);
+            }
         }
     }
 }

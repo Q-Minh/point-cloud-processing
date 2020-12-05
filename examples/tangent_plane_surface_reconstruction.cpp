@@ -26,9 +26,9 @@ int main(int argc, char** argv)
     bool const parallel                   = argc >= 8 ? std::string(argv[7]) == "parallel" : true;
     std::filesystem::path ply_point_cloud = argv[1];
     std::filesystem::path ply_mesh        = argv[2];
-    std::size_t const dx                  = std::stoull(argv[3]);
-    std::size_t const dy                  = std::stoull(argv[4]);
-    std::size_t const dz                  = std::stoull(argv[5]);
+    std::size_t const dimx                = std::stoull(argv[3]);
+    std::size_t const dimy                = std::stoull(argv[4]);
+    std::size_t const dimz                = std::stoull(argv[5]);
 
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
@@ -126,8 +126,10 @@ int main(int argc, char** argv)
 
     timer.register_op("surface nets");
     timer.start();
-    auto const grid =
-        pcp::common::regular_grid_containing(octree.voxel_grid().min, octree.voxel_grid().max, {dx, dy, dz});
+    auto const grid = pcp::common::regular_grid_containing(
+        octree.voxel_grid().min,
+        octree.voxel_grid().max,
+        {dimx, dimy, dimz});
 
     auto const mesh = [](auto const& sdf, auto const& grid, bool parallelize) {
         if (parallelize)
