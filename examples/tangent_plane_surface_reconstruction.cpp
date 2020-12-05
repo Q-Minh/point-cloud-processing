@@ -96,7 +96,7 @@ int main(int argc, char** argv)
             static std::size_t dimx      = 20u;
             static std::size_t dimy      = 20u;
             static std::size_t dimz      = 20u;
-            static ImU64 const step = 1;
+            static ImU64 const step      = 1;
 
             if (ImGui::CollapsingHeader("Display##PointCloud", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -116,6 +116,15 @@ int main(int argc, char** argv)
                     viewer.data().set_mesh(V, F);
                     viewer.core().align_camera_center(V);
                 }
+                std::string const points_str =
+                    std::string("Points: ") + std::to_string(points.size());
+                ImGui::Text(points_str.c_str());
+                std::string const vertices_str =
+                    std::string("Vertices: ") + std::to_string(vertices.size());
+                ImGui::Text(vertices_str.c_str());
+                std::string const triangles_str =
+                    std::string("Triangles: ") + std::to_string(triangles.size());
+                ImGui::Text(triangles_str.c_str());
             }
 
             if (ImGui::CollapsingHeader("k neighborhood", ImGuiTreeNodeFlags_DefaultOpen))
@@ -173,9 +182,6 @@ int main(int argc, char** argv)
                         << " ms"
                         << "\n";
                 }
-
-                oss << "vertices: " << vertices.size() << "\n"
-                    << "triangles: " << triangles.size() << "\n";
 
                 execution_report = oss.str();
 
