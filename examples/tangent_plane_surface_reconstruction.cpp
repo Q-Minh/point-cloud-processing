@@ -24,9 +24,11 @@ using vertex_type = pcp::vertex_t;
 using plane_type  = pcp::common::plane3d_t;
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points);
+
 std::pair<Eigen::MatrixXd, Eigen::MatrixXi> to_mesh(
     std::vector<pcp::point_t> const& points,
     std::vector<pcp::common::shared_vertex_mesh_triangle<std::uint32_t>> const& triangles);
+
 auto reconstruct_surface_from_point_cloud(
     std::vector<pcp::point_t>& points,
     std::size_t k,
@@ -64,7 +66,8 @@ int main(int argc, char** argv)
             ImGui::TreePush();
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
-            if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0)))
+            if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0)) &&
+                !recon_handle.valid())
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
@@ -77,7 +80,8 @@ int main(int argc, char** argv)
                 viewer.core().align_camera_center(V);
             }
             ImGui::SameLine();
-            if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
+            if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)) &&
+                !recon_handle.valid())
             {
                 std::filesystem::path ply_mesh = igl::file_dialog_save();
                 pcp::io::write_ply(
@@ -92,10 +96,11 @@ int main(int argc, char** argv)
             static std::size_t dimx      = 20u;
             static std::size_t dimy      = 20u;
             static std::size_t dimz      = 20u;
+            static ImU64 const step = 1;
 
             if (ImGui::CollapsingHeader("Display##PointCloud", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                if (ImGui::Button("Point Cloud", ImVec2((w - p) / 2.f, 0)))
+                if (ImGui::Button("Point Cloud", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
                 {
                     auto const V = from_point_cloud(points);
                     viewer.data().clear();
@@ -104,7 +109,7 @@ int main(int argc, char** argv)
                     viewer.core().align_camera_center(V);
                 }
                 ImGui::SameLine();
-                if (ImGui::Button("Mesh", ImVec2((w - p) / 2.f, 0)))
+                if (ImGui::Button("Mesh", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
                 {
                     viewer.data().clear();
                     auto [V, F] = to_mesh(vertices, triangles);
@@ -119,7 +124,6 @@ int main(int argc, char** argv)
             }
             if (ImGui::CollapsingHeader("Regular Grid Dimensions", ImGuiTreeNodeFlags_DefaultOpen))
             {
-                static int step = 1;
                 ImGui::InputScalar("X", ImGuiDataType_U64, &dimx, &step);
                 ImGui::InputScalar("Y", ImGuiDataType_U64, &dimy, &step);
                 ImGui::InputScalar("Z", ImGuiDataType_U64, &dimz, &step);
@@ -131,21 +135,21 @@ int main(int argc, char** argv)
                 ImGui::RadioButton("graph", &algorithm_variant, 2);
             }
 
-            if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)))
+            if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
             {
                 points.clear();
                 vertices.clear();
                 triangles.clear();
                 viewer.data().clear();
             }
-            if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)))
+            if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
             {
                 recon_handle = std::async(std::launch::async, [&]() {
                     return reconstruct_surface_from_point_cloud(
                         points,
-                        k,
+                        std::size_t{k},
                         {dimx, dimy, dimz},
-                        algorithm_variant,
+                        int{algorithm_variant},
                         recon_progress);
                 });
             }

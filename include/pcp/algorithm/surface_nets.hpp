@@ -11,6 +11,7 @@
 #include <pcp/traits/function_traits.hpp>
 #include <pcp/traits/point_traits.hpp>
 #include <pcp/traits/triangle_traits.hpp>
+#include <queue>
 #include <unordered_map>
 #include <unordered_set>
 #include <utility>
@@ -30,7 +31,7 @@ Point get_world_point_of(std::size_t i, std::size_t j, std::size_t k, Grid const
         grid.x + static_cast<Scalar>(i) * grid.dx,
         grid.y + static_cast<Scalar>(j) * grid.dy,
         grid.z + static_cast<Scalar>(k) * grid.dz};
-};
+}
 
 template <
     class Point,
@@ -44,7 +45,7 @@ auto get_grid_point_of(Point const& p, Grid const& grid)
         static_cast<std::size_t>((p.x() - grid.x) / grid.dx),
         static_cast<std::size_t>((p.y() - grid.y) / grid.dy),
         static_cast<std::size_t>((p.z() - grid.z) / grid.dz));
-};
+}
 
 /**
  * @brief Mapping from 3d grid coordinates to 1d
@@ -59,7 +60,7 @@ template <class Grid>
 std::size_t get_active_cube_index(std::size_t i, std::size_t j, std::size_t k, Grid const& grid)
 {
     return i + (j * grid.sx) + (k * grid.sx * grid.sy);
-};
+}
 
 /**
  * @brief mapping from 1d index to 3d grid coordinates
@@ -76,7 +77,7 @@ auto get_ijk_from_idx(std::size_t active_cube_index, Grid const& grid)
     std::size_t j = (active_cube_index / grid.sx) % grid.sy;
     std::size_t k = (active_cube_index) / (grid.sx * grid.sy);
     return std::make_tuple(i, j, k);
-};
+}
 
 /**
  * @brief Gets the positions of the voxel's corners in a regular grid frame
@@ -104,7 +105,7 @@ std::array<Point, 8> get_voxel_corner_grid_positions(std::size_t i, std::size_t 
         point_type{ifloat + 1.f, jfloat, kfloat + 1.f},
         point_type{ifloat + 1.f, jfloat + 1.f, kfloat + 1.f},
         point_type{ifloat, jfloat + 1.f, kfloat + 1.f}};
-};
+}
 
 /**
  * @brief Get the voxel's corners' positions in world frame
@@ -159,7 +160,7 @@ get_voxel_corner_world_positions(std::size_t i, std::size_t j, std::size_t k, Gr
             grid.x + static_cast<scalar_type>(i) * grid.dx,
             grid.y + static_cast<scalar_type>(j + 1) * grid.dy,
             grid.z + static_cast<scalar_type>(k + 1) * grid.dz}};
-};
+}
 
 /**
  * @brief Get the value of the scalar function f(x,y,z) at the voxel's corners
@@ -200,7 +201,7 @@ get_voxel_corner_values(std::array<Point, 8> const& voxel_corner_world_positions
         f(voxel_corner_world_positions[7].x(),
           voxel_corner_world_positions[7].y(),
           voxel_corner_world_positions[7].z())};
-};
+}
 
 /**
  * @brief Returns a boolean array indicating which edges are bipolar (true) and which are not
@@ -266,7 +267,7 @@ std::array<bool, 12> get_edge_bipolarity_array(
             voxel_corner_values[edges[11][1]])};
 
     return edge_bipolarity_array;
-};
+}
 
 /**
  * @brief Check if a cube intersects the isosurface or not
@@ -293,7 +294,7 @@ bool get_is_cube_active(std::array<bool, 12> const& edge_bipolarity_array)
     // clang-format on
 
     return is_voxel_active;
-};
+}
 
 /**
  * @brief Returns 3 adjacent cubes of the specified edge as 3 triples of (i,j,k) coords of adjacent
@@ -327,7 +328,7 @@ auto get_adjacent_cubes_of_edge(
         j + adjacent_cubes_of_edges[edge][2][1],
         k + adjacent_cubes_of_edges[edge][2][2]};
     return adjacent_cubes;
-};
+}
 
 /**
  * @brief
@@ -379,10 +380,8 @@ auto surface_nets(
 
     // bounding box of the mesh in coordinate frame of the mesh
     pcp::axis_aligned_bounding_box_t<point_type> mesh_aabb = {
-        {grid.x, grid.y, grid.z},
-        {grid.x + static_cast<scalar_type>(grid.sx) * grid.dx,
-         grid.y + static_cast<scalar_type>(grid.sy) * grid.dy,
-         grid.z + static_cast<scalar_type>(grid.sz) * grid.dz}};
+        get_world_point_of<point_type, scalar_type, grid_type>(0u, 0u, 0u, grid),
+        get_world_point_of<point_type, scalar_type, grid_type>(grid.sx, grid.sy, grid.sz, grid)};
 
     // mapping from active cube indices to vertex indices of the generated mesh
     std::unordered_map<std::size_t, std::uint64_t> active_cube_to_vertex_index_map{};
@@ -1033,16 +1032,6 @@ auto surface_nets(
                 {i, j - 1, k - 1},
                 {i, j, k - 1},
                 {i - 1, j, k - 1}};
-
-            point_type const voxel_corners_of_interest[4] = {
-                // vertex 0,
-                get_world_point_of<point_type, scalar_type, grid_type>(i, j, k, grid),
-                // vertex 4
-                get_world_point_of<point_type, scalar_type, grid_type>(i, j, k + 1, grid),
-                // vertex 3
-                get_world_point_of<point_type, scalar_type, grid_type>(i, j + 1, k, grid),
-                // vertex 1
-                get_world_point_of<point_type, scalar_type, grid_type>(i + 1, j, k, grid)};
 
             scalar_type const edge_scalar_values[3][2] = {
                 // directed edge (0,4)
