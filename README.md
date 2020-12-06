@@ -20,13 +20,12 @@
 
 | CMake Option | Help |
 | --- | --- |
-| `-DPCP_BUILD_TESTS` | If set to `ON`, downloads [Catch2](https://github.com/catchorg/Catch2) and builds the `tests` target |
-| `-DPCP_BUILD_BENCHMARKS` | If set to `ON`, downloads [Google Benchmark](https://github.com/google/benchmark) and builds the `benchmarks` target |
-| `-DPCP_BUILD_EXAMPLES` | If set to `ON`, builds the examples. |
+| `-DPCP_BUILD_TESTS` | If set to `ON`, downloads [Catch2](https://github.com/catchorg/Catch2) and builds the `pcp-tests` target |
+| `-DPCP_BUILD_BENCHMARKS` | If set to `ON`, downloads [Google Benchmark](https://github.com/google/benchmark) and builds the `pcp-benchmarks` target |
+| `-DPCP_BUILD_EXAMPLES` | If set to `ON`, builds the examples. The examples use libigl and imgui as cmake subprojects. |
 | `-DCMAKE_BUILD_TYPE` | Set to one of `Release\|Debug\|RelWithDebInfo`. If you are using a Visual Studio [generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html), all configuration types are included. See the [docs](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html). |  
   
 ```
-$ cd <path to repo>
 $ mkdir build
 $ cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=ON
 ```
@@ -40,16 +39,16 @@ $ cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD
 | `pcp` | The `pcp` library. Currently header-only, so building is a no-op. |
 | `pcp-example-ply` | Ply read/write example. |
 | `pcp-example-normals-estimation` | Reads a ply point cloud and exports it back with normals. |
+| `pcp-example-tangent-plane-surface-reconstruction` | Reads ply point cloud and performs surface reconstruction using tangent plane SDFs. Uses libigl and imgui for visualization. |
+| `pcp-example-add-noise-to-point-cloud` | Adds gaussian noise to a ply point cloud. |
+| `pcp-example-filter-point-cloud-by-density` | Filters a ply point cloud using a density threshold. |
 ```
-$ cd <path to repo>
 $ cmake --build build --target <target_name> # --config Release|Debug if you're on Windows
 ```
 
 ## Installing
 ```
-$ cd <path to repo>
-$ cd build
-$ cmake --install .
+$ cmake --install build
 ```
 
 ## Usage
@@ -61,14 +60,41 @@ target_link_library(<your target> PRIVATE pcp::pcp)
 
 Single include:
 ```
+#include <execution>
+#include <filesystem>
 #include <pcp.hpp>
+
+int main()
+{
+    // read in point cloud
+    std::filesystem::path input_ply{argv[1]};
+    auto [points, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(input_ply);
+
+    // setup acceleration structure
+    pcp::octree_t octree{points.cbegin(), points.cend()};
+
+    // compute point densities in parallel in 0.01f radius balls
+    std::vector<float> density(points.size(), 0.f);
+    std::transform(std::execution::par, points.cbegin(), points.cend(), density.begin(), [&](auto const& p) {
+        pcp::common::sphere_t sphere{};
+        sphere.radius = 0.01f;
+        sphere.position = p;
+        auto const points_in_range = octree.range_search(sphere);
+        return static_cast<float>(points_in_range.size()) / (4.f/3.f*3.14159f*sphere.radius*sphere.radius*sphere.radius);
+    });
+
+    // do something else ...
+}
 ```
 
 Multiple includes:
 ```
-#include <pcp/octree.hpp>
-#include <pcp/traits/graph_traits.hpp>
-#include <pcp/graph/directed_adjacency_list.hpp>
+#include <pcp/algorithm/common.hpp>
+#include <pcp/algorithm/estimate_tangent_planes.hpp>
+#include <pcp/algorithm/surface_nets.hpp>
+#include <pcp/common/points/point_view.hpp>
+#include <pcp/octree/octree.hpp>
+#include <pcp/graph/vertex.hpp>
 ```
 
 ### Examples

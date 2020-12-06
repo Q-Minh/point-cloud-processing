@@ -7,15 +7,7 @@
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/writePLY.h>
 #include <iostream>
-#include <pcp/algorithm/common.hpp>
-#include <pcp/algorithm/estimate_normals.hpp>
-#include <pcp/algorithm/estimate_tangent_planes.hpp>
-#include <pcp/algorithm/surface_nets.hpp>
-#include <pcp/common/points/vertex.hpp>
-#include <pcp/common/timer.hpp>
-#include <pcp/common/vector3d.hpp>
-#include <pcp/io/ply.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/pcp.hpp>
 #include <sstream>
 
 using point_type  = pcp::point_t;

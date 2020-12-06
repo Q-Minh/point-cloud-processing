@@ -62,7 +62,7 @@ class basic_point_t
         return self_type{x() + v.x(), y() + v.y(), z() + v.z()};
     }
 
-    template <class PointView, class Vector3d = common::vector3d_t<coordinate_type>>
+    template <class PointView, class Vector3d = common::basic_vector3d_t<coordinate_type>>
     Vector3d operator-(PointView const& other) const noexcept
     {
         static_assert(

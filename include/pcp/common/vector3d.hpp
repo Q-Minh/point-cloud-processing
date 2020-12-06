@@ -10,24 +10,24 @@ namespace common {
  * @tparam T Type of this vector's components
  */
 template <class T>
-class vector3d_t
+class basic_vector3d_t
 {
   public:
     using component_type = T;
-    using self_type      = vector3d_t<T>;
+    using self_type      = basic_vector3d_t<T>;
 
-    vector3d_t() noexcept                 = default;
-    vector3d_t(self_type const&) noexcept = default;
-    vector3d_t(self_type&&) noexcept      = default;
+    basic_vector3d_t() noexcept                 = default;
+    basic_vector3d_t(self_type const&) noexcept = default;
+    basic_vector3d_t(self_type&&) noexcept      = default;
     self_type& operator=(self_type const&) noexcept = default;
     self_type& operator=(self_type&&) noexcept = default;
 
-    vector3d_t(component_type x, component_type y, component_type z) noexcept : x_(x), y_(y), z_(z)
+    basic_vector3d_t(component_type x, component_type y, component_type z) noexcept : x_(x), y_(y), z_(z)
     {
     }
 
     template <class Vector3d>
-    vector3d_t(Vector3d const& other)
+    basic_vector3d_t(Vector3d const& other)
     {
         static_assert(traits::is_vector3d_v<Vector3d>, "other must satisfy Vector3d concept");
         x(other.x());
@@ -36,7 +36,7 @@ class vector3d_t
     }
 
     template <class Vector3d>
-    vector3d_t(Vector3d&& other)
+    basic_vector3d_t(Vector3d&& other)
     {
         static_assert(traits::is_vector3d_v<Vector3d>, "other must satisfy Vector3d concept");
         x(other.x());
@@ -74,6 +74,8 @@ class vector3d_t
   private:
     component_type x_, y_, z_;
 };
+
+using vector3d_t = basic_vector3d_t<float>;
 
 } // namespace common
 } // namespace pcp

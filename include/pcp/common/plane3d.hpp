@@ -46,7 +46,7 @@ class basic_plane3d_t
     template <class PointView>
     component_type signed_distance_to(PointView const& p) const
     {
-        vector3d_t<component_type> const d = p - point_;
+        basic_vector3d_t<component_type> const d = p - point_;
         auto const ip                      = inner_product(d, normal_);
         return ip;
     }

@@ -98,7 +98,7 @@ int main(int argc, char** argv)
         points.cend(),
         points.begin(),
         [&gaussian, &gen, &stddev_multiplier](pcp::point_t const& p) {
-            return p + pcp::common::vector3d_t{
+            return p + pcp::common::basic_vector3d_t{
                            stddev_multiplier * gaussian(gen),
                            stddev_multiplier * gaussian(gen),
                            stddev_multiplier * gaussian(gen)};

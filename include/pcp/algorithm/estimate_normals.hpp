@@ -6,7 +6,6 @@
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/normals/normal_estimation.hpp>
 #include <pcp/common/points/point.hpp>
-#include <pcp/graph/minimum_spanning_tree.hpp>
 #include <pcp/graph/search.hpp>
 #include <pcp/graph/undirected_knn_adjacency_list.hpp>
 #include <pcp/traits/graph_vertex_traits.hpp>
