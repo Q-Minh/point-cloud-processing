@@ -8,6 +8,8 @@ option(PCP_BUILD_EXAMPLES "build examples" ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(FetchContent)
+# Do not include eigen tests in our project
+set(BUILD_TESTING OFF)
 FetchContent_Declare(
   eigen3
   GIT_REPOSITORY https://gitlab.com/libeigen/eigen
