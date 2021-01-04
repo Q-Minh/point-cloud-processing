@@ -64,7 +64,7 @@ Single include:
 #include <filesystem>
 #include <pcp.hpp>
 
-int main()
+int main(int argc, char** argv)
 {
     // read in point cloud
     std::filesystem::path input_ply{argv[1]};
