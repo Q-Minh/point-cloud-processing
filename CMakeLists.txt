@@ -8,8 +8,11 @@ option(PCP_BUILD_EXAMPLES "build examples" ON)
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 
 include(FetchContent)
-# Do not include eigen tests in our project
+
+# download eigen
 set(BUILD_TESTING OFF)
+set(EIGEN_SPLIT_LARGE_TESTS OFF)
+set(EIGEN_BUILD_DOC OFF CACHE BOOL "Build eigen docs")
 FetchContent_Declare(
   eigen3
   GIT_REPOSITORY https://gitlab.com/libeigen/eigen
@@ -17,10 +20,23 @@ FetchContent_Declare(
 )
 FetchContent_MakeAvailable(eigen3)
 add_library(Eigen3::Eigen ALIAS eigen)
+
+# download range-v3
+set(RANGES_CXX_STD 17 CACHE STRING "Tell range-v3 that we are using C++17")
+set(RANGES_VERBOSE_BUILD ON CACHE BOOL "Output range-v3 status messages")
+set(RANGES_PREFER_REAL_CONCEPTS OFF CACHE BOOL "Use concepts")
+set(RANGES_DEEP_STL_INTEGRATION ON CACHE BOOL "Integrate with std library")
+FetchContent_Declare(
+  rangev3lib
+  GIT_REPOSITORY https://github.com/ericniebler/range-v3.git
+  GIT_TAG        0.11.0
+)
+FetchContent_MakeAvailable(rangev3lib)
+
 add_library(pcp INTERFACE)
 add_library(pcp::pcp ALIAS pcp)
 target_compile_features(pcp INTERFACE cxx_std_17)
-target_link_libraries(pcp INTERFACE Eigen3::Eigen)
+target_link_libraries(pcp INTERFACE Eigen3::Eigen range-v3::range-v3)
 
 # disable all warnings emanating from eigen include directories
 get_target_property(eigen_include_dirs eigen INTERFACE_INCLUDE_DIRECTORIES)

@@ -1,5 +1,28 @@
 add_executable(pcp-benchmarks)
 set_target_properties(pcp-benchmarks PROPERTIES FOLDER pcp-benchmarks)
+
+target_sources(pcp-benchmarks
+PRIVATE
+  octree_benchmark.cpp
+)
+
+# do not include google benchmark tests in our project
+set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
+set(BENCHMARK_ENABLE_TESTING OFF)
+set(BENCHMARK_ENABLE_ASSEMBLY_TESTS OFF)
+include(FetchContent)
+FetchContent_Declare(
+  benchmark
+  GIT_REPOSITORY https://github.com/google/benchmark.git
+  GIT_TAG        v1.5.2
+)
+FetchContent_MakeAvailable(benchmark)
+
+set_target_properties(benchmark PROPERTIES FOLDER "google-benchmark")
+set_target_properties(benchmark_main PROPERTIES FOLDER "google-benchmark-main")
+
+target_link_libraries(pcp-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
+
 target_compile_options(pcp-benchmarks
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
@@ -88,25 +111,6 @@ PRIVATE
     /w44928
   >
 )
-
-target_sources(pcp-benchmarks
-PRIVATE
-  octree_benchmark.cpp
-)
-
-# do not include google benchmark tests in our project
-set(BENCHMARK_ENABLE_GTEST_TESTS OFF)
-set(BENCHMARK_ENABLE_TESTING OFF)
-set(BENCHMARK_ENABLE_ASSEMBLY_TESTS OFF)
-include(FetchContent)
-FetchContent_Declare(
-  benchmark
-  GIT_REPOSITORY https://github.com/google/benchmark.git
-  GIT_TAG        v1.5.2
-)
-FetchContent_MakeAvailable(benchmark)
-
-target_link_libraries(pcp-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
 
 include(GNUInstallDirs)
 

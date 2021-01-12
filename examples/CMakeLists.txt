@@ -1,5 +1,7 @@
 include(FetchContent)
-set(LIBIGL_USE_STATIC_LIBRARY     ON  CACHE INTERNAL "Use libigl as static library" )
+
+# download libigl with glad, glfw and imgui
+set(LIBIGL_USE_STATIC_LIBRARY     OFF  CACHE         "Use libigl as static library" )
 set(LIBIGL_WITH_CGAL              OFF CACHE INTERNAL "Use CGAL"                     )
 set(LIBIGL_WITH_COMISO            OFF CACHE INTERNAL "Use CoMiso"                   )
 set(LIBIGL_WITH_CORK              OFF CACHE INTERNAL "Use Cork"                     )
@@ -43,14 +45,16 @@ function(add_example folder_name target_name source_file)
   )
 endfunction()
 
-add_example("examples" pcp-example-normals-estimation normals_estimation.cpp)
-add_example("examples" pcp-example-ply ply.cpp)
-add_example("examples" 
+set(_folder_name "pcp-examples")
+
+add_example(${_folder_name} pcp-example-normals-estimation normals_estimation.cpp)
+add_example(${_folder_name} pcp-example-ply ply.cpp)
+add_example(${_folder_name} 
   pcp-example-tangent-plane-surface-reconstruction 
   tangent_plane_surface_reconstruction.cpp)
-add_example("examples" 
+add_example(${_folder_name} 
   pcp-example-add-noise-to-point-cloud 
   add_noise_to_point_cloud.cpp)
-add_example("examples" 
+add_example(${_folder_name} 
   pcp-example-filter-point-cloud-by-density 
   filter_point_cloud_noise_by_density.cpp)

@@ -2,12 +2,17 @@
 #include <iostream>
 #include <pcp/algorithm/common.hpp>
 #include <pcp/algorithm/estimate_normals.hpp>
-#include <pcp/common/timer.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/points/vertex.hpp>
+#include <pcp/common/timer.hpp>
 #include <pcp/io/ply.hpp>
 #include <pcp/octree/octree.hpp>
+#include <range/v3/all.hpp>
+#include <range/v3/view/enumerate.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/range/conversion.hpp>
+#include <vector>
 
 int main(int argc, char** argv)
 {
@@ -33,14 +38,16 @@ int main(int argc, char** argv)
     timer.start();
     auto [points, normals] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
     timer.stop();
-    
+
     timer.register_op("setup octree");
     timer.start();
-    std::vector<vertex_type> vertices;
-    vertices.reserve(points.size());
-
-    for (std::size_t i = 0; i < points.size(); ++i)
-        vertices.push_back(vertex_type{&points[i], i});
+    std::vector<vertex_type> vertices = ranges::views::enumerate(points) |
+                                        ranges::views::transform([](auto&& tup) {
+                                            auto const idx = std::get<0>(tup);
+                                            auto& point    = std::get<1>(tup);
+                                            return vertex_type{&point, idx};
+                                        }) |
+                                        ranges::to<std::vector>();
 
     normals.resize(points.size());
 
@@ -86,7 +93,7 @@ int main(int argc, char** argv)
             knn,
             pcp::algorithm::default_normal_transform<vertex_type, normal_type>);
     }
-    else 
+    else
     {
         pcp::algorithm::estimate_normals(
             std::execution::seq,

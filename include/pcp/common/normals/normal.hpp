@@ -1,5 +1,7 @@
 #pragma once
 
+#include <cmath>
+
 namespace pcp {
 
 template <class T>
@@ -42,7 +44,7 @@ struct basic_normal_t
     {
         if constexpr (std::is_integral_v<T>)
         {
-            return n.x_ == x_ && n.y_ == y_ && n.z_ == z_;
+           return n.x_ == x_ && n.y_ == y_ && n.z_ == z_;
         }
         else
         {
