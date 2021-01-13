@@ -7,6 +7,9 @@ PRIVATE
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/surface_nets.cpp"
+  "common/plane3d.cpp"
+  "common/tokenize.cpp"
+  "common/normal_estimation.cpp"
   "graph/undirected_knn_adjacency_list.cpp"
   "graph/directed_adjacency_list.cpp" 
   "graph/minimum_spanning_tree.cpp"
@@ -20,9 +23,7 @@ PRIVATE
   "octree/octree_iterator.cpp"
   "octree/octree_knn.cpp"
   "octree/octree_range_search.cpp"
-  "common/plane3d.cpp"
-  "common/tokenize.cpp"
-  "common/normal_estimation.cpp"
+  "type/property_map.cpp"
 )
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
