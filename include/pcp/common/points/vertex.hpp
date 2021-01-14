@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_VERTEX_HPP
+#define PCP_COMMON_POINTS_VERTEX_HPP
 
 #include "point.hpp"
 #include "point_view.hpp"
@@ -103,3 +104,5 @@ class basic_point_view_vertex_t : public basic_point_view_t<PointView>
 using vertex_t = basic_point_view_vertex_t<pcp::point_t>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_VERTEX_HPP

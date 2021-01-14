@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_INTERSECTIONS_HPP
+#define PCP_COMMON_INTERSECTIONS_HPP
 
 #include "axis_aligned_bounding_box.hpp"
 #include "norm.hpp"
@@ -54,3 +55,5 @@ inline bool intersects(sphere_t<Point> const& s, axis_aligned_bounding_box_t<Poi
 
 } // namespace intersections
 } // namespace pcp
+
+#endif // PCP_COMMON_INTERSECTIONS_HPP

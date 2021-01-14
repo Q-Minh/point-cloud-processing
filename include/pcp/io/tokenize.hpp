@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_IO_TOKENIZE_HPP
+#define PCP_IO_TOKENIZE_HPP
 
 #include <iterator>
 #include <sstream>
@@ -20,3 +21,5 @@ inline auto tokenize(std::string const& s) -> std::vector<std::string>
 }
 
 } // namespace pcp
+
+#endif // PCP_IO_TOKENIZE_HPP

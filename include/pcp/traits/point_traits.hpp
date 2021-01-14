@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_POINT_TRAITS_HPP
+#define PCP_TRAITS_POINT_TRAITS_HPP
 
 #include <type_traits>
 
@@ -116,3 +117,5 @@ static constexpr bool is_point_view_assignable_from_v =
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_POINT_TRAITS_HPP

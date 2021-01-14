@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_POINT_VIEW_HPP
+#define PCP_COMMON_POINTS_POINT_VIEW_HPP
 
 #include "point.hpp"
 
@@ -69,3 +70,5 @@ class basic_point_view_t
 using point_view_t = pcp::basic_point_view_t<pcp::point_t>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_POINT_VIEW_HPP

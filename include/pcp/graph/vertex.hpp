@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_GRAPH_VERTEX_HPP
+#define PCP_GRAPH_VERTEX_HPP
 
 #include <cstdint>
 
@@ -32,3 +33,5 @@ class vertex_t
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_VERTEX_HPP

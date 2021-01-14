@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_IO_OBJ_HPP
+#define PCP_IO_OBJ_HPP
 
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
@@ -129,3 +130,5 @@ write_obj(std::ostream& os, std::vector<Point> const& points, std::vector<Normal
 
 } // namespace io
 } // namespace pcp
+
+#endif // PCP_IO_OBJ_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP
+#define PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP
 
 #include <type_traits>
 
@@ -40,3 +41,5 @@ static constexpr bool is_graph_vertex_v = is_graph_vertex<GraphVertex>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP

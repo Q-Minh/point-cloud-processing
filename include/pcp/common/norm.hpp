@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_NORM_HPP
+#define PCP_COMMON_NORM_HPP
 
 #include <cmath>
 #include <pcp/traits/point_traits.hpp>
@@ -75,3 +76,5 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_NORM_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_FUNCTION_TRAITS_HPP
+#define PCP_TRAITS_FUNCTION_TRAITS_HPP
 
 #include <type_traits>
 
@@ -27,3 +28,5 @@ static constexpr bool is_3d_scalar_function_v = is_3d_scalar_function<Func, Scal
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_FUNCTION_TRAITS_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_MESH_TRIANGLE_HPP
+#define PCP_COMMON_MESH_TRIANGLE_HPP
 
 #include <array>
 
@@ -37,3 +38,5 @@ class shared_vertex_mesh_triangle
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_MESH_TRIANGLE_HPP

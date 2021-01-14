@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_IDENTITY_MAP_HPP
+#define PCP_TRAITS_IDENTITY_MAP_HPP
 
 #include <type_traits>
 
@@ -37,3 +38,5 @@ static constexpr bool is_identity_map_v = !std::is_void_v<std::invoke_result_t<I
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_IDENTITY_MAP_HPP

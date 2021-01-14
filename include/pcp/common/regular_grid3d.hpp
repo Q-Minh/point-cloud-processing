@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_REGULAR_GRID3D_HPP
+#define PCP_COMMON_REGULAR_GRID3D_HPP
 
 #include <array>
 #include <pcp/traits/point_traits.hpp>
@@ -88,3 +89,5 @@ regular_grid3d_t<Scalar> regular_grid_containing(
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_REGULAR_GRID3D_HPP

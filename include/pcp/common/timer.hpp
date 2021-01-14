@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_TIMER_HPP
+#define PCP_COMMON_TIMER_HPP
 
 #include <chrono>
 #include <string>
@@ -28,3 +29,5 @@ struct basic_timer_t
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_TIMER_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_SPHERE_HPP
+#define PCP_COMMON_SPHERE_HPP
 
 #include "norm.hpp"
 
@@ -24,3 +25,5 @@ struct sphere_t
 };
 
 } // namespace pcp
+
+#endif // PCP_COMMON_SPHERE_HPP

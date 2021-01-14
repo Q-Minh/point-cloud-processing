@@ -1,16 +1,17 @@
-#pragma once
+#ifndef PCP_ALGORITHM_SURFACE_NETS_HPP
+#define PCP_ALGORITHM_SURFACE_NETS_HPP
 
 #include <algorithm>
 #include <execution>
 #include <mutex>
-#include <pcp/common/axis_aligned_bounding_box.hpp>
-#include <pcp/common/mesh_triangle.hpp>
-#include <pcp/common/points/point.hpp>
-#include <pcp/common/regular_grid3d.hpp>
-#include <pcp/common/vector3d_queries.hpp>
-#include <pcp/traits/function_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
-#include <pcp/traits/triangle_traits.hpp>
+#include "pcp/common/axis_aligned_bounding_box.hpp"
+#include "pcp/common/mesh_triangle.hpp"
+#include "pcp/common/points/point.hpp"
+#include "pcp/common/regular_grid3d.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/function_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/triangle_traits.hpp"
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -1104,3 +1105,5 @@ auto surface_nets(
 } // namespace isosurface
 } // namespace algorithm
 } // namespace pcp
+
+#endif // PCP_ALGORITHM_SURFACE_NETS_HPP

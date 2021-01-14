@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_VECTOR3D_QUERIES_HPP
+#define PCP_COMMON_VECTOR3D_QUERIES_HPP
 
 #include <numeric>
 #include <cmath>
@@ -73,3 +74,5 @@ Vector3d center_of_geometry(ForwardIter begin, ForwardIter end)
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_VECTOR3D_QUERIES_HPP

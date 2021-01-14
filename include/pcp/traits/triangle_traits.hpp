@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_TRIANGLE_TRAITS_HPP
+#define PCP_TRAITS_TRIANGLE_TRAITS_HPP
 
 #include <type_traits>
 
@@ -33,3 +34,5 @@ static constexpr bool is_shared_vertex_mesh_triangle_v =
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_TRIANGLE_TRAITS_HPP

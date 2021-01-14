@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_GRAPH_UNDIRECTED_KNN_ADJACENCY_LIST_HPP
+#define PCP_GRAPH_UNDIRECTED_KNN_ADJACENCY_LIST_HPP
 
 #include "directed_adjacency_list.hpp"
 #include "pcp/traits/knn_search_traits.hpp"
@@ -154,3 +155,5 @@ auto directed_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_UNDIRECTED_KNN_ADJACENCY_LIST_HPP

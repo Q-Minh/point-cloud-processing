@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_VECTOR3D_HPP
+#define PCP_COMMON_VECTOR3D_HPP
 
 #include <pcp/traits/vector3d_traits.hpp>
 
@@ -79,3 +80,5 @@ using vector3d_t = basic_vector3d_t<float>;
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_VECTOR3D_HPP

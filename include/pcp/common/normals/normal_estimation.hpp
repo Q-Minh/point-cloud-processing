@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP
+#define PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
@@ -58,3 +59,5 @@ Normal estimate_normal(ForwardIter it, ForwardIter end)
 }
 
 } // namespace pcp
+
+#endif // PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_NORMAL_TRAITS_HPP
+#define PCP_TRAITS_NORMAL_TRAITS_HPP
 
 #include <type_traits>
 
@@ -60,3 +61,5 @@ static constexpr bool is_normal_v = is_normal<Normal>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_NORMAL_TRAITS_HPP

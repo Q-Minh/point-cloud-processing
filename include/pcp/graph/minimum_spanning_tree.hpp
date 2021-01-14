@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_GRAPH_MINIMUM_SPANNING_TREE_HPP
+#define PCP_GRAPH_MINIMUM_SPANNING_TREE_HPP
 
 #include <algorithm>
 #include <functional>
@@ -174,3 +175,5 @@ auto prim_minimum_spanning_tree(
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_MINIMUM_SPANNING_TREE_HPP

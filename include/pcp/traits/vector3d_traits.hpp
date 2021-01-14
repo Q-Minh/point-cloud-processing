@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_VECTOR3D_TRAITS_HPP
+#define PCP_TRAITS_VECTOR3D_TRAITS_HPP
 
 #include <type_traits>
 
@@ -37,3 +38,5 @@ static constexpr bool is_vector3d_v = is_vector3d<Vector3d>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_VECTOR3D_TRAITS_HPP

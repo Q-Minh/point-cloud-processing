@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_NORMALS_NORMAL_HPP
+#define PCP_COMMON_NORMALS_NORMAL_HPP
 
 #include <cmath>
 
@@ -78,3 +79,5 @@ struct basic_normal_t
 using normal_t = basic_normal_t<float>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_NORMALS_NORMAL_HPP

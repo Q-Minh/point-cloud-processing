@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_NORMAL_HPP
+#define PCP_TRAITS_NORMAL_HPP
 
 #include "normal_traits.hpp"
 
@@ -17,3 +18,5 @@ static constexpr bool is_normal_map_v = is_normal_v<std::invoke_result_t<NormalM
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_NORMAL_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP
+#define PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP
 
 #include "pcp/traits/graph_vertex_traits.hpp"
 
@@ -464,3 +465,5 @@ class adjacency_list_edge_iterator_t
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP

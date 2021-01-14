@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_PLANE_TRAITS_HPP
+#define PCP_TRAITS_PLANE_TRAITS_HPP
 
 #include <type_traits>
 
@@ -42,3 +43,5 @@ inline bool constexpr is_plane_v = is_plane<Plane>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_PLANE_TRAITS_HPP

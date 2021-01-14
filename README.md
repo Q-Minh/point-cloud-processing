@@ -71,7 +71,7 @@ int main(int argc, char** argv)
     auto [points, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(input_ply);
 
     // setup acceleration structure
-    pcp::octree_t octree{points.cbegin(), points.cend()};
+    pcp::linked_octree_t octree{points.cbegin(), points.cend()};
 
     // compute point densities in parallel in 0.01f radius balls
     std::vector<float> density(points.size(), 0.f);

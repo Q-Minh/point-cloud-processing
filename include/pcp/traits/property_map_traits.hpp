@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_PROPERTY_MAP_TRAITS_HPP
+#define PCP_TRAITS_PROPERTY_MAP_TRAITS_HPP
 
 #include <tuple>
 #include <type_traits>
@@ -20,3 +21,5 @@ struct property_map_traits
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_PROPERTY_MAP_TRAITS_HPP

@@ -43,7 +43,7 @@ int main(int argc, char** argv)
         point_views.begin(),
         [](pcp::point_t& p) { return pcp::point_view_t(&p); });
 
-    pcp::basic_octree_t<pcp::point_view_t> octree{point_views.cbegin(), point_views.cend()};
+    pcp::basic_linked_octree_t<pcp::point_view_t> octree{point_views.cbegin(), point_views.cend()};
     timer.stop();
 
     timer.register_op("compute k neighborhood average radius");

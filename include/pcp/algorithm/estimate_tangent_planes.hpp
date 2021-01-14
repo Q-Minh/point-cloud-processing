@@ -1,13 +1,14 @@
-#pragma once
+#ifndef PCP_ALGORITHM_ESTIMATE_TANGENT_PLANES_HPP
+#define PCP_ALGORITHM_ESTIMATE_TANGENT_PLANES_HPP
 
 #include <iterator>
-#include <pcp/common/normals/normal_estimation.hpp>
-#include <pcp/common/plane3d.hpp>
-#include <pcp/common/vector3d_queries.hpp>
-#include <pcp/traits/knn_search_traits.hpp>
-#include <pcp/traits/normal_traits.hpp>
-#include <pcp/traits/plane_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
+#include "pcp/common/normals/normal_estimation.hpp"
+#include "pcp/common/plane3d.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/knn_search_traits.hpp"
+#include "pcp/traits/normal_traits.hpp"
+#include "pcp/traits/plane_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 namespace pcp {
 namespace algorithm {
@@ -164,3 +165,5 @@ void estimate_tangent_planes(
 
 } // namespace algorithm
 } // namespace pcp
+
+#endif // PCP_ALGORITHM_ESTIMATE_TANGENT_PLANES_HPP

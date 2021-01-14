@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_PLANE3D_HPP
+#define PCP_COMMON_PLANE3D_HPP
 
 #include <pcp/common/norm.hpp>
 #include <pcp/common/normals/normal.hpp>
@@ -91,3 +92,5 @@ Plane tangent_plane(ForwardIter begin, ForwardIter end)
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_PLANE3D_HPP

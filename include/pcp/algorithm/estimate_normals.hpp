@@ -1,17 +1,18 @@
-#pragma once
+#ifndef PCP_ALGORITHM_ESTIMATE_NORMALS_HPP
+#define PCP_ALGORITHM_ESTIMATE_NORMALS_HPP
 
 #include <execution>
 #include <iterator>
-#include <pcp/common/norm.hpp>
-#include <pcp/common/normals/normal.hpp>
-#include <pcp/common/normals/normal_estimation.hpp>
-#include <pcp/common/points/point.hpp>
-#include <pcp/graph/search.hpp>
-#include <pcp/graph/undirected_knn_adjacency_list.hpp>
-#include <pcp/traits/graph_vertex_traits.hpp>
-#include <pcp/traits/knn_search_traits.hpp>
-#include <pcp/traits/normal_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
+#include "pcp/common/norm.hpp"
+#include "pcp/common/normals/normal.hpp"
+#include "pcp/common/normals/normal_estimation.hpp"
+#include "pcp/common/points/point.hpp"
+#include "pcp/graph/search.hpp"
+#include "pcp/graph/undirected_knn_adjacency_list.hpp"
+#include "pcp/traits/graph_vertex_traits.hpp"
+#include "pcp/traits/knn_search_traits.hpp"
+#include "pcp/traits/normal_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
 #include <utility>
 
 namespace pcp {
@@ -281,3 +282,5 @@ void propagate_normal_orientations(
 
 } // namespace algorithm
 } // namespace pcp
+
+#endif // PCP_ALGORITHM_ESTIMATE_NORMALS_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_KNN_MAP_HPP
+#define PCP_TRAITS_KNN_MAP_HPP
 
 #include <type_traits>
 
@@ -32,3 +33,5 @@ static constexpr bool is_knn_map_v = is_knn_map<KnnMap, Key>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_KNN_MAP_HPP

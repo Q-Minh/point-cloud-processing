@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_ITERABLE_TRAITS_HPP
+#define PCP_TRAITS_ITERABLE_TRAITS_HPP
 
 #include <type_traits>
 
@@ -29,3 +30,5 @@ using value_type_of_iterable_t = typename iterable<Iterable>::value_type;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_ITERABLE_TRAITS_HPP

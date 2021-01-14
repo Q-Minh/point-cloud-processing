@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_SIGNED_DISTANCE_MAP_HPP
+#define PCP_TRAITS_SIGNED_DISTANCE_MAP_HPP
 
 #include <type_traits>
 
@@ -18,3 +19,5 @@ static constexpr bool is_signed_distance_map_v =
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_SIGNED_DISTANCE_MAP_HPP

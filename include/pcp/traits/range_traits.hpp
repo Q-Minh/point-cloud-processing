@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_RANGE_TRAITS_HPP
+#define PCP_TRAITS_RANGE_TRAITS_HPP
 
 #include <pcp/common/intersections.hpp>
 #include <type_traits>
@@ -35,3 +36,5 @@ static constexpr bool is_range_v = is_range<Range, Point>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_RANGE_TRAITS_HPP

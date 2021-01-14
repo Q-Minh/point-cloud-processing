@@ -74,7 +74,7 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
         params.node_capacity = 2u;
         params.voxel_grid    = {{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
 
-        pcp::basic_octree_t<vertex_type, params_type> octree{
+        pcp::basic_linked_octree_t<vertex_type, params_type> octree{
             std::cbegin(vertices),
             std::cend(vertices),
             params};

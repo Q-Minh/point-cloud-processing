@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_IO_ENDIANNESS_HPP
+#define PCP_IO_ENDIANNESS_HPP
 
 #include <cstddef>
 
@@ -71,3 +72,5 @@ double reverse_endianness(double value)
 }
 
 } // namespace pcp
+
+#endif // PCP_IO_ENDIANNESS_HPP

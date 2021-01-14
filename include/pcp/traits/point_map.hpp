@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_POINT_MAP_HPP
+#define PCP_TRAITS_POINT_MAP_HPP
 
 #include "point_traits.hpp"
 
@@ -28,3 +29,5 @@ static constexpr bool is_point_view_map_v =
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_POINT_MAP_HPP

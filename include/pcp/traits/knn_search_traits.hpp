@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
+#define PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
 
 #include "iterable_traits.hpp"
 #include "point_traits.hpp"
@@ -45,3 +46,5 @@ static constexpr bool is_knn_searcher_v = is_knn_searcher<KnnSearcher, Element>:
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_KNN_SEARCH_TRAITS_HPP

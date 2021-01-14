@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_IO_PLY_HPP
+#define PCP_IO_PLY_HPP
 
 #include "endianness.hpp"
 #include "pcp/traits/normal_traits.hpp"
@@ -71,7 +72,7 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
  * must be floats.
  * @tparam Point Type of the point cloud's points to return.
  * @tparam Normal Type of the point cloud's normals to return.
- * @param is The input ply file stream.
+ * @param path Path to the ply file to read in to memory
  * @return Returns the point cloud as a tuple of vector of points and vector of normals.
  */
 template <class Point, class Normal>
@@ -95,6 +96,18 @@ inline auto read_ply(std::filesystem::path const& path)
     return read_ply<Point, Normal>(fs);
 }
 
+/**
+ * @brief
+ * Reads a ply file into a point cloud (potentially with normals).
+ * The function supports ascii, binary little endian, binary big endian.
+ * The ply file must have x,y,z properties and nx,ny,nz properties if
+ * normals are available and ignores all other properties. The properties
+ * must be floats.
+ * @tparam Point Type of the point cloud's points to return.
+ * @tparam Normal Type of the point cloud's normals to return.
+ * @param is Input stream in ply format
+ * @return Returns the point cloud as a tuple of vector of points and vector of normals.
+ */
 template <class Point, class Normal>
 inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
@@ -777,3 +790,5 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
 
 } // namespace io
 } // namespace pcp
+
+#endif // PCP_IO_PLY_HPP

@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_GRAPH_SEARCH_HPP
+#define PCP_GRAPH_SEARCH_HPP
 
 #include <pcp/traits/graph_traits.hpp>
 #include <pcp/traits/graph_vertex_traits.hpp>
@@ -143,3 +144,5 @@ void depth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_SEARCH_HPP

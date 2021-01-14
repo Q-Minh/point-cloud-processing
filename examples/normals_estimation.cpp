@@ -58,7 +58,7 @@ int main(int argc, char** argv)
     pcp::octree_parameters_t<pcp::point_t> params;
     params.voxel_grid = bounding_box;
 
-    pcp::basic_octree_t<vertex_type, decltype(params)> octree{
+    pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree{
         std::cbegin(vertices),
         std::cend(vertices),
         params};

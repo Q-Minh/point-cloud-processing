@@ -1,4 +1,9 @@
-#pragma once
+#ifndef PCP_COMMON_AXIS_ALIGNED_BOUNDING_BOX_HPP
+#define PCP_COMMON_AXIS_ALIGNED_BOUNDING_BOX_HPP
+
+/**
+ * @file axis_aligned_bounding_box.hpp
+ */
 
 #include <algorithm>
 #include <array>
@@ -105,3 +110,5 @@ inline AABB bounding_box(ForwardIter begin, ForwardIter end)
 }
 
 } // namespace pcp
+
+#endif // PCP_COMMON_AXIS_ALIGNED_BOUNDING_BOX_HPP

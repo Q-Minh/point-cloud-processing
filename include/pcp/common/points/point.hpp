@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_POINT_HPP
+#define PCP_COMMON_POINTS_POINT_HPP
 
 #include <cmath>
 #include <pcp/common/vector3d.hpp>
@@ -80,3 +81,5 @@ class basic_point_t
 using point_t = basic_point_t<float>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_POINT_HPP

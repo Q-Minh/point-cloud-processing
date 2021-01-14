@@ -1,4 +1,5 @@
-#pragma once
+#ifndef PCP_TRAITS_GRAPH_TRAITS_HPP
+#define PCP_TRAITS_GRAPH_TRAITS_HPP
 
 #include <type_traits>
 
@@ -112,3 +113,5 @@ static constexpr bool is_mutable_directed_graph_v =
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_GRAPH_TRAITS_HPP
