@@ -1,6 +1,11 @@
 #ifndef PCP_GRAPH_UNDIRECTED_KNN_ADJACENCY_LIST_HPP
 #define PCP_GRAPH_UNDIRECTED_KNN_ADJACENCY_LIST_HPP
 
+/**
+ * @file
+ * @ingroup graph
+ */
+
 #include "directed_adjacency_list.hpp"
 #include "pcp/traits/knn_search_traits.hpp"
 
@@ -12,6 +17,7 @@ namespace pcp {
 namespace graph {
 
 /**
+ * @ingroup graph
  * @brief
  * Constructs a graph of k-nearest-neighbors of the given vertices.
  * The k nearest neighbor querying implementation is user-provided.
@@ -67,7 +73,7 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
     // such that the vertices will be sorted by their id
     graph_type g(sorted_vertices.cbegin(), sorted_vertices.cend());
     auto const [vbegin, vend] = g.vertices();
-    using difference_type = typename std::iterator_traits<decltype(vbegin)>::difference_type;
+    using difference_type     = typename std::iterator_traits<decltype(vbegin)>::difference_type;
     for (auto it = vbegin; it != vend; ++it)
     {
         auto const& neighbors = knn(*it);
@@ -85,8 +91,8 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
     return g;
 }
 
-
 /**
+ * @ingroup graph
  * @brief
  * Constructs a graph of k-nearest-neighbors of the given vertices.
  * The k nearest neighbor querying implementation is user-provided.
@@ -138,7 +144,7 @@ auto directed_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
     // such that the vertices will be sorted by their id
     graph_type g(sorted_vertices.cbegin(), sorted_vertices.cend());
     auto const [vbegin, vend] = g.vertices();
-    using difference_type = typename std::iterator_traits<decltype(vbegin)>::difference_type;
+    using difference_type     = typename std::iterator_traits<decltype(vbegin)>::difference_type;
     for (auto it = vbegin; it != vend; ++it)
     {
         auto const& neighbors = knn(*it);

@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
 #define PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include "iterable_traits.hpp"
 #include "point_traits.hpp"
 
@@ -15,6 +20,7 @@ struct is_knn_searcher : std::false_type
 };
 
 /**
+ * @ingroup traits
  * @brief
  * KnnSearcher concept
  * Terminology:
@@ -41,6 +47,13 @@ struct is_knn_searcher<
         "Return type of KnnSearcher must be iterable");
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for KnnSearcher concept
+ * @tparam KnnSearcher
+ * @tparam Element
+ */
 template <class KnnSearcher, class Element>
 static constexpr bool is_knn_searcher_v = is_knn_searcher<KnnSearcher, Element>::value;
 

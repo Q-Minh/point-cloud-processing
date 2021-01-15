@@ -1,20 +1,26 @@
 #ifndef PCP_COMMON_PLANE3D_HPP
 #define PCP_COMMON_PLANE3D_HPP
 
-#include <pcp/common/norm.hpp>
-#include <pcp/common/normals/normal.hpp>
-#include <pcp/common/normals/normal_estimation.hpp>
-#include <pcp/common/points/point.hpp>
-#include <pcp/common/vector3d.hpp>
-#include <pcp/common/vector3d_queries.hpp>
-#include <pcp/traits/normal_traits.hpp>
-#include <pcp/traits/plane_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/common/norm.hpp"
+#include "pcp/common/normals/normal.hpp"
+#include "pcp/common/normals/normal_estimation.hpp"
+#include "pcp/common/points/point.hpp"
+#include "pcp/common/vector3d.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/normal_traits.hpp"
+#include "pcp/traits/plane_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 namespace pcp {
 namespace common {
 
 /**
+ * @ingroup common
  * @brief Simple 3d plane in euclidean space
  * @tparam Point Type of point used by the plane
  * @tparam Normal Type of normal used by the plane
@@ -48,7 +54,7 @@ class basic_plane3d_t
     component_type signed_distance_to(PointView const& p) const
     {
         basic_vector3d_t<component_type> const d = p - point_;
-        auto const ip                      = inner_product(d, normal_);
+        auto const ip                            = inner_product(d, normal_);
         return ip;
     }
 
@@ -66,9 +72,15 @@ class basic_plane3d_t
     normal_type normal_;
 };
 
+/**
+ * @ingroup common
+ * @brief
+ * Default plane type
+ */
 using plane3d_t = pcp::common::basic_plane3d_t<pcp::point_t, pcp::normal_t>;
 
 /**
+ * @ingroup common
  * @brief Computes an estimated tangent plane from a sequence of 3d points
  * @tparam ForwardIter Iterator to points
  * @tparam Plane Type of plan to compute

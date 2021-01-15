@@ -2,18 +2,21 @@
 #define PCP_COMMON_AXIS_ALIGNED_BOUNDING_BOX_HPP
 
 /**
- * @file axis_aligned_bounding_box.hpp
+ * @file
+ * @ingroup common
  */
+
+#include "pcp/traits/point_traits.hpp"
 
 #include <algorithm>
 #include <array>
 #include <limits>
 #include <numeric>
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 
 /**
+ * @ingroup common
  * @brief
  * https://en.wikipedia.org/wiki/Bounding_volume
  * @tparam Point Type satisfying Point concept
@@ -70,6 +73,17 @@ struct axis_aligned_bounding_box_t
     }
 };
 
+/**
+ * @ingroup common
+ * @brief
+ * Computes the axis aligned bounding box from a group of points
+ * @tparam ForwardIter
+ * @tparam Point
+ * @tparam AABB
+ * @param begin
+ * @param end
+ * @return
+ */
 template <class ForwardIter, class Point, class AABB = axis_aligned_bounding_box_t<Point>>
 inline AABB bounding_box(ForwardIter begin, ForwardIter end)
 {

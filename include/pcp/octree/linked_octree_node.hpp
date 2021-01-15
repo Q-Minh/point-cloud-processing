@@ -1,22 +1,28 @@
 #ifndef PCP_OCTREE_LINKED_OCTREE_NODE_HPP
 #define PCP_OCTREE_LINKED_OCTREE_NODE_HPP
 
+/**
+ * @file
+ * @ingroup octree
+ */
+
 #include "linked_octree_iterator.hpp"
+#include "pcp/common/intersections.hpp"
+#include "pcp/common/norm.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <memory>
 #include <numeric>
-#include "pcp/common/intersections.hpp"
-#include "pcp/common/norm.hpp"
-#include "pcp/common/vector3d_queries.hpp"
-#include "pcp/traits/point_traits.hpp"
 #include <queue>
 #include <vector>
 
 namespace pcp {
 
 /**
+ * @ingroup octree
  * @brief Default type used to parameterize octrees.
  * @tparam Point Type of point used by the voxel grid to define its AABB.
  */
@@ -35,6 +41,7 @@ template <class PointView, class ParamsType>
 class linked_octree_iterator_t;
 
 /**
+ * @ingroup octree
  * @brief
  * An octree node at any level of the octree. Contains a list of points
  * up to its configured capacity and then delegates further points to its
@@ -82,7 +89,10 @@ class basic_linked_octree_node_t
     }
 
     template <class ForwardIter>
-    explicit basic_linked_octree_node_t(ForwardIter begin, ForwardIter end, params_type const& params)
+    explicit basic_linked_octree_node_t(
+        ForwardIter begin,
+        ForwardIter end,
+        params_type const& params)
         : basic_linked_octree_node_t(params)
     {
         insert(begin, end);

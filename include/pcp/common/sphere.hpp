@@ -1,10 +1,21 @@
 #ifndef PCP_COMMON_SPHERE_HPP
 #define PCP_COMMON_SPHERE_HPP
 
+/**
+ * @file
+ * @ingroup common
+ */
+
 #include "norm.hpp"
 
 namespace pcp {
 
+/**
+ * @ingroup common
+ * @brief
+ * Simple sphere with containment predicate.
+ * @tparam Point Type satisfying Point concept
+ */
 template <class Point>
 struct sphere_t
 {

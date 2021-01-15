@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_IDENTITY_MAP_HPP
 #define PCP_TRAITS_IDENTITY_MAP_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
@@ -11,6 +16,14 @@ struct is_identity_map : std::false_type
 {
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * The IdentityMap concept requires IdentityMap to be a callable type which takes a parameter
+ * of type Key and returns an instance of a type that is equality & inequality comparable.
+ * @tparam IdentityMap
+ * @tparam Key
+ */
 template <class IdentityMap, class Key>
 struct is_identity_map<
     IdentityMap,
@@ -26,9 +39,9 @@ struct is_identity_map<
 };
 
 /**
+ * @ingroup traits
  * @brief
- * The IdentityMap concept requires IdentityMap to be a callable type which takes a parameter
- * of type Key and returns an instance of a type that is equality & inequality comparable.
+ * Compile-time check for IdentityMap concept
  * @tparam IdentityMap
  * @tparam Key
  */

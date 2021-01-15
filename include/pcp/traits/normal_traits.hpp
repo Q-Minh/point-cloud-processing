@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_NORMAL_TRAITS_HPP
 #define PCP_TRAITS_NORMAL_TRAITS_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
@@ -12,6 +17,8 @@ struct is_normal : std::false_type
 };
 
 /**
+ * @ingroup traits
+ * @brief
  * Normal requirements:
  * - component_type type member
  * - default constructible
@@ -56,6 +63,12 @@ struct is_normal<
         "Normal must be constructible from x,y,z components");
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for Normal concept
+ * @tparam Normal
+ */
 template <class Normal>
 static constexpr bool is_normal_v = is_normal<Normal>::value;
 

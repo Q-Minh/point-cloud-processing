@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_POINT_TRAITS_HPP
 #define PCP_TRAITS_POINT_TRAITS_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
@@ -12,6 +17,7 @@ struct is_point_view : std::false_type
 };
 
 /**
+ * @ingroup traits
  * @brief
  * PointView requirements:
  * - coordinate_type type member
@@ -41,6 +47,12 @@ struct is_point_view<
     static_assert(std::is_copy_assignable_v<PointView>, "PointView must be copy assignable");
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for PointView concept
+ * @tparam PointView
+ */
 template <class PointView>
 static constexpr bool is_point_view_v = is_point_view<PointView>::value;
 
@@ -50,6 +62,8 @@ struct is_point : std::false_type
 };
 
 /**
+ * @ingroup traits
+ * @brief
  * Point requirements (refines PointView):
  * - default constructible
  * - parameter constructor from x,y,z
@@ -75,6 +89,12 @@ struct is_point<
         "Point must be constructible from (x,y,z) coordinates");
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for Point concept
+ * @tparam Point
+ */
 template <class Point>
 static constexpr bool is_point_v = is_point<Point>::value;
 
@@ -93,6 +113,13 @@ struct is_point_view_equality_comparable_to<
 {
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check to verify if PointView1 is equality/inequality comparable to PointView2
+ * @tparam PointView1
+ * @tparam PointView2
+ */
 template <class PointView1, class PointView2>
 static constexpr bool is_point_view_equality_comparable_to_v =
     is_point_view_equality_comparable_to<PointView1, PointView2>::value;
@@ -111,6 +138,13 @@ struct is_point_view_assignable_from<
 {
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check to verify is PointView1 is assignable from PointView2
+ * @tparam PointView1
+ * @tparam PointView2
+ */
 template <class PointView1, class PointView2>
 static constexpr bool is_point_view_assignable_from_v =
     is_point_view_assignable_from<PointView1, PointView2>::value;

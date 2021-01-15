@@ -1,6 +1,11 @@
 #ifndef PCP_ALGORITHM_ESTIMATE_NORMALS_HPP
 #define PCP_ALGORITHM_ESTIMATE_NORMALS_HPP
 
+/**
+ * @file 
+ * @ingroup algorithm
+ */
+
 #include <execution>
 #include <iterator>
 #include "pcp/common/norm.hpp"
@@ -19,6 +24,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
+ * @ingroup algorithm
  * @brief
  * Performs normal estimation on each knn neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
@@ -82,6 +88,7 @@ void estimate_normals(
 }
 
 /**
+ * @ingroup algorithm
  * @brief
  * Performs normal estimation on each knn neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
@@ -148,6 +155,7 @@ void estimate_normals(
 }
 
 /**
+ * @ingroup algorithm
  * @brief
  * Adjusts the orientations of a point cloud's normals using a minimum spanning tree
  * of the KNN graph of the point cloud, and propagating the MST's root's normal

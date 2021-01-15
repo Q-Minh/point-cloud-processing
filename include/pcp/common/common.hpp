@@ -1,6 +1,12 @@
 #ifndef PCP_COMMON_HPP
 #define PCP_COMMON_HPP
 
+/**
+ * @file
+ * @defgroup common common
+ * The common module
+ */
+
 #include "axis_aligned_bounding_box.hpp"
 #include "intersections.hpp"
 #include "mesh_triangle.hpp"

@@ -1,6 +1,11 @@
 #ifndef PCP_IO_TOKENIZE_HPP
 #define PCP_IO_TOKENIZE_HPP
 
+/**
+ * @file
+ * @ingroup io
+ */
+
 #include <iterator>
 #include <sstream>
 #include <string>
@@ -9,6 +14,7 @@
 namespace pcp {
 
 /**
+ * @ingroup io
  * @brief Tokenize a string by whitespace
  * @param s String to tokenize
  * @return Vector of tokens

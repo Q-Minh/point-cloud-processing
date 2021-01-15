@@ -1,6 +1,11 @@
 #ifndef PCP_ALGORITHM_COMMON_HPP
 #define PCP_ALGORITHM_COMMON_HPP
 
+/**
+ * @file
+ * @ingroup algorithm
+ */
+
 namespace pcp {
 
 template <class T>

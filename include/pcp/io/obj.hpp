@@ -1,6 +1,11 @@
 #ifndef PCP_IO_OBJ_HPP
 #define PCP_IO_OBJ_HPP
 
+/**
+ * @file
+ * @ingroup io
+ */
+
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
 
@@ -14,6 +19,15 @@
 namespace pcp {
 namespace io {
 
+/**
+ * @ingroup io
+ * @brief
+ * Load an obj point cloud file to memory from an input stream in obj format.
+ * @tparam Point Type of points to return satisfying Point concept
+ * @tparam Normal Type of normals to return satisfying Normal concept
+ * @param is The input stream in obj format
+ * @return A pair of vector of points and vector of normals if there were any
+ */
 template <class Point, class Normal>
 inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>
 {
@@ -58,6 +72,15 @@ inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
     return std::make_tuple(points, normals);
 }
 
+/**
+ * @ingroup io
+ * @brief
+ * Load an obj point cloud file to memory from a file path in obj format.
+ * @tparam Point Type of points to return satisfying Point concept
+ * @tparam Normal Type of normals to return satisfying Normal concept
+ * @param path The input obj file path
+ * @return A pair of vector of points and vector of normals if there were any
+ */
 template <class Point, class Normal>
 inline auto read_obj(std::filesystem::path const& path)
     -> std::tuple<std::vector<Point>, std::vector<Normal>>
@@ -79,6 +102,16 @@ inline auto read_obj(std::filesystem::path const& path)
     return read_obj<Point, Normal>(ifs);
 }
 
+/**
+ * @ingroup io
+ * @brief
+ * Export a point cloud with or without normals to an obj file at the specified path.
+ * @tparam Point Type of points in the point cloud
+ * @tparam Normal Type of normals associated with the point cloud
+ * @param path Path to the file to write to
+ * @param points The point cloud's points
+ * @param normals The point cloud's normals
+ */
 template <class Point, class Normal>
 inline void write_obj(
     std::filesystem::path const& path,
@@ -102,6 +135,16 @@ inline void write_obj(
     write_obj(points, normals, ofs);
 }
 
+/**
+ * @ingroup io
+ * @brief
+ * Export a point cloud with or without normals to an output stream.
+ * @tparam Point Type of points in the point cloud
+ * @tparam Normal Type of normals associated with the point cloud
+ * @param os The output stream to write to
+ * @param points The point cloud's points
+ * @param normals The point cloud's normals
+ */
 template <class Point, class Normal>
 inline void
 write_obj(std::ostream& os, std::vector<Point> const& points, std::vector<Normal> const& normals)

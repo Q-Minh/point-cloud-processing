@@ -1,10 +1,21 @@
 #ifndef PCP_IO_ENDIANNESS_HPP
 #define PCP_IO_ENDIANNESS_HPP
 
+/**
+ * @file
+ * @ingroup io
+ */
+
 #include <cstddef>
 
 namespace pcp {
 
+/**
+ * @ingroup io
+ * @brief
+ * Checks if current platform is has little endian representation in memory
+ * @return True if current plaform is little endian, false otherwise
+ */
 inline bool is_machine_little_endian()
 {
     unsigned int i = 1;
@@ -12,11 +23,25 @@ inline bool is_machine_little_endian()
     return static_cast<bool>(*c);
 }
 
+/**
+ * @ingroup io
+ * @brief
+ * Checks if current platform is has big endian representation in memory
+ * @return True if current plaform is big endian, false otherwise
+ */
 inline bool is_machine_big_endian()
 {
     return !is_machine_little_endian();
 }
 
+/**
+ * @ingroup io
+ * @brief
+ * Change the endianness of value.
+ * @tparam T Type of the value
+ * @param value The value for which we wish to change the endianness
+ * @return A copy of value with reverse endianness
+ */
 template <class T>
 T reverse_endianness(T value)
 {

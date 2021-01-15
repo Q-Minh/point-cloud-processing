@@ -1,12 +1,18 @@
 #ifndef PCP_GRAPH_VERTEX_HPP
 #define PCP_GRAPH_VERTEX_HPP
 
+/**
+ * @file
+ * @ingroup graph
+ */
+
 #include <cstdint>
 
 namespace pcp {
 namespace graph {
 
 /**
+ * @ingroup graph
  * @brief
  * Most basic vertex type. It only stores an id.
  * @tparam Integer Type of the vertex's id

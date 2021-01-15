@@ -1,6 +1,11 @@
 #ifndef PCP_OCTREE_LINKED_OCTREE_ITERATOR_HPP
 #define PCP_OCTREE_LINKED_OCTREE_ITERATOR_HPP
 
+/**
+ * @file
+ * @ingroup octree
+ */
+
 #include <stack>
 
 namespace pcp {
@@ -9,6 +14,7 @@ template <class PointView, class ParamsType>
 class basic_linked_octree_node_t;
 
 /**
+ * @ingroup octree
  * @brief
  * Read-only forward iterator for points in the octree.
  * Uses a stack of ancestor nodes under the hood to

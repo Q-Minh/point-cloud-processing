@@ -1,13 +1,20 @@
 #ifndef PCP_TRAITS_SIGNED_DISTANCE_MAP_HPP
 #define PCP_TRAITS_SIGNED_DISTANCE_MAP_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
 /**
+ * @ingroup traits
  * @brief
+ * Compile-time check for SignedDistanceMap concept.
  * The SignedDistanceMap concept requires SignedDistanceMap to be a callable type which takes a
  * parameter of type Key and returns an arithmetic type (most often float or double).
  * @tparam SignedDistanceMap

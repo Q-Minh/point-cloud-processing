@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_GRAPH_TRAITS_HPP
 #define PCP_TRAITS_GRAPH_TRAITS_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
@@ -12,6 +17,8 @@ struct is_directed_graph : std::false_type
 };
 
 /**
+ * @ingroup traits
+ * @brief
  * DirectedGraph concept:
  *
  * Notation used:
@@ -51,6 +58,12 @@ struct is_directed_graph<
 {
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for DirectedGraph concept
+ * @tparam DirectedGraph
+ */
 template <class DirectedGraph>
 static constexpr bool is_directed_graph_v = is_directed_graph<DirectedGraph>::value;
 
@@ -60,6 +73,8 @@ struct is_mutable_directed_graph : std::false_type
 };
 
 /**
+ * @ingroup traits
+ * @brief
  * MutableDirectedGraph concept (refines DirectedGraph):
  *
  * Notation used:
@@ -107,6 +122,12 @@ struct is_mutable_directed_graph<
         "edge");
 };
 
+/**
+ * @ingroup traits
+ * @brief
+ * Compile-time check for MutableDirectedGraph concept
+ * @tparam MutableDirectedGraph
+ */
 template <class MutableDirectedGraph>
 static constexpr bool is_mutable_directed_graph_v =
     is_mutable_directed_graph<MutableDirectedGraph>::value;

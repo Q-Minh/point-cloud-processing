@@ -1,13 +1,20 @@
 #ifndef PCP_TRAITS_INDEX_MAP_HPP
 #define PCP_TRAITS_INDEX_MAP_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
 /**
+ * @ingroup traits
  * @brief
+ * Compile-time check for IndexMap concept.
  * The IndexMap concept requires IndexMap to be a callable type which takes a parameter
  * of type Key and returns an integral type (short, int, unsigned int, long, etc.)
  * @tparam IndexMap

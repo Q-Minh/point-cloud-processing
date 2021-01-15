@@ -1,6 +1,11 @@
 #ifndef PCP_COMMON_INTERSECTIONS_HPP
 #define PCP_COMMON_INTERSECTIONS_HPP
 
+/**
+ * @file
+ * @ingroup common
+ */
+
 #include "axis_aligned_bounding_box.hpp"
 #include "norm.hpp"
 #include "sphere.hpp"
@@ -8,6 +13,15 @@
 namespace pcp {
 namespace intersections {
 
+/**
+ * @ingroup common
+ * @brief
+ * Intersections test between AABBs
+ * @tparam Point
+ * @param b1
+ * @param b2
+ * @return
+ */
 template <class Point>
 inline bool intersects(
     axis_aligned_bounding_box_t<Point> const& b1,
@@ -17,6 +31,15 @@ inline bool intersects(
            (b1.min.x() <= b2.max.x() && b1.min.y() <= b2.max.y() && b1.min.z() <= b2.max.z());
 }
 
+/**
+ * @ingroup common
+ * @brief
+ * Intersection test between spheres
+ * @tparam Point
+ * @param s1
+ * @param s2
+ * @return
+ */
 template <class Point>
 inline bool intersects(sphere_t<Point> const& s1, sphere_t<Point> const& s2)
 {
@@ -30,6 +53,15 @@ inline bool intersects(sphere_t<Point> const& s1, sphere_t<Point> const& s2)
     return common::squared_distance(c1, c2) <= maximum_squared_distance_between_spheres;
 }
 
+/**
+ * @ingroup common
+ * @brief
+ * Intersection test between AABB and sphere
+ * @tparam Point
+ * @param b
+ * @param s
+ * @return
+ */
 template <class Point>
 inline bool intersects(axis_aligned_bounding_box_t<Point> const& b, sphere_t<Point> const& s)
 {
@@ -47,6 +79,15 @@ inline bool intersects(axis_aligned_bounding_box_t<Point> const& b, sphere_t<Poi
     return common::squared_distance(nearest_point_on_box_from_sphere, center) <= s.radius;
 }
 
+/**
+ * @ingroup common
+ * @brief
+ * Intersection test between sphere and AABB
+ * @tparam Point
+ * @param s
+ * @param b
+ * @return
+ */
 template <class Point>
 inline bool intersects(sphere_t<Point> const& s, axis_aligned_bounding_box_t<Point> const& b)
 {

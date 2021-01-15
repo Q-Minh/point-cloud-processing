@@ -1,12 +1,18 @@
 #ifndef PCP_COMMON_VECTOR3D_HPP
 #define PCP_COMMON_VECTOR3D_HPP
 
-#include <pcp/traits/vector3d_traits.hpp>
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/traits/vector3d_traits.hpp"
 
 namespace pcp {
 namespace common {
 
 /**
+ * @ingroup common
  * @brief General 3-dimensional vector
  * @tparam T Type of this vector's components
  */
@@ -23,7 +29,8 @@ class basic_vector3d_t
     self_type& operator=(self_type const&) noexcept = default;
     self_type& operator=(self_type&&) noexcept = default;
 
-    basic_vector3d_t(component_type x, component_type y, component_type z) noexcept : x_(x), y_(y), z_(z)
+    basic_vector3d_t(component_type x, component_type y, component_type z) noexcept
+        : x_(x), y_(y), z_(z)
     {
     }
 
@@ -76,6 +83,11 @@ class basic_vector3d_t
     component_type x_, y_, z_;
 };
 
+/**
+ * @ingroup common
+ * @brief
+ * Default vector3d type
+ */
 using vector3d_t = basic_vector3d_t<float>;
 
 } // namespace common

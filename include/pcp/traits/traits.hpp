@@ -1,6 +1,12 @@
 #ifndef PCP_TRAITS_HPP
 #define PCP_TRAITS_HPP
 
+/**
+ * @file
+ * @defgroup traits traits
+ * The traits module
+ */
+
 #include "function_traits.hpp"
 #include "graph_traits.hpp"
 #include "graph_vertex_traits.hpp"

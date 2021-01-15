@@ -1,18 +1,24 @@
 #ifndef PCP_GRAPH_MINIMUM_SPANNING_TREE_HPP
 #define PCP_GRAPH_MINIMUM_SPANNING_TREE_HPP
 
+/**
+ * @file
+ * @ingroup graph
+ */
+
 #include <algorithm>
 #include <functional>
 #include <limits>
 #include <numeric>
 #include <optional>
-#include <queue>
 #include <pcp/traits/graph_traits.hpp>
+#include <queue>
 
 namespace pcp {
 namespace graph {
 
 /**
+ * @ingroup graph
  * @brief Implementation of prim's minimum spanning tree algorithm.
  *
  * The implementation uses std::next(begin, vertex_iterator)

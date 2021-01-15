@@ -1,14 +1,19 @@
 #ifndef PCP_OCTREE_LINKED_OCTREE_HPP
 #define PCP_OCTREE_LINKED_OCTREE_HPP
 
-#include "linked_octree_node.hpp"
+/**
+ * @file
+ * @ingroup octree
+ */
 
-#include <pcp/common/points/point.hpp>
-#include <pcp/traits/range_traits.hpp>
+#include "linked_octree_node.hpp"
+#include "pcp/common/points/point.hpp"
+#include "pcp/traits/range_traits.hpp"
 
 namespace pcp {
 
 /**
+ * @ingroup octree
  * @brief
  * An octree is a tree data structure for 3-dimensional quantities which
  * recursively subdivides a regular grid into its 8 octants by having
@@ -159,6 +164,17 @@ class basic_linked_octree_t
 
 using linked_octree_t = pcp::basic_linked_octree_t<pcp::point_t>;
 
+/**
+ * @ingroup octree
+ * @brief
+ * STL-like find algorithm optimized for octrees
+ * @tparam OctreeIterator
+ * @tparam PointView
+ * @param first
+ * @param last
+ * @param value
+ * @return
+ */
 template <class OctreeIterator, class PointView>
 OctreeIterator find(OctreeIterator first, OctreeIterator last, PointView const& value)
 {
@@ -177,6 +193,17 @@ OctreeIterator find(OctreeIterator first, OctreeIterator last, PointView const& 
     return root->find(value);
 }
 
+/**
+ * @ingroup octree
+ * @brief
+ * STL-like count algorithm optimized for octrees
+ * @tparam OctreeIterator
+ * @tparam PointView
+ * @param first
+ * @param last
+ * @param value
+ * @return
+ */
 template <class OctreeIterator, class PointView>
 auto count(OctreeIterator first, OctreeIterator last, PointView const& value) ->
     typename OctreeIterator::difference_type

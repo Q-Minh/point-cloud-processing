@@ -1,6 +1,11 @@
 #ifndef PCP_ALGORITHM_ESTIMATE_TANGENT_PLANES_HPP
 #define PCP_ALGORITHM_ESTIMATE_TANGENT_PLANES_HPP
 
+/**
+ * @file
+ * @ingroup algorithm
+ */
+
 #include <iterator>
 #include "pcp/common/normals/normal_estimation.hpp"
 #include "pcp/common/plane3d.hpp"
@@ -14,6 +19,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
+ * @ingroup algorithm
  * @brief
  * Performs tangent plane estimation on each knn neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.
@@ -91,6 +97,7 @@ void estimate_tangent_planes(
 }
 
 /**
+ * @ingroup algorithm
  * @brief
  * Performs tangent plane estimation on each knn neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.
