@@ -4,14 +4,16 @@ project(pcp VERSION 0.0.1 LANGUAGES CXX)
 option(PCP_BUILD_TESTS "build tests (requires catch2)" ON)
 option(PCP_BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
 option(PCP_BUILD_EXAMPLES "build examples" ON)
+option(PCP_BUILD_DOC "build documentation" ON)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
+list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
 
 include(FetchContent)
 
 # download eigen
-set(BUILD_TESTING OFF)
-set(EIGEN_SPLIT_LARGE_TESTS OFF)
+set(BUILD_TESTING OFF CACHE BOOL "Build eigen tests")
+set(EIGEN_SPLIT_LARGE_TESTS OFF CACHE BOOL "Split eigen tests")
 set(EIGEN_BUILD_DOC OFF CACHE BOOL "Build eigen docs")
 FetchContent_Declare(
   eigen3
@@ -49,12 +51,14 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/pcp.hpp
         
         # algorithm
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/algorithm.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
 
         # common
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp
@@ -76,13 +80,15 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/vertex.hpp
 
         # graph
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/graph.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/search.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/undirected_knn_adjacency_list.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/vertex.hpp
 
         # io
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/io.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/endianness.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/obj.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
@@ -90,10 +96,12 @@ INTERFACE
         
         # octree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree_iterator.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree_node.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_iterator.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_node.hpp
 
         # traits
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/function_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
@@ -183,4 +191,8 @@ endif()
 
 if (PCP_BUILD_EXAMPLES)
     add_subdirectory(examples)
+endif()
+
+if (PCP_BUILD_DOC)
+    add_subdirectory(doc)
 endif()

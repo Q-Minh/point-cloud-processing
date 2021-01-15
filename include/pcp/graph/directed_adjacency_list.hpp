@@ -1,4 +1,10 @@
-#pragma once
+#ifndef PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP
+#define PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP
+
+/**
+ * @file
+ * @ingroup graph
+ */
 
 #include "pcp/traits/graph_vertex_traits.hpp"
 
@@ -14,6 +20,7 @@ template <class GraphVertex>
 class adjacency_list_edge_iterator_t;
 
 /**
+ * @ingroup graph-structures-types
  * @brief Implementation of an adjacency list based graph.
  *
  * Uses a vector of vertices to stores the vertices and
@@ -24,7 +31,7 @@ class adjacency_list_edge_iterator_t;
  *
  * Satisfies MutableDirectedGraph concept.
  *
- * @tparam Vertex Any type can be a vertex
+ * @tparam GraphVertex Any type can be a vertex
  */
 template <class GraphVertex>
 class directed_adjacency_list_t
@@ -252,6 +259,7 @@ class directed_adjacency_list_t
 };
 
 /**
+ * @ingroup graph-structures-types
  * @brief
  * Iterator to the edges of a directed_adjacency_list_t.
  * The edges returned by dereferencing this iterator aren't
@@ -464,3 +472,5 @@ class adjacency_list_edge_iterator_t
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_DIRECTED_ADJACENCY_LIST_HPP

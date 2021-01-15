@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 /*
  * Overload STL algorithms to optimize certain operations
@@ -7,19 +7,19 @@
 namespace std {
 
 template <>
-inline pcp::octree_t::const_iterator find<pcp::octree_t::const_iterator, pcp::point_t>(
-    pcp::octree_t::const_iterator begin,
-    pcp::octree_t::const_iterator end,
+inline pcp::linked_octree_t::const_iterator find<pcp::linked_octree_t::const_iterator, pcp::point_t>(
+    pcp::linked_octree_t::const_iterator begin,
+    pcp::linked_octree_t::const_iterator end,
     pcp::point_t const& value)
 {
     return pcp::find(begin, end, value);
 }
 
 template <>
-inline auto count<pcp::octree_t::const_iterator, pcp::point_t>(
-    pcp::octree_t::const_iterator begin,
-    pcp::octree_t::const_iterator end,
-    pcp::point_t const& value) -> pcp::octree_t::const_iterator::difference_type
+inline auto count<pcp::linked_octree_t::const_iterator, pcp::point_t>(
+    pcp::linked_octree_t::const_iterator begin,
+    pcp::linked_octree_t::const_iterator end,
+    pcp::point_t const& value) -> pcp::linked_octree_t::const_iterator::difference_type
 {
     return pcp::count(begin, end, value);
 }
@@ -83,7 +83,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
 
     GIVEN("an octree")
     {
-        pcp::octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
         WHEN("using its octree iterators")
         {
@@ -155,7 +155,7 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
                 REQUIRE(pcp::common::are_vectors_equal(maxvpz, maxopz));
 
                 REQUIRE(
-                    std::count<pcp::octree_t::const_iterator, pcp::point_t>(
+                    std::count<pcp::linked_octree_t::const_iterator, pcp::point_t>(
                         begin,
                         end,
                         test_point) == test_point_count);

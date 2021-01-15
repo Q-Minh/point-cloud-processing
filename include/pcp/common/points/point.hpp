@@ -1,12 +1,20 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_POINT_HPP
+#define PCP_COMMON_POINTS_POINT_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/common/vector3d.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 #include <cmath>
-#include <pcp/common/vector3d.hpp>
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 
 /**
+ * @ingroup geometric-primitives
  * @brief 3-dimensional point
  * @tparam T Type of the point's (x,y,z) coordinates
  */
@@ -77,6 +85,13 @@ class basic_point_t
     coordinate_type x_ = 0., y_ = 0., z_ = 0.;
 };
 
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * Default point type
+ */
 using point_t = basic_point_t<float>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_POINT_HPP

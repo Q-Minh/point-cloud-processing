@@ -1,10 +1,26 @@
-#pragma once
+#ifndef PCP_TRAITS_VECTOR3D_TRAITS_HPP
+#define PCP_TRAITS_VECTOR3D_TRAITS_HPP
+
+/**
+ * @file
+ * @ingroup traits
+ */
 
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
+/**
+ * @ingroup traits-geometry
+ * @brief
+ * Vector3d concept requires:
+ * - component_type type member representing the arithmetic type of each of its components
+ * - x(), y(), z() member functions returning its x,y,z components
+ * - is multipliable/divisible by values of type component_type
+ * - can be summed/subtracted with/by other Vector3d instances
+ * @tparam Vector3d
+ */
 template <class Vector3d, class = void>
 struct is_vector3d : std::false_type
 {
@@ -32,8 +48,16 @@ struct is_vector3d<
         "Vector3d must be constructible from x,y,z components");
 };
 
+/**
+ * @ingroup traits-geometry
+ * @brief
+ * Compile-time check for Vector3d concept
+ * @tparam Vector3d
+ */
 template <class Vector3d>
 static constexpr bool is_vector3d_v = is_vector3d<Vector3d>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_VECTOR3D_TRAITS_HPP

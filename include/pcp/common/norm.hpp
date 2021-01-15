@@ -1,15 +1,31 @@
-#pragma once
+#ifndef PCP_COMMON_NORM_HPP
+#define PCP_COMMON_NORM_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/vector3d_traits.hpp"
 
 #include <cmath>
-#include <pcp/traits/point_traits.hpp>
-#include <pcp/traits/vector3d_traits.hpp>
 
 namespace pcp {
 namespace common {
 
+/**
+ * @ingroup common-vector3
+ * @brief
+ * Standard inner product for 3d vectors satisfying Vector3D concept
+ * @tparam Vector3d1
+ * @tparam Vector3d2
+ * @param v1
+ * @param v2
+ * @return
+ */
 template <class Vector3d1, class Vector3d2>
-inline typename Vector3d1::component_type
-inner_product(Vector3d1 const& v1, Vector3d2 const& v2)
+inline typename Vector3d1::component_type inner_product(Vector3d1 const& v1, Vector3d2 const& v2)
 {
     static_assert(
         traits::is_vector3d_v<Vector3d1> && traits::is_vector3d_v<Vector3d2>,
@@ -26,6 +42,15 @@ struct l2
 {
 };
 
+/**
+ * @ingroup common-vector3
+ * @brief
+ * Standard norm computation for Vector3D types
+ * @tparam Vector3d Type satisfying Vector3d concept
+ * @tparam Norm Type of norm to compute
+ * @param v The vector from which we want the norm
+ * @return
+ */
 template <class Vector3d, class Norm = l2>
 typename Vector3d::component_type norm(Vector3d const& v, Norm const& = Norm{})
 {
@@ -39,18 +64,20 @@ typename Vector3d::component_type norm(Vector3d const& v, Norm const& = Norm{})
 
         return std::sqrt(xx + yy + zz);
     }
-    else 
+    else
     {
-       // if the norm is unknown, default to l2
-        auto const xx = v.x() * v.x();   
+        // if the norm is unknown, default to l2
+        auto const xx = v.x() * v.x();
         auto const yy = v.y() * v.y();
         auto const zz = v.z() * v.z();
-                                         
+
         return std::sqrt(xx + yy + zz);
     }
 }
 
 /**
+ * @ingroup common-vector3
+ * @brief
  * The l2-norm is defined as sqrt(x*x + y*y + z*z), but we don't always need
  * the sqrt computation for distance comparisons:
  *
@@ -60,6 +87,11 @@ typename Vector3d::component_type norm(Vector3d const& v, Norm const& = Norm{})
  * + (p2.y-p.y)^2 + (p2.z-p.z)^2
  *
  * since we are squaring both sides of the equation.
+ * @tparam Point1
+ * @tparam Point2
+ * @param p1
+ * @param p2
+ * @return
  */
 template <class Point1, class Point2>
 inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point2 const& p2)
@@ -75,3 +107,5 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_NORM_HPP

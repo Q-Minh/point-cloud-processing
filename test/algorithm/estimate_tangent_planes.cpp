@@ -22,7 +22,7 @@ SCENARIO("computing point cloud tangent planes", "[tangent_plane]")
 
         pcp::octree_parameters_t<pcp::point_t> params;
         params.voxel_grid = {{-10.f, -10.f, -10.f}, {10.f, 10.f, 10.f}};
-        pcp::octree_t octree(point_cloud.begin(), point_cloud.end(), params);
+        pcp::linked_octree_t octree(point_cloud.begin(), point_cloud.end(), params);
         std::uint64_t const k = 5u;
 
         WHEN("computing the point cloud's tangent planes")
