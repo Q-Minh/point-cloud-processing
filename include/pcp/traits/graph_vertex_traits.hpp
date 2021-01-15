@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class GraphVertex, class = void>
-struct is_graph_vertex : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-graph
  * @brief
  * GraphVertex requirements:
  * - type member named id_type which must be an integral type
@@ -25,6 +20,11 @@ struct is_graph_vertex : std::false_type
  * - method void GraphVertex::id(id_type)
  * @tparam GraphVertex Type to inspect
  */
+template <class GraphVertex, class = void>
+struct is_graph_vertex : std::false_type
+{
+};
+
 template <class GraphVertex>
 struct is_graph_vertex<
     GraphVertex,
@@ -43,7 +43,7 @@ struct is_graph_vertex<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-graph
  * @brief
  * Compile-time check for GraphVertex concept
  * @tparam GraphVertex

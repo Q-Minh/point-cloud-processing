@@ -84,7 +84,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/directed_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/search.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/undirected_knn_adjacency_list.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/vertex.hpp
 
         # io

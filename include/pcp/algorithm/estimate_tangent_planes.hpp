@@ -19,7 +19,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
- * @ingroup algorithm
+ * @ingroup tangent-planes-estimation
  * @brief
  * Performs tangent plane estimation on each knn neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.
@@ -97,7 +97,7 @@ void estimate_tangent_planes(
 }
 
 /**
- * @ingroup algorithm
+ * @ingroup tangent-planes-estimation
  * @brief
  * Performs tangent plane estimation on each knn neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.

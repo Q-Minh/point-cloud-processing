@@ -11,18 +11,18 @@
 namespace pcp {
 namespace traits {
 
-template <class Func, class Scalar, class = void>
-struct is_3d_scalar_function : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * ScalarFunc3D concept
  * @tparam Func Callable type taking 3 Scalar types as parameters
  * @tparam Scalar Arithmetic type
  */
+template <class Func, class Scalar, class = void>
+struct is_3d_scalar_function : std::false_type
+{
+};
+
 template <class Func, class Scalar>
 struct is_3d_scalar_function<
     Func,
@@ -36,7 +36,7 @@ struct is_3d_scalar_function<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for ScalarFunc3D concept
  * @tparam Func

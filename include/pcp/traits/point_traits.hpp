@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class PointView, class = void>
-struct is_point_view : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * PointView requirements:
  * - coordinate_type type member
@@ -30,6 +25,11 @@ struct is_point_view : std::false_type
  * - equality/inequality operator
  * @tparam PointView Type to inspect
  */
+template <class PointView, class = void>
+struct is_point_view : std::false_type
+{
+};
+
 template <class PointView>
 struct is_point_view<
     PointView,
@@ -48,7 +48,7 @@ struct is_point_view<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for PointView concept
  * @tparam PointView
@@ -56,19 +56,19 @@ struct is_point_view<
 template <class PointView>
 static constexpr bool is_point_view_v = is_point_view<PointView>::value;
 
-template <class Point, class = void>
-struct is_point : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Point requirements (refines PointView):
  * - default constructible
  * - parameter constructor from x,y,z
  * - *,/,+,- operators
  */
+template <class Point, class = void>
+struct is_point : std::false_type
+{
+};
+
 template <class Point>
 struct is_point<
     Point,
@@ -90,7 +90,7 @@ struct is_point<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for Point concept
  * @tparam Point

@@ -17,7 +17,7 @@ namespace pcp {
 namespace graph {
 
 /**
- * @ingroup graph
+ * @ingroup graph-structures-types
  * @brief
  * Constructs a graph of k-nearest-neighbors of the given vertices.
  * The k nearest neighbor querying implementation is user-provided.
@@ -92,7 +92,7 @@ auto undirected_knn_graph(ForwardIter begin, ForwardIter end, KnnSearcher knn)
 }
 
 /**
- * @ingroup graph
+ * @ingroup graph-structures-types
  * @brief
  * Constructs a graph of k-nearest-neighbors of the given vertices.
  * The k nearest neighbor querying implementation is user-provided.

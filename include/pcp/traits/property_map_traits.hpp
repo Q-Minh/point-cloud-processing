@@ -13,7 +13,7 @@ namespace pcp {
 namespace traits {
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time type inspection for property maps.
  * @tparam PropertyMap

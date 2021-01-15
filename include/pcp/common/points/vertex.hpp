@@ -16,7 +16,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * The basic_point_view_vertex_t type is a basic_point_view_t. It does not
  * hold ownership over the underlying point. It stores an
@@ -110,7 +110,7 @@ class basic_point_view_vertex_t : public basic_point_view_t<PointView>
 };
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Default vertex type
  */

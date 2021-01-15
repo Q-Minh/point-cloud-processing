@@ -19,7 +19,7 @@ namespace pcp {
 namespace graph {
 
 /**
- * @ingroup graph
+ * @ingroup graph-algorithms
  * @brief
  * Visit a graph in breadth first order, visiting each vertex along
  * with its source vertex with a call to op(source_vertex, destination_vertex).
@@ -81,7 +81,7 @@ void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& 
 }
 
 /**
- * @ingroup graph
+ * @ingroup graph-algorithms
  * @brief
  * Visit a graph in depth first order, visiting each vertex along
  * with its source vertex with a call to op(source_vertex, destination_vertex).

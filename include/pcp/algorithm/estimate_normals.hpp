@@ -13,7 +13,7 @@
 #include "pcp/common/normals/normal_estimation.hpp"
 #include "pcp/common/points/point.hpp"
 #include "pcp/graph/search.hpp"
-#include "pcp/graph/undirected_knn_adjacency_list.hpp"
+#include "pcp/graph/knn_adjacency_list.hpp"
 #include "pcp/traits/graph_vertex_traits.hpp"
 #include "pcp/traits/knn_search_traits.hpp"
 #include "pcp/traits/normal_traits.hpp"
@@ -24,7 +24,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
- * @ingroup algorithm
+ * @ingroup normals-estimation
  * @brief
  * Performs normal estimation on each knn neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
@@ -88,7 +88,7 @@ void estimate_normals(
 }
 
 /**
- * @ingroup algorithm
+ * @ingroup normals-estimation
  * @brief
  * Performs normal estimation on each knn neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
@@ -155,7 +155,7 @@ void estimate_normals(
 }
 
 /**
- * @ingroup algorithm
+ * @ingroup normals-estimation
  * @brief
  * Adjusts the orientations of a point cloud's normals using a minimum spanning tree
  * of the KNN graph of the point cloud, and propagating the MST's root's normal
@@ -269,7 +269,9 @@ void propagate_normal_orientations(
     //        }
     //    });
 
-    // Use BFS instead of Hoppe '92 MST propagation
+    /**
+     * Use BFS (Breadth First Search) instead of Hoppe '92 MST propagation
+     */
     graph::breadth_first_search(
         graph,
         root,

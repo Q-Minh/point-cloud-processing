@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class Normal, class = void>
-struct is_normal : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Normal requirements:
  * - component_type type member
@@ -32,6 +27,11 @@ struct is_normal : std::false_type
  * - equality/inequality comparable
  * - *,/,+,- operators
  */
+template <class Normal, class = void>
+struct is_normal : std::false_type
+{
+};
+
 template <class Normal>
 struct is_normal<
     Normal,
@@ -64,7 +64,7 @@ struct is_normal<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for Normal concept
  * @tparam Normal

@@ -12,7 +12,7 @@ namespace pcp {
 namespace traits {
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for NormalMap concept.
  * The NormalMap concept requires NormalMap to be a callable type which takes a parameter

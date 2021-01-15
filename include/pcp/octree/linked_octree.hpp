@@ -13,7 +13,7 @@
 namespace pcp {
 
 /**
- * @ingroup octree
+ * @ingroup linked-octree
  * @brief
  * An octree is a tree data structure for 3-dimensional quantities which
  * recursively subdivides a regular grid into its 8 octants by having

@@ -14,7 +14,7 @@ template <class PointView, class ParamsType>
 class basic_linked_octree_node_t;
 
 /**
- * @ingroup octree
+ * @ingroup linked-octree
  * @brief
  * Read-only forward iterator for points in the octree.
  * Uses a stack of ancestor nodes under the hood to

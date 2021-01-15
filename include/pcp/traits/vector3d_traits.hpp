@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class Vector3d, class = void>
-struct is_vector3d : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Vector3d concept requires:
  * - component_type type member representing the arithmetic type of each of its components
@@ -26,6 +21,11 @@ struct is_vector3d : std::false_type
  * - can be summed/subtracted with/by other Vector3d instances
  * @tparam Vector3d
  */
+template <class Vector3d, class = void>
+struct is_vector3d : std::false_type
+{
+};
+
 template <class Vector3d>
 struct is_vector3d<
     Vector3d,
@@ -49,7 +49,7 @@ struct is_vector3d<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for Vector3d concept
  * @tparam Vector3d

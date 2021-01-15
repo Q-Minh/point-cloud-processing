@@ -12,7 +12,7 @@ namespace pcp {
 namespace traits {
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for SignedDistanceMap concept.
  * The SignedDistanceMap concept requires SignedDistanceMap to be a callable type which takes a

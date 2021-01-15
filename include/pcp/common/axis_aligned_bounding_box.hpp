@@ -16,7 +16,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * https://en.wikipedia.org/wiki/Bounding_volume
  * @tparam Point Type satisfying Point concept

@@ -14,13 +14,8 @@
 namespace pcp {
 namespace traits {
 
-template <class KnnSearcher, class Element, class = void>
-struct is_knn_searcher : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-spatial-query
  * @brief
  * KnnSearcher concept
  * Terminology:
@@ -35,6 +30,11 @@ struct is_knn_searcher : std::false_type
  * @tparam KnnSearcher Type to test for the KnnSearcher concept
  * @tparam Element Type of input element called by the KnnSearcher
  */
+template <class KnnSearcher, class Element, class = void>
+struct is_knn_searcher : std::false_type
+{
+};
+
 template <class KnnSearcher, class Element>
 struct is_knn_searcher<
     KnnSearcher,
@@ -48,7 +48,7 @@ struct is_knn_searcher<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-spatial-query
  * @brief
  * Compile-time check for KnnSearcher concept
  * @tparam KnnSearcher

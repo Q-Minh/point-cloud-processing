@@ -12,7 +12,7 @@ namespace pcp {
 namespace traits {
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for PointMap concept.
  * The PointMap concept requires PointMap to be a callable type which takes a parameter
@@ -24,7 +24,7 @@ template <class PointMap, class Key>
 static constexpr bool is_point_map_v = is_point_v<std::invoke_result_t<PointMap, Key>>;
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for PointViewMap concept.
  * The PointViewMap concept requires PointViewMap to be a callable type which takes a parameter

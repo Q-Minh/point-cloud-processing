@@ -11,17 +11,17 @@
 namespace pcp {
 namespace traits {
 
-template <class Iterable, class = void>
-struct iterable : std::false_type
-{
-};
-
 /**
  * @ingroup traits
  * @brief
  * Iterable concept requires an Iterable type to have begin()/end() pair.
  * @tparam Iterable
  */
+template <class Iterable, class = void>
+struct iterable : std::false_type
+{
+};
+
 template <class Iterable>
 struct iterable<
     Iterable,

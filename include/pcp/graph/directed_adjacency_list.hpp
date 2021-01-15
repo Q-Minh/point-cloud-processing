@@ -20,7 +20,7 @@ template <class GraphVertex>
 class adjacency_list_edge_iterator_t;
 
 /**
- * @ingroup graph
+ * @ingroup graph-structures-types
  * @brief Implementation of an adjacency list based graph.
  *
  * Uses a vector of vertices to stores the vertices and
@@ -259,7 +259,7 @@ class directed_adjacency_list_t
 };
 
 /**
- * @ingroup graph
+ * @ingroup graph-structures-types
  * @brief
  * Iterator to the edges of a directed_adjacency_list_t.
  * The edges returned by dereferencing this iterator aren't

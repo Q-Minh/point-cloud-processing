@@ -11,7 +11,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Simple sphere with containment predicate.
  * @tparam Point Type satisfying Point concept

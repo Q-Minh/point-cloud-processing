@@ -14,7 +14,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief 3-dimensional point
  * @tparam T Type of the point's (x,y,z) coordinates
  */
@@ -86,7 +86,7 @@ class basic_point_t
 };
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Default point type
  */

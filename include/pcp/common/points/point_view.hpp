@@ -12,7 +12,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Non-owning point used as a view over a given point.
  * The basic_point_view_t need only store a pointer to
@@ -73,7 +73,7 @@ class basic_point_view_t
 };
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Default point view type
  */

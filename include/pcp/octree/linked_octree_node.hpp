@@ -22,7 +22,7 @@
 namespace pcp {
 
 /**
- * @ingroup octree
+ * @ingroup linked-octree
  * @brief Default type used to parameterize octrees.
  * @tparam Point Type of point used by the voxel grid to define its AABB.
  */
@@ -41,7 +41,7 @@ template <class PointView, class ParamsType>
 class linked_octree_iterator_t;
 
 /**
- * @ingroup octree
+ * @ingroup linked-octree
  * @brief
  * An octree node at any level of the octree. Contains a list of points
  * up to its configured capacity and then delegates further points to its

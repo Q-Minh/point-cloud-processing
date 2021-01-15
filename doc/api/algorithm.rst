@@ -6,3 +6,24 @@ algorithm module
 .. doxygengroup:: algorithm
    :members:
    :undoc-members:
+
+Point Cloud Normals Estimation
+------------------------------------
+
+.. doxygengroup:: normals-estimation
+   :members:
+   :undoc-members:
+
+Point Cloud Tangent Planes Estimation
+-------------------------------------------
+
+.. doxygengroup:: tangent-planes-estimation
+   :members:
+   :undoc-members:
+
+Isosurface Extraction Algorithms
+-------------------------------------------
+
+.. doxygengroup:: isosurface-extraction
+   :members:
+   :undoc-members:

@@ -20,7 +20,7 @@ namespace pcp {
 namespace io {
 
 /**
- * @ingroup io
+ * @ingroup io-obj
  * @brief
  * Load an obj point cloud file to memory from an input stream in obj format.
  * @tparam Point Type of points to return satisfying Point concept
@@ -73,7 +73,7 @@ inline auto read_obj(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 }
 
 /**
- * @ingroup io
+ * @ingroup io-obj
  * @brief
  * Load an obj point cloud file to memory from a file path in obj format.
  * @tparam Point Type of points to return satisfying Point concept
@@ -103,7 +103,7 @@ inline auto read_obj(std::filesystem::path const& path)
 }
 
 /**
- * @ingroup io
+ * @ingroup io-obj
  * @brief
  * Export a point cloud with or without normals to an obj file at the specified path.
  * @tparam Point Type of points in the point cloud
@@ -136,7 +136,7 @@ inline void write_obj(
 }
 
 /**
- * @ingroup io
+ * @ingroup io-obj
  * @brief
  * Export a point cloud with or without normals to an output stream.
  * @tparam Point Type of points in the point cloud

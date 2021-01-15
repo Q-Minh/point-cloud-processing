@@ -11,19 +11,19 @@
 namespace pcp {
 namespace traits {
 
-template <class IdentityMap, class Key, class = void>
-struct is_identity_map : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * The IdentityMap concept requires IdentityMap to be a callable type which takes a parameter
  * of type Key and returns an instance of a type that is equality & inequality comparable.
  * @tparam IdentityMap
  * @tparam Key
  */
+template <class IdentityMap, class Key, class = void>
+struct is_identity_map : std::false_type
+{
+};
+
 template <class IdentityMap, class Key>
 struct is_identity_map<
     IdentityMap,
@@ -39,7 +39,7 @@ struct is_identity_map<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for IdentityMap concept
  * @tparam IdentityMap

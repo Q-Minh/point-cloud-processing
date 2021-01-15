@@ -14,7 +14,7 @@ namespace pcp {
 namespace intersections {
 
 /**
- * @ingroup common
+ * @ingroup intersection-tests
  * @brief
  * Intersections test between AABBs
  * @tparam Point
@@ -32,7 +32,7 @@ inline bool intersects(
 }
 
 /**
- * @ingroup common
+ * @ingroup intersection-tests
  * @brief
  * Intersection test between spheres
  * @tparam Point
@@ -54,7 +54,7 @@ inline bool intersects(sphere_t<Point> const& s1, sphere_t<Point> const& s2)
 }
 
 /**
- * @ingroup common
+ * @ingroup intersection-tests
  * @brief
  * Intersection test between AABB and sphere
  * @tparam Point
@@ -80,7 +80,7 @@ inline bool intersects(axis_aligned_bounding_box_t<Point> const& b, sphere_t<Poi
 }
 
 /**
- * @ingroup common
+ * @ingroup intersection-tests
  * @brief
  * Intersection test between sphere and AABB
  * @tparam Point

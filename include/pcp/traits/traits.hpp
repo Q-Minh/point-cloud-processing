@@ -7,6 +7,30 @@
  * The traits module
  */
 
+/**
+ * @defgroup traits-geometry "Geometry Type Traits"
+ * Type traits for geometry-related types. Defines geometric concepts.
+ * @ingroup traits
+ */
+
+/**
+ * @defgroup traits-spatial-query "Spatial Query Type Traits"
+ * Type traits for common spatial query callable types. Defines spatial query concepts.
+ * @ingroup traits
+ */
+
+/**
+ * @defgroup traits-graph "Graph Type Traits"
+ * Type traits for graph-related types. Defines graph concepts.
+ * @ingroup traits
+ */
+
+/**
+ * @defgroup traits-property-maps "Property Map Type Traits"
+ * Type traits for common property maps used in the API.
+ * @ingroup traits
+ */
+
 #include "function_traits.hpp"
 #include "graph_traits.hpp"
 #include "graph_vertex_traits.hpp"

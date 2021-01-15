@@ -20,7 +20,7 @@ namespace pcp {
 namespace common {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief Simple 3d plane in euclidean space
  * @tparam Point Type of point used by the plane
  * @tparam Normal Type of normal used by the plane
@@ -73,7 +73,7 @@ class basic_plane3d_t
 };
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * Default plane type
  */

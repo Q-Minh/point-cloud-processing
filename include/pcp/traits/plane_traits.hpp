@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class Plane, class = void>
-struct is_plane : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Plane concept
  * Requirements:
@@ -27,6 +22,11 @@ struct is_plane : std::false_type
  * - Constructor taking (point_type, normal_type) parameters
  * @tparam Plane
  */
+template <class Plane, class = void>
+struct is_plane : std::false_type
+{
+};
+
 template <class Plane>
 struct is_plane<
     Plane,
@@ -45,7 +45,7 @@ struct is_plane<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for Plane concept
  * @tparam Plane

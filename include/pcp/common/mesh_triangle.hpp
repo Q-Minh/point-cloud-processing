@@ -12,7 +12,7 @@ namespace pcp {
 namespace common {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * shared_vertex_mesh_triangle is encoded as a shared vertex mesh triangle.
  * shared_vertex_mesh_triangle need only store indices to vertices in a

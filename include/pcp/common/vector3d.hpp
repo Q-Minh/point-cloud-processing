@@ -12,7 +12,7 @@ namespace pcp {
 namespace common {
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief General 3-dimensional vector
  * @tparam T Type of this vector's components
  */
@@ -84,7 +84,7 @@ class basic_vector3d_t
 };
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief
  * Default vector3d type
  */

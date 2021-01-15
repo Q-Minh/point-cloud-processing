@@ -14,7 +14,7 @@ namespace pcp {
 namespace common {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * This class is a discretization of continuous 3d space into voxels, which are the smallest volume
  * in the regular grid, in the form of cubes. The grid is represented as:

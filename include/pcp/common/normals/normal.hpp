@@ -11,7 +11,7 @@
 namespace pcp {
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief
  * 3d normal vector with component type T satisfying Normal concept.
  * @tparam T Scalar type of the normal's components
@@ -88,7 +88,7 @@ struct basic_normal_t
 };
 
 /**
- * @ingroup common
+ * @ingroup geometric-primitives
  * @brief Default normal type
  */
 using normal_t = basic_normal_t<float>;

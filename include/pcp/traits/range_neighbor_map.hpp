@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class RangeNeighborMap, class Key, class Range, class = void>
-struct is_range_neighbor_map : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * The RangeNeighborMap concept requires RangeNeighborMap to be a callable type which takes a
  * parameter of type Key and a parameter of type Range and returns a range with begin and end
@@ -27,6 +22,10 @@ struct is_range_neighbor_map : std::false_type
  * @tparam Range
  * Must satisfy Range concept, which means it must support geometric intersection tests.
  */
+template <class RangeNeighborMap, class Key, class Range, class = void>
+struct is_range_neighbor_map : std::false_type
+{
+};
 
 template <class RangeNeighborMap, class Key, class Range>
 struct is_range_neighbor_map<
@@ -41,7 +40,7 @@ struct is_range_neighbor_map<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for RangeNeighborMap concept
  * @tparam RangeNeighborMap

@@ -18,7 +18,7 @@ namespace pcp {
 namespace graph {
 
 /**
- * @ingroup graph
+ * @ingroup graph-algorithms
  * @brief Implementation of prim's minimum spanning tree algorithm.
  *
  * The implementation uses std::next(begin, vertex_iterator)

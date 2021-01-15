@@ -12,7 +12,7 @@ namespace pcp {
 namespace traits {
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for IndexMap concept.
  * The IndexMap concept requires IndexMap to be a callable type which takes a parameter

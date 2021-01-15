@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/points/vertex.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
-#include <pcp/graph/undirected_knn_adjacency_list.hpp>
+#include <pcp/graph/knn_adjacency_list.hpp>
 #include <pcp/octree/octree.hpp>
 #include <pcp/traits/graph_traits.hpp>
 

@@ -11,13 +11,8 @@
 namespace pcp {
 namespace traits {
 
-template <class SharedVertexMeshTriangle, class = void>
-struct is_shared_vertex_mesh_triangle : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * SharedVertexMeshTriangle concept checker.
  * A SharedVertexMeshTriangle is constructible from three indices,
@@ -25,6 +20,11 @@ struct is_shared_vertex_mesh_triangle : std::false_type
  * and exposed an index_type type member.
  * @tparam SharedVertexMeshTriangle
  */
+template <class SharedVertexMeshTriangle, class = void>
+struct is_shared_vertex_mesh_triangle : std::false_type
+{
+};
+
 template <class SharedVertexMeshTriangle>
 struct is_shared_vertex_mesh_triangle<
     SharedVertexMeshTriangle,
@@ -43,7 +43,7 @@ struct is_shared_vertex_mesh_triangle<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-geometry
  * @brief
  * Compile-time check for SharedVertexMeshTriangle concept.
  * @tparam SharedVertexMeshTriangle

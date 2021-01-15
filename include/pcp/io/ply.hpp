@@ -25,14 +25,14 @@ namespace pcp {
 namespace io {
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * ply format types on disk
  */
 enum class ply_format_t { ascii, binary_little_endian, binary_big_endian };
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * ply point cloud point coordinate types can only be
  * float or double (single precision or double precision).
@@ -40,7 +40,7 @@ enum class ply_format_t { ascii, binary_little_endian, binary_big_endian };
 enum class ply_coordinate_type_t { single_precision, double_precision };
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Structure of ply parameters read dynamically from disk
  */
@@ -54,7 +54,7 @@ struct ply_parameters_t
 };
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Convert a string representation of a ply format to a ply_format_t enum value
  * @param s The string representation of a ply format
@@ -92,7 +92,7 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
     -> std::tuple<std::vector<Point>, std::vector<Normal>>;
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads a ply file into a point cloud (potentially with normals).
  * The function supports ascii, binary little endian, binary big endian.
@@ -126,7 +126,7 @@ inline auto read_ply(std::filesystem::path const& path)
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads a ply file into a point cloud (potentially with normals).
  * The function supports ascii, binary little endian, binary big endian.
@@ -265,7 +265,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Writes the given point cloud to a ply file in the ply
  * format of choice at the location given by filepath.
@@ -298,7 +298,7 @@ inline void write_ply(
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Writes a point cloud in ply format to an output stream.
  * @tparam Point Type of points in the point cloud satisfying Point concept.
@@ -460,7 +460,7 @@ inline void write_ply(
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Writes the given mesh to a ply file in the ply
  * format of choice at the location given by filepath.
@@ -499,7 +499,7 @@ void write_ply(
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Writes a shared vertex triangular mesh data structure in ply format to an output stream.
  * @tparam Point Type of points in the mesh.
@@ -661,7 +661,7 @@ void write_ply(
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads an ascii formatted ply point cloud
  * @tparam Point
@@ -716,7 +716,7 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads a binary formatted ply point cloud
  * @tparam Point
@@ -785,7 +785,7 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads a binary little endian formatted ply point cloud
  * @tparam Point
@@ -834,7 +834,7 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
 }
 
 /**
- * @ingroup io
+ * @ingroup io-ply
  * @brief
  * Reads binary big endian formatted ply point cloud
  * @tparam Point

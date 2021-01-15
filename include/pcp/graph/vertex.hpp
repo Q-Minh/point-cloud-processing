@@ -12,7 +12,7 @@ namespace pcp {
 namespace graph {
 
 /**
- * @ingroup graph
+ * @ingroup graph-structures-types
  * @brief
  * Most basic vertex type. It only stores an id.
  * @tparam Integer Type of the vertex's id

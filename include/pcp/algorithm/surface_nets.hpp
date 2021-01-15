@@ -338,7 +338,7 @@ auto get_adjacent_cubes_of_edge(
 }
 
 /**
- * @ingroup algorithm
+ * @ingroup isosurface-extraction
  * @brief
  * Implements the naive surface nets algorithm which approximates the isosurface
  * of the given implicit function at the given isovalue in the given regular grid
@@ -650,7 +650,7 @@ auto surface_nets(
 }
 
 /**
- * @ingroup algorithm
+ * @ingroup isosurface-extraction
  * @brief
  * Implements naive surface nets optimized for cases where
  * you know approximately in which neighborhood there is

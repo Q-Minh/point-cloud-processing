@@ -11,19 +11,19 @@
 namespace pcp {
 namespace traits {
 
-template <class KnnMap, class Key, class = void>
-struct is_knn_map : std::false_type
-{
-};
-
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * The KnnMap concept requires KnnMap to be a callable type which takes a parameter
  * of type Key and returns a range with begin and end iterators.
  * @tparam KnnMap
  * @tparam Key
  */
+template <class KnnMap, class Key, class = void>
+struct is_knn_map : std::false_type
+{
+};
+
 template <class KnnMap, class Key>
 struct is_knn_map<
     KnnMap,
@@ -35,7 +35,7 @@ struct is_knn_map<
 };
 
 /**
- * @ingroup traits
+ * @ingroup traits-property-maps
  * @brief
  * Compile-time check for KnnMap concept
  * @tparam KnnMap

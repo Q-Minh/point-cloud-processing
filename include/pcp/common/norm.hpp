@@ -15,7 +15,7 @@ namespace pcp {
 namespace common {
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief
  * Standard inner product for 3d vectors satisfying Vector3D concept
  * @tparam Vector3d1
@@ -43,7 +43,7 @@ struct l2
 };
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief
  * Standard norm computation for Vector3D types
  * @tparam Vector3d Type satisfying Vector3d concept
@@ -76,7 +76,7 @@ typename Vector3d::component_type norm(Vector3d const& v, Norm const& = Norm{})
 }
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief
  * The l2-norm is defined as sqrt(x*x + y*y + z*z), but we don't always need
  * the sqrt computation for distance comparisons:

@@ -34,7 +34,7 @@ bool floating_point_equals(T v1, T v2, T eps = static_cast<T>(1e-5))
 }
 
 /**
- * @ingroup common
+ * @ingroup common-vector3
  * @brief Equality test of 2 points by coordinates within given precision.
  * @tparam Vector3d1 Type satisfying PointView concept
  * @tparam Vector3d2 Type satisfying PointView concept
