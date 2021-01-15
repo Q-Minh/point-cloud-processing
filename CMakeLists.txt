@@ -4,7 +4,7 @@ project(pcp VERSION 0.0.1 LANGUAGES CXX)
 option(PCP_BUILD_TESTS "build tests (requires catch2)" ON)
 option(PCP_BUILD_BENCHMARKS "build benchmarks (requires google benchmark)" ON)
 option(PCP_BUILD_EXAMPLES "build examples" ON)
-option(PCP_BUILD_DOC "build documentation" ON)
+option(PCP_BUILD_DOC "build documentation" OFF)
 
 set_property(GLOBAL PROPERTY USE_FOLDERS ON)
 list(APPEND CMAKE_MODULE_PATH "${PROJECT_SOURCE_DIR}/cmake")
