@@ -9,60 +9,19 @@
 
 ## Overview
 
-`pcp` is a toolkit of common point cloud processing algorithms.
+`pcp` is a toolkit of common point cloud processing algorithms using C++17.
 
 ## Prerequisites
 
 - [CMake](https://cmake.org/)
 - [C++17](https://en.cppreference.com/w/cpp/17)
 
-## Configuring
-
-| CMake Option | Help |
-| --- | --- |
-| `-DPCP_BUILD_TESTS` | If set to `ON`, downloads [Catch2](https://github.com/catchorg/Catch2) and builds the `pcp-tests` target |
-| `-DPCP_BUILD_BENCHMARKS` | If set to `ON`, downloads [Google Benchmark](https://github.com/google/benchmark) and builds the `pcp-benchmarks` target |
-| `-DPCP_BUILD_EXAMPLES` | If set to `ON`, builds the examples. The examples use libigl and imgui as cmake subprojects. |
-| `-DCMAKE_BUILD_TYPE` | Set to one of `Release\|Debug\|RelWithDebInfo`. If you are using a Visual Studio [generator](https://cmake.org/cmake/help/latest/manual/cmake-generators.7.html), all configuration types are included. See the [docs](https://cmake.org/cmake/help/latest/variable/CMAKE_BUILD_TYPE.html). |  
-  
-```
-$ mkdir build
-$ cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=ON
-```
-
-## Building
-
-| CMake Target | Help |
-| --- | --- |
-| `pcp-tests` | The [Catch2](https://github.com/catchorg/Catch2) test runner executable. Commands line options are documented [here](https://github.com/catchorg/Catch2/blob/devel/docs/command-line.md#top). |
-| `pcp-benchmarks` | The [Google Benchmark](https://github.com/google/benchmark) benchmark runner executable. Command line options are documented [here](https://github.com/google/benchmark#command-line). |
-| `pcp` | The `pcp` library. Currently header-only, so building is a no-op. |
-| `pcp-example-ply` | Ply read/write example. |
-| `pcp-example-normals-estimation` | Reads a ply point cloud and exports it back with normals. |
-| `pcp-example-tangent-plane-surface-reconstruction` | Reads ply point cloud and performs surface reconstruction using tangent plane SDFs. Uses libigl and imgui for visualization. |
-| `pcp-example-add-noise-to-point-cloud` | Adds gaussian noise to a ply point cloud. |
-| `pcp-example-filter-point-cloud-by-density` | Filters a ply point cloud using a density threshold. |
-```
-$ cmake --build build --target <target_name> # --config Release|Debug if you're on Windows
-```
-
-## Installing
-```
-$ cmake --install build
-```
-
 ## Usage
-In your CMake project's CMakeLists.txt:
-```
-find_package(pcp CONFIG REQUIRED)
-target_link_library(<your target> PRIVATE pcp::pcp)
-```
 
-Single include:
 ```
 #include <execution>
 #include <filesystem>
-#include <pcp.hpp>
+#include <pcp/pcp.hpp>
 
 int main(int argc, char** argv)
 {
@@ -87,35 +46,30 @@ int main(int argc, char** argv)
 }
 ```
 
-Multiple includes:
-```
-#include <pcp/algorithm/common.hpp>
-#include <pcp/algorithm/estimate_tangent_planes.hpp>
-#include <pcp/algorithm/surface_nets.hpp>
-#include <pcp/common/points/point_view.hpp>
-#include <pcp/octree/octree.hpp>
-#include <pcp/graph/vertex.hpp>
-```
-
-### Examples
-You can find more usage examples of `pcp` [here](./examples/).
-
-### Tests
-Explore `pcp`'s tests [here](./test/) for even more usage examples. The tests use [Catch2](https://github.com/catchorg/Catch2).
-
-## Running
-Run tests, benchmarks and visualize benchmark results:
-```
-# In the build tree, the executables will either be in "./build/Release/" or "./build/" depending on the platform.
-# In the install tree, you can find the executables in "/bin".
-
-# to run the tests
-$ <path to executable>/pcp-tests.exe
-
-# to run the benchmarks and export them to benchmarks.json
-$ <path to executable>/pcp-benchmarks.exe --benchmark_format=json --benchmark_out=benchmarks.json
-```
-
 ## Documentation
+Documentation is generated using Doxygen, Sphinx and Breathe. 
+To generate documentation, you will need to install them. 
 
-See [docs](./doc/)
+1. - For Doxygen, refer to [the official download page](https://www.doxygen.nl/download.html). Make sure that you add the doxygen executable to your path. 
+   - For Sphinx, refer to [the official installation page](https://www.sphinx-doc.org/en/master/usage/installation.html). Then, using [pip](https://pypi.org/project/pip/), run:
+
+     ```$ pip install sphinx_rtd_theme```
+   - For Breathe, using [pip](https://pypi.org/project/pip/), run:
+
+     ```$ pip install breathe```
+
+2. Then, using CMake, to generate the documentation only, run:
+   ```
+   $ cmake -S . -B build -DPCP_BUILD_DOC=ON -DPCP_BUILD_TESTS=OFF -DPCP_BUILD_BENCHMARKS=OFF    -DPCP_BUILD_EXAMPLES=OFF
+   
+   $ cmake --build build --target pcp-sphinx
+   ```
+
+3. Browse our readthedocs style documentation by opening `./build/doc/sphinx/index.html` in your 
+   browser of choice.
+
+## Examples
+You can find detailed usage examples of `pcp` [here](./examples/).
+
+## Tests
+Explore `pcp`'s tests [here](./test/) for even more usage examples. The tests use [Catch2](https://github.com/catchorg/Catch2).

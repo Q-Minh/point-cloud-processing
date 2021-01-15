@@ -9,9 +9,9 @@
 #include <pcp/io/ply.hpp>
 #include <pcp/octree/octree.hpp>
 #include <range/v3/all.hpp>
+#include <range/v3/range/conversion.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/transform.hpp>
-#include <range/v3/range/conversion.hpp>
 #include <vector>
 
 int main(int argc, char** argv)
