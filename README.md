@@ -68,6 +68,8 @@ To generate documentation, you will need to install them.
 3. Browse our readthedocs style documentation by opening `./build/doc/sphinx/index.html` in your 
    browser of choice.
 
+Credits go to [https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/](https://devblogs.microsoft.com/cppblog/clear-functional-c-documentation-with-sphinx-breathe-doxygen-cmake/). If you encounter any problems, try reading this long form blog.
+
 ## Examples
 You can find detailed usage examples of `pcp` [here](./examples/).
 
