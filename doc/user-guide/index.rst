@@ -66,6 +66,11 @@ Building
 |                                                      | executable. Command line options are documented                                     |
 |                                                      | `here <https://github.com/google/benchmark#command-line>`__.                        |
 +------------------------------------------------------+-------------------------------------------------------------------------------------+
+| ``pcp-doxygen``                                      | Generate sphinx documentation to ./build/doc/sphinx/index.html. Runs doxygen        |
+|                                                      | previously automatically if changes were detected.                                  |
++------------------------------------------------------+-------------------------------------------------------------------------------------+
+| ``pcp-sphinx``                                       | Generate doxygen documentation to ./build/doc/doxygen/html/index.html.              |
++------------------------------------------------------+-------------------------------------------------------------------------------------+
 | ``pcp-example-ply``                                  | Ply read/write example.                                                             |
 +------------------------------------------------------+-------------------------------------------------------------------------------------+
 | ``pcp-example-normals-estimation``                   | Reads a ply point cloud and exports it back with normals.                           |

@@ -21,7 +21,7 @@ Additionally, **pcp** exposes a modern C++ template interface that
 attempts to maximize flexibility to ease integration by 
 imposing relaxed type restrictions on user input 
 while also providing human-readable compile errors when said type 
-restrictions are not meant instead of the cryptic long error 
+restrictions are not met instead of the cryptic long error 
 messages one usually witnesses with template programming. This 
 enables customization points at every layer of the library.
 
