@@ -47,6 +47,7 @@ endfunction()
 
 set(_folder_name "pcp-examples")
 
+add_example(${_folder_name} pcp-example-simple-example simple_example.cpp)
 add_example(${_folder_name} pcp-example-normals-estimation normals_estimation.cpp)
 add_example(${_folder_name} pcp-example-ply ply.cpp)
 add_example(${_folder_name} 

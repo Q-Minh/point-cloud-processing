@@ -8,7 +8,7 @@ graph module
    :undoc-members:
    
 Graph Structures and Types
------------------------
+--------------------------
 
 .. doxygengroup:: graph-structures-types
    :members:
