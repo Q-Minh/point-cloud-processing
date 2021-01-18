@@ -1,7 +1,7 @@
 include(FetchContent)
 
 # download libigl with glad, glfw and imgui
-set(LIBIGL_USE_STATIC_LIBRARY     OFF CACHE STRING   "Use libigl as static library" )
+set(LIBIGL_USE_STATIC_LIBRARY     ON  CACHE STRING   "Use libigl as static library" )
 set(LIBIGL_WITH_CGAL              OFF CACHE INTERNAL "Use CGAL"                     )
 set(LIBIGL_WITH_COMISO            OFF CACHE INTERNAL "Use CoMiso"                   )
 set(LIBIGL_WITH_CORK              OFF CACHE INTERNAL "Use Cork"                     )
@@ -47,6 +47,7 @@ endfunction()
 
 set(_folder_name "pcp-examples")
 
+add_example(${_folder_name} pcp-example-simple-example simple_example.cpp)
 add_example(${_folder_name} pcp-example-normals-estimation normals_estimation.cpp)
 add_example(${_folder_name} pcp-example-ply ply.cpp)
 add_example(${_folder_name} 

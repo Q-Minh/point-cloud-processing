@@ -1,16 +1,18 @@
-#pragma once
+#ifndef PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP
+#define PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP
+
+/**
+ * @file
+ * @ingroup traits
+ */
 
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
-template <class GraphVertex, class = void>
-struct is_graph_vertex : std::false_type
-{
-};
-
 /**
+ * @ingroup traits-graph
  * @brief
  * GraphVertex requirements:
  * - type member named id_type which must be an integral type
@@ -18,6 +20,11 @@ struct is_graph_vertex : std::false_type
  * - method void GraphVertex::id(id_type)
  * @tparam GraphVertex Type to inspect
  */
+template <class GraphVertex, class = void>
+struct is_graph_vertex : std::false_type
+{
+};
+
 template <class GraphVertex>
 struct is_graph_vertex<
     GraphVertex,
@@ -35,8 +42,16 @@ struct is_graph_vertex<
         "id_type type member must be integral type");
 };
 
+/**
+ * @ingroup traits-graph
+ * @brief
+ * Compile-time check for GraphVertex concept
+ * @tparam GraphVertex
+ */
 template <class GraphVertex>
 static constexpr bool is_graph_vertex_v = is_graph_vertex<GraphVertex>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_GRAPH_VERTEX_TRAITS_HPP

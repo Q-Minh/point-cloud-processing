@@ -1,12 +1,21 @@
-#pragma once
+#ifndef PCP_TRAITS_RANGE_TRAITS_HPP
+#define PCP_TRAITS_RANGE_TRAITS_HPP
 
-#include <pcp/common/intersections.hpp>
+/**
+ * @file
+ * @ingroup traits
+ */
+
+#include "pcp/common/intersections.hpp"
+
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
 /**
+ * @ingroup traits-geometry
+ * @brief
  * Traits type for checking Range concept.
  * A Range is a type that can be queried for containment
  * of points and intersection with another Range.
@@ -30,8 +39,17 @@ struct is_range<
 {
 };
 
+/**
+ * @ingroup traits-geometry
+ * @brief
+ * Compile-time check for Range concept
+ * @tparam Range
+ * @tparam Point
+ */
 template <class Range, class Point>
 static constexpr bool is_range_v = is_range<Range, Point>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_RANGE_TRAITS_HPP

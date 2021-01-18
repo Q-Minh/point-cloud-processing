@@ -1,16 +1,19 @@
-#pragma once
+#ifndef PCP_TRAITS_GRAPH_TRAITS_HPP
+#define PCP_TRAITS_GRAPH_TRAITS_HPP
+
+/**
+ * @file
+ * @ingroup traits
+ */
 
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
-template <class DirectedGraph, class = void>
-struct is_directed_graph : std::false_type
-{
-};
-
 /**
+ * @ingroup traits-graph
+ * @brief
  * DirectedGraph concept:
  *
  * Notation used:
@@ -30,6 +33,11 @@ struct is_directed_graph : std::false_type
  * - auto [ebegin, eend] = g.edges();
  * - auto [uit, vit] = *eit;
  */
+template <class DirectedGraph, class = void>
+struct is_directed_graph : std::false_type
+{
+};
+
 template <class DirectedGraph>
 struct is_directed_graph<
     DirectedGraph,
@@ -50,15 +58,18 @@ struct is_directed_graph<
 {
 };
 
+/**
+ * @ingroup traits-graph
+ * @brief
+ * Compile-time check for DirectedGraph concept
+ * @tparam DirectedGraph
+ */
 template <class DirectedGraph>
 static constexpr bool is_directed_graph_v = is_directed_graph<DirectedGraph>::value;
 
-template <class MutableDirectedGraph, class = void>
-struct is_mutable_directed_graph : std::false_type
-{
-};
-
 /**
+ * @ingroup traits-graph
+ * @brief
  * MutableDirectedGraph concept (refines DirectedGraph):
  *
  * Notation used:
@@ -74,6 +85,11 @@ struct is_mutable_directed_graph : std::false_type
  * - g.remove_vertex(uit);
  * - g.remove_edge(uit, vit);
  */
+template <class MutableDirectedGraph, class = void>
+struct is_mutable_directed_graph : std::false_type
+{
+};
+
 template <class MutableDirectedGraph>
 struct is_mutable_directed_graph<
     MutableDirectedGraph,
@@ -106,9 +122,17 @@ struct is_mutable_directed_graph<
         "edge");
 };
 
+/**
+ * @ingroup traits-graph
+ * @brief
+ * Compile-time check for MutableDirectedGraph concept
+ * @tparam MutableDirectedGraph
+ */
 template <class MutableDirectedGraph>
 static constexpr bool is_mutable_directed_graph_v =
     is_mutable_directed_graph<MutableDirectedGraph>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_GRAPH_TRAITS_HPP

@@ -76,7 +76,7 @@ static void bm_vector_construction(benchmark::State& state)
     }
 }
 
-static void bm_octree_construction(benchmark::State& state)
+static void bm_linked_octree_construction(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
     auto constexpr max = get_bm_max();
@@ -91,7 +91,7 @@ static void bm_octree_construction(benchmark::State& state)
 
     for (auto _ : state)
     {
-        pcp::octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
         benchmark::DoNotOptimize(octree.size());
     }
 }
@@ -115,7 +115,7 @@ static void bm_vector_range_search(benchmark::State& state)
     }
 }
 
-static void bm_octree_range_search(benchmark::State& state)
+static void bm_linked_octree_range_search(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
     auto constexpr max = get_bm_max();
@@ -127,7 +127,7 @@ static void bm_octree_range_search(benchmark::State& state)
         pcp::axis_aligned_bounding_box_t<pcp::point_t>{{min, min, min}, {max, max, max}};
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
-    pcp::octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
     for (auto _ : state)
     {
@@ -165,7 +165,7 @@ static void bm_vector_knn_search(benchmark::State& state)
     }
 }
 
-static void bm_octree_knn_search(benchmark::State& state)
+static void bm_linked_octree_knn_search(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
     auto constexpr max = get_bm_max();
@@ -178,7 +178,7 @@ static void bm_octree_knn_search(benchmark::State& state)
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
-    pcp::octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
     std::uint64_t const k = static_cast<std::uint64_t>(state.range(3));
     for (auto _ : state)
     {
@@ -204,7 +204,7 @@ static void bm_vector_iterator_traversal(benchmark::State& state)
     }
 }
 
-static void bm_octree_iterator_traversal(benchmark::State& state)
+static void bm_linked_octree_iterator_traversal(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
     auto constexpr max = get_bm_max();
@@ -217,7 +217,7 @@ static void bm_octree_iterator_traversal(benchmark::State& state)
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
-    pcp::octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
     for (auto _ : state)
     {
         bool const all = std::all_of(octree.cbegin(), octree.cend(), [](auto const& p) {
@@ -233,7 +233,7 @@ BENCHMARK(bm_vector_construction)
     ->Args({1 << 16})
     ->Args({1 << 20})
     ->Args({1 << 24});
-BENCHMARK(bm_octree_construction)
+BENCHMARK(bm_linked_octree_construction)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 32u, 11u})
     ->Args({1 << 16, 32u, 11u})
@@ -253,7 +253,7 @@ BENCHMARK(bm_vector_range_search)
     ->Args({1 << 16})
     ->Args({1 << 20})
     ->Args({1 << 24});
-BENCHMARK(bm_octree_range_search)
+BENCHMARK(bm_linked_octree_range_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 32u, 21u})
     ->Args({1 << 16, 32u, 21u})
@@ -269,7 +269,7 @@ BENCHMARK(bm_vector_knn_search)
     ->Args({1 << 16, 10u})
     ->Args({1 << 20, 10u})
     ->Args({1 << 24, 10u});
-BENCHMARK(bm_octree_knn_search)
+BENCHMARK(bm_linked_octree_knn_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 32u, 21u, 10u})
     ->Args({1 << 16, 32u, 21u, 10u})
@@ -285,7 +285,7 @@ BENCHMARK(bm_vector_iterator_traversal)
     ->Args({1 << 16})
     ->Args({1 << 20})
     ->Args({1 << 24});
-BENCHMARK(bm_octree_iterator_traversal)
+BENCHMARK(bm_linked_octree_iterator_traversal)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 32u, 21u})
     ->Args({1 << 16, 32u, 21u})

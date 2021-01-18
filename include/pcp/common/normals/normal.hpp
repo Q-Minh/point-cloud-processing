@@ -1,9 +1,21 @@
-#pragma once
+#ifndef PCP_COMMON_NORMALS_NORMAL_HPP
+#define PCP_COMMON_NORMALS_NORMAL_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
 
 #include <cmath>
 
 namespace pcp {
 
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * 3d normal vector with component type T satisfying Normal concept.
+ * @tparam T Scalar type of the normal's components
+ */
 template <class T>
 struct basic_normal_t
 {
@@ -44,7 +56,7 @@ struct basic_normal_t
     {
         if constexpr (std::is_integral_v<T>)
         {
-           return n.x_ == x_ && n.y_ == y_ && n.z_ == z_;
+            return n.x_ == x_ && n.y_ == y_ && n.z_ == z_;
         }
         else
         {
@@ -75,6 +87,12 @@ struct basic_normal_t
     T x_ = 0., y_ = 0., z_ = 0.;
 };
 
+/**
+ * @ingroup geometric-primitives
+ * @brief Default normal type
+ */
 using normal_t = basic_normal_t<float>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_NORMALS_NORMAL_HPP

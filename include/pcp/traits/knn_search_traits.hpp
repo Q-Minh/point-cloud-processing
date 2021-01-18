@@ -1,4 +1,10 @@
-#pragma once
+#ifndef PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
+#define PCP_TRAITS_KNN_SEARCH_TRAITS_HPP
+
+/**
+ * @file
+ * @ingroup traits
+ */
 
 #include "iterable_traits.hpp"
 #include "point_traits.hpp"
@@ -8,12 +14,8 @@
 namespace pcp {
 namespace traits {
 
-template <class KnnSearcher, class Element, class = void>
-struct is_knn_searcher : std::false_type
-{
-};
-
 /**
+ * @ingroup traits-spatial-query
  * @brief
  * KnnSearcher concept
  * Terminology:
@@ -28,6 +30,11 @@ struct is_knn_searcher : std::false_type
  * @tparam KnnSearcher Type to test for the KnnSearcher concept
  * @tparam Element Type of input element called by the KnnSearcher
  */
+template <class KnnSearcher, class Element, class = void>
+struct is_knn_searcher : std::false_type
+{
+};
+
 template <class KnnSearcher, class Element>
 struct is_knn_searcher<
     KnnSearcher,
@@ -40,8 +47,17 @@ struct is_knn_searcher<
         "Return type of KnnSearcher must be iterable");
 };
 
+/**
+ * @ingroup traits-spatial-query
+ * @brief
+ * Compile-time check for KnnSearcher concept
+ * @tparam KnnSearcher
+ * @tparam Element
+ */
 template <class KnnSearcher, class Element>
 static constexpr bool is_knn_searcher_v = is_knn_searcher<KnnSearcher, Element>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_KNN_SEARCH_TRAITS_HPP

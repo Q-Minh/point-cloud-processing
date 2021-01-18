@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/common/points/vertex.hpp>
 #include <pcp/graph/directed_adjacency_list.hpp>
-#include <pcp/graph/undirected_knn_adjacency_list.hpp>
+#include <pcp/graph/knn_adjacency_list.hpp>
 #include <pcp/octree/octree.hpp>
 #include <pcp/traits/graph_traits.hpp>
 
@@ -74,7 +74,7 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
         params.node_capacity = 2u;
         params.voxel_grid    = {{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
 
-        pcp::basic_octree_t<vertex_type, params_type> octree{
+        pcp::basic_linked_octree_t<vertex_type, params_type> octree{
             std::cbegin(vertices),
             std::cend(vertices),
             params};

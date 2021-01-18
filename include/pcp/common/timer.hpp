@@ -1,4 +1,10 @@
-#pragma once
+#ifndef PCP_COMMON_TIMER_HPP
+#define PCP_COMMON_TIMER_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
 
 #include <chrono>
 #include <string>
@@ -8,6 +14,11 @@
 namespace pcp {
 namespace common {
 
+/**
+ * @ingroup common
+ * @brief
+ * Simple timer type implemented with the std::chrono::high_resolution_clock API.
+ */
 struct basic_timer_t
 {
     using time_type     = std::chrono::high_resolution_clock::time_point;
@@ -28,3 +39,5 @@ struct basic_timer_t
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_TIMER_HPP

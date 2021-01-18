@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 SCENARIO("KNN searches on the octree", "[octree]")
 {
@@ -15,7 +15,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
-        pcp::octree_t octree(params);
+        pcp::linked_octree_t octree(params);
         octree.insert({-.5f, -.5f, -.5f}); // 000
         octree.insert({.5f, -.5f, -.5f});  // 100
         octree.insert({.5f, .5f, -.5f});   // 110
@@ -62,7 +62,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
-        pcp::octree_t octree(params);
+        pcp::linked_octree_t octree(params);
 
         octree.insert({-.5f, -.5f, -.5f}); // 000
         octree.insert({.5f, -.5f, -.5f});  // 100
@@ -129,7 +129,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
             pcp::point_t{-2.f, -2.f, -2.f},
             pcp::point_t{2.f, 2.f, 2.f}};
 
-        pcp::octree_t octree(params);
+        pcp::linked_octree_t octree(params);
 
         auto const size = size_distribution(gen);
         for (std::size_t i = 0; i < size; ++i)

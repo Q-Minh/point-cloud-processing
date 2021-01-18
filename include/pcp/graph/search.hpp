@@ -1,7 +1,14 @@
-#pragma once
+#ifndef PCP_GRAPH_SEARCH_HPP
+#define PCP_GRAPH_SEARCH_HPP
 
-#include <pcp/traits/graph_traits.hpp>
-#include <pcp/traits/graph_vertex_traits.hpp>
+/**
+ * @file
+ * @ingroup graph
+ */
+
+#include "pcp/traits/graph_traits.hpp"
+#include "pcp/traits/graph_vertex_traits.hpp"
+
 #include <queue>
 #include <stack>
 #include <type_traits>
@@ -12,6 +19,7 @@ namespace pcp {
 namespace graph {
 
 /**
+ * @ingroup graph-algorithms
  * @brief
  * Visit a graph in breadth first order, visiting each vertex along
  * with its source vertex with a call to op(source_vertex, destination_vertex).
@@ -19,7 +27,7 @@ namespace graph {
  * @tparam DirectedGraph Type of graph to traverse
  * @tparam GraphIterator Type of iterator used to traverse the graph
  * @tparam BinaryOp Type of callable to call on source and destination vertices
- * @param graph 
+ * @param graph
  * @param op
  * @param begin
  */
@@ -73,6 +81,7 @@ void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& 
 }
 
 /**
+ * @ingroup graph-algorithms
  * @brief
  * Visit a graph in depth first order, visiting each vertex along
  * with its source vertex with a call to op(source_vertex, destination_vertex).
@@ -143,3 +152,5 @@ void depth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op
 
 } // namespace graph
 } // namespace pcp
+
+#endif // PCP_GRAPH_SEARCH_HPP

@@ -1,16 +1,19 @@
-#pragma once
+#ifndef PCP_TRAITS_NORMAL_TRAITS_HPP
+#define PCP_TRAITS_NORMAL_TRAITS_HPP
+
+/**
+ * @file
+ * @ingroup traits
+ */
 
 #include <type_traits>
 
 namespace pcp {
 namespace traits {
 
-template <class Normal, class = void>
-struct is_normal : std::false_type
-{
-};
-
 /**
+ * @ingroup traits-geometry
+ * @brief
  * Normal requirements:
  * - component_type type member
  * - default constructible
@@ -24,6 +27,11 @@ struct is_normal : std::false_type
  * - equality/inequality comparable
  * - *,/,+,- operators
  */
+template <class Normal, class = void>
+struct is_normal : std::false_type
+{
+};
+
 template <class Normal>
 struct is_normal<
     Normal,
@@ -55,8 +63,16 @@ struct is_normal<
         "Normal must be constructible from x,y,z components");
 };
 
+/**
+ * @ingroup traits-geometry
+ * @brief
+ * Compile-time check for Normal concept
+ * @tparam Normal
+ */
 template <class Normal>
 static constexpr bool is_normal_v = is_normal<Normal>::value;
 
 } // namespace traits
 } // namespace pcp
+
+#endif // PCP_TRAITS_NORMAL_TRAITS_HPP
