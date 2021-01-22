@@ -119,11 +119,11 @@ Normals Estimation
 
 .. literalinclude:: ../../examples/normals_estimation.cpp
    :language: cpp
-   :lines: 1-33,39,41,44-65,68-82,83,86-105,107,110-116,118,121-125,135-137
+   :lines: 1-31,37,39,42-55,58-70,73-92,94,97-103,105,108-112,122-124
 
 Filtering
 ~~~~~~~~~
 
 .. literalinclude:: ../../examples/filter_point_cloud_noise_by_density.cpp
    :language: cpp
-   :lines: 1-29,33,35,38-46,48,51-74,79-89,91,94,104-106
+   :lines: 1-29,33,35,38-48,50,53-76,81-91,93,96,98,107-108

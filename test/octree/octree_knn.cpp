@@ -6,6 +6,10 @@ SCENARIO("KNN searches on the octree", "[octree]")
     auto node_capacity = GENERATE(1u, 2u, 3u, 4u);
     auto max_depth     = GENERATE(1u, 3u, 21u);
 
+    auto const point_map = [](pcp::point_t const& p) {
+        return p;
+    };
+
     GIVEN("an octree with 1 point in each octant")
     {
         pcp::octree_parameters_t<pcp::point_t> params;
@@ -16,30 +20,34 @@ SCENARIO("KNN searches on the octree", "[octree]")
             pcp::point_t{1.f, 1.f, 1.f}};
 
         pcp::linked_octree_t octree(params);
-        octree.insert({-.5f, -.5f, -.5f}); // 000
-        octree.insert({.5f, -.5f, -.5f});  // 100
-        octree.insert({.5f, .5f, -.5f});   // 110
-        octree.insert({-.5f, .5f, -.5f});  // 010
-        octree.insert({-.5f, -.5f, .5f});  // 001
-        octree.insert({.5f, -.5f, .5f});   // 101
-        octree.insert({.5f, .5f, .5f});    // 111
-        octree.insert({-.5f, .5f, .5f});   // 011
+        octree.insert({-.5f, -.5f, -.5f}, point_map); // 000
+        octree.insert({.5f, -.5f, -.5f}, point_map);  // 100
+        octree.insert({.5f, .5f, -.5f}, point_map);   // 110
+        octree.insert({-.5f, .5f, -.5f}, point_map);  // 010
+        octree.insert({-.5f, -.5f, .5f}, point_map);  // 001
+        octree.insert({.5f, -.5f, .5f}, point_map);   // 101
+        octree.insert({.5f, .5f, .5f}, point_map);    // 111
+        octree.insert({-.5f, .5f, .5f}, point_map);   // 011
 
         WHEN("searching for k nearest neighbors with k=1")
         {
             auto const k = 1u;
 
-            auto const reference111                 = pcp::point_t{.51f, .51f, .51f};
-            auto const& nearest_neighbors_octant111 = octree.nearest_neighbours(reference111, k);
+            auto const reference111 = pcp::point_t{.51f, .51f, .51f};
+            auto const& nearest_neighbors_octant111 =
+                octree.nearest_neighbours(reference111, k, point_map);
 
-            auto const reference000                 = pcp::point_t{-.51f, -.51f, -.51f};
-            auto const& nearest_neighbors_octant000 = octree.nearest_neighbours(reference000, k);
+            auto const reference000 = pcp::point_t{-.51f, -.51f, -.51f};
+            auto const& nearest_neighbors_octant000 =
+                octree.nearest_neighbours(reference000, k, point_map);
 
-            auto const reference110                 = pcp::point_t{.51f, .51f, -.51f};
-            auto const& nearest_neighbors_octant110 = octree.nearest_neighbours(reference110, k);
+            auto const reference110 = pcp::point_t{.51f, .51f, -.51f};
+            auto const& nearest_neighbors_octant110 =
+                octree.nearest_neighbours(reference110, k, point_map);
 
-            auto const reference011                 = pcp::point_t{-.51f, .51f, .51f};
-            auto const& nearest_neighbors_octant011 = octree.nearest_neighbours(reference011, k);
+            auto const reference011 = pcp::point_t{-.51f, .51f, .51f};
+            auto const& nearest_neighbors_octant011 =
+                octree.nearest_neighbours(reference011, k, point_map);
 
             THEN("returns the nearest neighbor")
             {
@@ -64,13 +72,13 @@ SCENARIO("KNN searches on the octree", "[octree]")
 
         pcp::linked_octree_t octree(params);
 
-        octree.insert({-.5f, -.5f, -.5f}); // 000
-        octree.insert({.5f, -.5f, -.5f});  // 100
-        octree.insert({-.5f, .5f, -.5f});  // 010
-        octree.insert({-.5f, -.5f, .5f});  // 001
-        octree.insert({.5f, -.5f, .5f});   // 101
-        octree.insert({.5f, .5f, .5f});    // 111
-        octree.insert({-.5f, .5f, .5f});   // 011
+        octree.insert({-.5f, -.5f, -.5f}, point_map); // 000
+        octree.insert({.5f, -.5f, -.5f}, point_map);  // 100
+        octree.insert({-.5f, .5f, -.5f}, point_map);  // 010
+        octree.insert({-.5f, -.5f, .5f}, point_map);  // 001
+        octree.insert({.5f, -.5f, .5f}, point_map);   // 101
+        octree.insert({.5f, .5f, .5f}, point_map);    // 111
+        octree.insert({-.5f, .5f, .5f}, point_map);   // 011
 
         pcp::point_t const reference = {.5f, .5f, -.5f};
 
@@ -79,15 +87,15 @@ SCENARIO("KNN searches on the octree", "[octree]")
         pcp::point_t const third_nearest{.41f, .31f, -.51f};
         pcp::point_t const fourth_nearest{.71f, .21f, -.51f};
 
-        octree.insert(first_nearest); // 110
-        octree.insert(second_nearest);
-        octree.insert(third_nearest);
-        octree.insert(fourth_nearest);
+        octree.insert(first_nearest, point_map); // 110
+        octree.insert(second_nearest, point_map);
+        octree.insert(third_nearest, point_map);
+        octree.insert(fourth_nearest, point_map);
 
         WHEN("searching for k nearest neighbors with k=4 in the octant with 4 points")
         {
             auto const k                  = 4u;
-            auto const& nearest_neighbors = octree.nearest_neighbours(reference, k);
+            auto const& nearest_neighbors = octree.nearest_neighbours(reference, k, point_map);
 
             THEN("nearest points are the 4 points in that same octant")
             {
@@ -101,7 +109,7 @@ SCENARIO("KNN searches on the octree", "[octree]")
         WHEN("searching for k nearest neighbors with k=3 in the octant with 4 points")
         {
             auto const k                  = 3u;
-            auto const& nearest_neighbors = octree.nearest_neighbours(reference, k);
+            auto const& nearest_neighbors = octree.nearest_neighbours(reference, k, point_map);
 
             THEN("nearest points are the 3 nearest points in that same octant")
             {
@@ -134,10 +142,12 @@ SCENARIO("KNN searches on the octree", "[octree]")
         auto const size = size_distribution(gen);
         for (std::size_t i = 0; i < size; ++i)
         {
-            octree.insert(pcp::point_t{
-                coordinate_distribution(gen),
-                coordinate_distribution(gen),
-                coordinate_distribution(gen)});
+            octree.insert(
+                pcp::point_t{
+                    coordinate_distribution(gen),
+                    coordinate_distribution(gen),
+                    coordinate_distribution(gen)},
+                point_map);
         }
 
         REQUIRE(octree.size() == size);
@@ -156,12 +166,12 @@ SCENARIO("KNN searches on the octree", "[octree]")
                     far_coordinate_distribution(gen)});
             }
 
-            octree.insert(k_inserted_points.cbegin(), k_inserted_points.cend());
+            octree.insert(k_inserted_points.cbegin(), k_inserted_points.cend(), point_map);
 
             THEN("k nearest neighbour search returns those k points")
             {
                 std::vector<pcp::point_t> nearest_neighbours =
-                    octree.nearest_neighbours(reference, k);
+                    octree.nearest_neighbours(reference, k, point_map);
 
                 REQUIRE(nearest_neighbours.size() == k);
 

@@ -1,4 +1,3 @@
-#include <chrono>
 #include <iostream>
 #include <pcp/algorithm/common.hpp>
 #include <pcp/algorithm/estimate_normals.hpp>
@@ -8,7 +7,6 @@
 #include <pcp/common/timer.hpp>
 #include <pcp/io/ply.hpp>
 #include <pcp/octree/octree.hpp>
-#include <range/v3/all.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/enumerate.hpp>
 #include <range/v3/view/transform.hpp>
@@ -41,35 +39,24 @@ int main(int argc, char** argv)
 
     timer.register_op("setup octree");
     timer.start();
-    std::vector<vertex_type> vertices = ranges::views::enumerate(points) |
-                                        ranges::views::transform([](auto&& tup) {
-                                            auto const idx = std::get<0>(tup);
-                                            auto& point    = std::get<1>(tup);
-                                            return vertex_type{&point, idx};
-                                        }) |
-                                        ranges::to<std::vector>();
+    auto vertices = ranges::views::enumerate(points) | ranges::views::transform([](auto&& tup) {
+                        auto const idx = std::get<0>(tup);
+                        auto& point    = std::get<1>(tup);
+                        return vertex_type{&point, idx};
+                    }) |
+                    ranges::to<std::vector>();
 
     normals.resize(points.size());
 
-    using iterator_type = typename decltype(points)::const_iterator;
-    auto const bounding_box =
-        pcp::bounding_box<iterator_type, pcp::point_t>(std::cbegin(points), std::cend(points));
-
-    pcp::octree_parameters_t<pcp::point_t> params;
-    params.voxel_grid = bounding_box;
-
-    pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree{
-        std::cbegin(vertices),
-        std::cend(vertices),
-        params};
+    auto const point_map = [](vertex_type const& v) {
+        return *v.point();
+    };
+    pcp::basic_linked_octree_t<vertex_type> octree(vertices.begin(), vertices.end(), point_map);
 
     timer.stop();
 
-    auto const knn = [=, &octree, &vertices](vertex_type const& v) {
-        return octree.nearest_neighbours(vertices[v.id()], k);
-    };
-    auto const get_point = [&vertices](vertex_type const& v) {
-        return pcp::point_t{vertices[v.id()]};
+    auto const knn = [&](vertex_type const& v) {
+        return octree.nearest_neighbours(vertices[v.id()], k, point_map);
     };
     auto const get_normal = [normals_ptr = &normals](vertex_type const& v) {
         auto const& normals = *normals_ptr;
@@ -111,7 +98,7 @@ int main(int argc, char** argv)
         vertices.begin(),
         vertices.end(),
         knn,
-        get_point,
+        point_map,
         get_normal,
         transform_op);
     timer.stop();

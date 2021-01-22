@@ -74,14 +74,19 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
         params.node_capacity = 2u;
         params.voxel_grid    = {{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
 
+        auto const point_map = [](vertex_type const& v) {
+            return pcp::point_t{v.x(), v.y(), v.z()};
+        };
+
         pcp::basic_linked_octree_t<vertex_type, params_type> octree{
             std::cbegin(vertices),
             std::cend(vertices),
+            point_map,
             params};
 
         std::uint64_t k = 2u;
-        auto knn = [&octree, k](vertex_type const& v) {
-            return octree.nearest_neighbours(v, k);
+        auto knn = [&, k](vertex_type const& v) {
+            return octree.nearest_neighbours(v, k, point_map);
         };
 
         WHEN("creating a directed_knn_adjacency_list_t from the octree")

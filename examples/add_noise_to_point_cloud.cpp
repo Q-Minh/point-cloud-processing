@@ -41,7 +41,14 @@ int main(int argc, char** argv)
     for (std::size_t i = 0; i < points.size(); ++i)
         point_views.push_back(pcp::point_view_t{&points[i]});
 
-    pcp::basic_linked_octree_t<pcp::point_view_t> octree{std::cbegin(point_views), std::cend(point_views)};
+    auto const point_map = [](pcp::point_view_t const& p) {
+        return p;
+    };
+
+    pcp::basic_linked_octree_t<pcp::point_view_t> octree{
+        point_views.begin(),
+        point_views.end(),
+        point_map};
     timer.stop();
 
     timer.register_op("compute stddev of k neighborhoods");
@@ -55,8 +62,8 @@ int main(int argc, char** argv)
         points.cbegin(),
         points.cend(),
         mean_distances.begin(),
-        [&k, &octree, &mean_distances](pcp::point_t const& p) {
-            auto const& neighbors = octree.nearest_neighbours(p, k);
+        [&](pcp::point_t const& p) {
+            auto const& neighbors = octree.nearest_neighbours(p, k, point_map);
             float const sum       = std::accumulate(
                 neighbors.cbegin(),
                 neighbors.cend(),
@@ -69,11 +76,9 @@ int main(int argc, char** argv)
             return mean_distance;
         });
 
-    auto const n   = mean_distances.size();
-    float const mu = std::reduce(
-        std::execution::par,
-        mean_distances.cbegin(),
-        mean_distances.cend(), 0.f) /
+    auto const n = mean_distances.size();
+    float const mu =
+        std::reduce(std::execution::par, mean_distances.cbegin(), mean_distances.cend(), 0.f) /
         static_cast<float>(n);
     float const var = std::reduce(
         std::execution::par,
@@ -110,7 +115,7 @@ int main(int argc, char** argv)
     pcp::io::write_ply(output_ply, points, _, pcp::io::ply_format_t::binary_little_endian);
     timer.stop();
 
-    for (auto const [operation, duration] : timer.ops)
+    for (auto const & [operation, duration] : timer.ops)
     {
         std::cout << operation << ": "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()
