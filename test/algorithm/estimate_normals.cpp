@@ -64,91 +64,92 @@ SCENARIO("computing point cloud normals", "[normals]")
             }
         }
     }
-    //GIVEN("a point cloud with normals of inconsistent orientations")
-    //{
-    //    std::vector<pcp::point_t> point_cloud;
-    //    std::vector<pcp::normal_t> normals;
-    //    /*
-    //     * Points:
-    //     *
-    //     * 1 2           3
-    //     *   o
-    //     *  / \----------o
-    //     * o             |\---o 4
-    //     *               -----o 5
-    //     *
-    //     * Normals:
-    //     *
-    //     * 1 2 3 4 5
-    //     *
-    //     * | ^ ^ | |
-    //     * Y | | Y Y
-    //     *
-    //     */
-    //    point_cloud.push_back({-1.f, -1.f, -.1f});
-    //    point_cloud.push_back({-.9f, -1.f, .2f});
-    //    point_cloud.push_back({.9f, .9f, .1f});
-    //    point_cloud.push_back({1.1f, 1.1f, -.2f});
-    //    point_cloud.push_back({1.1f, 1.1f, -.3f});
-    //    normals.push_back({0.f, 0.f, -1.f});
-    //    normals.push_back({0.f, 0.f, 1.f});
-    //    normals.push_back({0.f, 0.f, 1.f});
-    //    normals.push_back({0.f, 0.f, -1.f});
-    //    normals.push_back({0.f, 0.f, -1.f});
+    GIVEN("a point cloud with normals of inconsistent orientations")
+    {
+        std::vector<pcp::point_t> point_cloud;
+        std::vector<pcp::normal_t> normals;
+        /*
+         * Points:
+         *
+         * 1 2           3
+         *   o
+         *  / \----------o
+         * o             |\---o 4
+         *               -----o 5
+         *
+         * Normals:
+         *
+         * 1 2 3 4 5
+         *
+         * | ^ ^ | |
+         * Y | | Y Y
+         *
+         */
+        point_cloud.push_back({-1.f, -1.f, -.1f});
+        point_cloud.push_back({-.9f, -1.f, .2f});
+        point_cloud.push_back({.9f, .9f, .1f});
+        point_cloud.push_back({1.1f, 1.1f, -.2f});
+        point_cloud.push_back({1.1f, 1.1f, -.3f});
+        normals.push_back({0.f, 0.f, -1.f});
+        normals.push_back({0.f, 0.f, 1.f});
+        normals.push_back({0.f, 0.f, 1.f});
+        normals.push_back({0.f, 0.f, -1.f});
+        normals.push_back({0.f, 0.f, -1.f});
 
-    //    WHEN("computing normal orientations")
-    //    {
-    //        using vertex_type = pcp::vertex_t;
-    //        std::vector<vertex_type> vertices;
-    //        vertices.reserve(point_cloud.size());
-    //        for (std::uint32_t i = 0; i < point_cloud.size(); ++i)
-    //            vertices.push_back(vertex_type{&point_cloud[i], i});
+        WHEN("computing normal orientations")
+        {
+            using vertex_type = pcp::vertex_t;
+            std::vector<vertex_type> vertices;
+            vertices.reserve(point_cloud.size());
+            for (std::uint32_t i = 0; i < point_cloud.size(); ++i)
+                vertices.push_back(vertex_type{&point_cloud[i], i});
 
-    //        pcp::octree_parameters_t<pcp::point_t> params;
-    //        params.voxel_grid = {{-2.f, -2.f, -2.f}, {2.f, 2.f, 2.f}};
-    //        pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree(
-    //            vertices.cbegin(),
-    //            vertices.cend(),
-    //            params);
+            // prepare property maps
+            auto const point_map = [&point_cloud](vertex_type const& v) {
+                return point_cloud[v.id()];
+            };
+            auto const index_map = [](vertex_type const& v) {
+                return v.id();
+            };
+            auto const normal_map = [&normals](vertex_type const& v) {
+                return normals[v.id()];
+            };
+            auto const transform_op = [&normals](vertex_type const& v, pcp::normal_t const& n) {
+                normals[v.id()] = n;
+            };
 
-    //        auto const point_map = [](pcp::vertex_t const& v) {
-    //            return pcp::point_t{v.x(), v.y(), v.z()};
-    //        };
+            pcp::octree_parameters_t<pcp::point_t> params;
+            params.voxel_grid = {{-2.f, -2.f, -2.f}, {2.f, 2.f, 2.f}};
+            pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree(
+                vertices.cbegin(),
+                vertices.cend(),
+                point_map,
+                params);
 
-    //        // pcp::propagate_normal_orientations requires the knn searcher to
-    //        // return vertices satisfying the GraphVertex concept
-    //        auto const knn = [&](vertex_type const& v) {
-    //            std::uint64_t const k = 2u;
-    //            return octree.nearest_neighbours(vertices[v.id()], k, point_map);
-    //        };
-    //        auto const get_point = [&point_cloud](vertex_type const& v) {
-    //            return point_cloud[v.id()];
-    //        };
-    //        auto const get_normal = [&normals](vertex_type const& v) {
-    //            return normals[v.id()];
-    //        };
-    //        auto const transform_op = [&normals](vertex_type const& v, pcp::normal_t const& n) {
-    //            normals[v.id()] = n;
-    //        };
+            auto const knn = [&](vertex_type const& v) {
+                std::uint64_t const k = 2u;
+                return octree.nearest_neighbours(vertices[v.id()], k, point_map);
+            };
 
-    //        pcp::algorithm::propagate_normal_orientations(
-    //            vertices.begin(),
-    //            vertices.end(),
-    //            knn,
-    //            get_point,
-    //            get_normal,
-    //            transform_op);
+            pcp::algorithm::propagate_normal_orientations(
+                vertices.begin(),
+                vertices.end(),
+                index_map,
+                knn,
+                point_map,
+                normal_map,
+                transform_op);
 
-    //        THEN("the estimated normal orientations are more consistent")
-    //        {
-    //            bool const are_normal_orientations_consistent =
-    //                std::all_of(normals.cbegin(), normals.cend(), [](auto const& n) {
-    //                    pcp::normal_t const expected{0.f, 0.f, 1.f};
-    //                    return pcp::common::are_vectors_equal(n, expected);
-    //                });
+            THEN("the estimated normal orientations are more consistent")
+            {
+                bool const are_normal_orientations_consistent =
+                    std::all_of(normals.cbegin(), normals.cend(), [](auto const& n) {
+                        pcp::normal_t const expected{0.f, 0.f, 1.f};
+                        return pcp::common::are_vectors_equal(n, expected);
+                    });
 
-    //            REQUIRE(are_normal_orientations_consistent);
-    //        }
-    //    }
-    //}
+                REQUIRE(are_normal_orientations_consistent);
+            }
+        }
+    }
 }

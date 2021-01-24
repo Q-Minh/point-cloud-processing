@@ -2,22 +2,23 @@
 #define PCP_ALGORITHM_ESTIMATE_NORMALS_HPP
 
 /**
- * @file 
+ * @file
  * @ingroup algorithm
  */
 
-#include <execution>
-#include <iterator>
 #include "pcp/common/norm.hpp"
 #include "pcp/common/normals/normal.hpp"
 #include "pcp/common/normals/normal_estimation.hpp"
 #include "pcp/common/points/point.hpp"
-#include "pcp/graph/search.hpp"
 #include "pcp/graph/knn_adjacency_list.hpp"
+#include "pcp/graph/search.hpp"
 #include "pcp/traits/graph_vertex_traits.hpp"
 #include "pcp/traits/knn_search_traits.hpp"
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
+
+#include <execution>
+#include <iterator>
 #include <utility>
 
 namespace pcp {
@@ -123,7 +124,7 @@ void estimate_normals(
      * Ideally, we would just want to delegate the call to the version of estimate_normals
      * that uses an execution policy, and simply give it the sequenced policy, but doing so
      * does not support std::back_inserter. STL execution policies only work with at least
-     * forward iterators, which back_inserter is not. For this reason, we have to duplicate 
+     * forward iterators, which back_inserter is not. For this reason, we have to duplicate
      * the normals estimation implementation.
      */
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
@@ -161,29 +162,31 @@ void estimate_normals(
  * of the KNN graph of the point cloud, and propagating the MST's root's normal
  * through the MST.
  * @tparam ForwardIter1 Type of input sequence iterator
- * @tparam GetNormalOp Callable type returning a normal from an input element
+ * @tparam NormalMap Callable type returning a normal from an input element
  * @tparam TransformOp Callable type taking an input element and its oriented normal
  * @tparam KnnSearcher Callable type computing the k neighborhood of an input element
- * @tparam GetPointOp Callable type returning a point from an input element
+ * @tparam PointMap Callable type returning a point from an input element
  * @param begin
  * @param end
  * @param knn Callable query object for k neighborhoods
- * @param get_point Callable object to get a point from an input element
- * @param get_normal Callable object to get a normal from an input element
+ * @param point_map Callable object to get a point from an input element
+ * @param normal_map Callable object to get a normal from an input element
  * @param op Transformation callable object taking an input element and its computed normal
  */
 template <
     class ForwardIter1,
+    class IndexMap,
     class KnnSearcher,
-    class GetPointOp,
-    class GetNormalOp,
+    class PointMap,
+    class NormalMap,
     class TransformOp>
 void propagate_normal_orientations(
     ForwardIter1 begin,
     ForwardIter1 end,
+    IndexMap const& index_map,
     KnnSearcher&& knn,
-    GetPointOp&& get_point,
-    GetNormalOp& get_normal,
+    PointMap&& point_map,
+    NormalMap& normal_map,
     TransformOp&& op)
 {
     using input_element_type = typename std::iterator_traits<ForwardIter1>::value_type;
@@ -193,29 +196,25 @@ void propagate_normal_orientations(
         "knn must satisfy KnnSearcher concept");
 
     static_assert(
-        traits::is_graph_vertex_v<input_element_type>,
-        "*begin must satisfy GraphVertex concept");
-
-    static_assert(
-        std::is_invocable_v<GetNormalOp, input_element_type>,
-        "GetNormalOp must be able to return normal from call to GetNormalOp(*begin)");
+        std::is_invocable_v<NormalMap, input_element_type>,
+        "NormalMap must be able to return normal from call to NormalMap(*begin)");
 
     using normal_type = std::remove_reference_t<
-        std::remove_cv_t<std::invoke_result_t<GetNormalOp, input_element_type>>>;
+        std::remove_cv_t<std::invoke_result_t<NormalMap, input_element_type>>>;
 
     static_assert(
         std::is_invocable_v<TransformOp, input_element_type, normal_type>,
-        "TransformOp must be callable as op(*begin, get_normal(...))");
+        "TransformOp must be callable as op(*begin, normal_map(...))");
 
-    auto graph          = graph::directed_knn_graph(begin, end, std::forward<KnnSearcher>(knn));
+    auto graph = graph::directed_knn_graph(begin, end, std::forward<KnnSearcher>(knn), index_map);
     auto [vbegin, vend] = graph.vertices();
 
-    auto const is_higher =
-        [get_point = std::forward<GetPointOp>(get_point)](auto const& v1, auto const& v2) {
-            auto const& p1 = get_point(v1);
-            auto const& p2 = get_point(v2);
-            return p1.z() < p2.z();
-        };
+    auto const is_higher = [get_point =
+                                std::forward<PointMap>(point_map)](auto const& v1, auto const& v2) {
+        auto const& p1 = get_point(v1);
+        auto const& p2 = get_point(v2);
+        return p1.z() < p2.z();
+    };
 
     auto const root = std::max_element(vbegin, vend, is_higher);
 
@@ -240,9 +239,9 @@ void propagate_normal_orientations(
      * that that is the culprit for the normal orientation adjustments not
      * working when using the MST version.
      */
-    // auto const cost = [get_normal](auto const& v1, auto const& v2) {
-    //    auto const& n1            = get_normal(v1);
-    //    auto const& n2            = get_normal(v2);
+    // auto const cost = [normal_map](auto const& v1, auto const& v2) {
+    //    auto const& n1            = normal_map(v1);
+    //    auto const& n2            = normal_map(v2);
     //    auto const prod           = common::inner_product(n1, n2);
     //    using floating_point_type = decltype(prod);
     //    auto const one            = static_cast<floating_point_type>(1.0);
@@ -254,9 +253,9 @@ void propagate_normal_orientations(
     // graph::depth_first_search(
     //    mst,
     //    mst_root,
-    //    [op = std::forward<TransformOp>(op), get_normal](auto const& v1, auto const& v2) {
-    //        auto const& n1            = get_normal(v1);
-    //        auto const& n2            = get_normal(v2);
+    //    [op = std::forward<TransformOp>(op), normal_map](auto const& v1, auto const& v2) {
+    //        auto const& n1            = normal_map(v1);
+    //        auto const& n2            = normal_map(v2);
     //        auto const prod           = common::inner_product(n1, n2);
     //        using floating_point_type = decltype(prod);
     //        auto const zero           = static_cast<floating_point_type>(0.0);
@@ -275,9 +274,9 @@ void propagate_normal_orientations(
     graph::breadth_first_search(
         graph,
         root,
-        [op = std::forward<TransformOp>(op), get_normal](auto const& v1, auto const& v2) {
-            auto const& n1  = get_normal(v1);
-            auto const& n2  = get_normal(v2);
+        [op = std::forward<TransformOp>(op), normal_map](auto const& v1, auto const& v2) {
+            auto const& n1  = normal_map(v1);
+            auto const& n2  = normal_map(v2);
             auto const prod = common::inner_product(n1, n2);
             auto const zero = static_cast<floating_point_type>(0.0);
             // flip normal orientation if

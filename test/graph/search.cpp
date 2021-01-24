@@ -9,8 +9,13 @@ SCENARIO("graph searching algorithms", "[graph]")
     GIVEN("a graph with cycles")
     {
         using vertex_type = pcp::graph::vertex_t<>;
-        using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
-        graph_type G;
+
+        auto const index_map = [](vertex_type const& v) {
+            return v.id();
+        };
+
+        using graph_type = pcp::graph::directed_adjacency_list_t<vertex_type, decltype(index_map)>;
+        graph_type G{index_map};
         auto v1  = 0u;
         auto v2  = 1u;
         auto v3  = 2u;
@@ -23,17 +28,17 @@ SCENARIO("graph searching algorithms", "[graph]")
         auto v10 = 9u;
         auto v11 = 10u;
 
-        G.add_vertex({v1});
-        G.add_vertex({v2});
-        G.add_vertex({v3});
-        G.add_vertex({v4});
-        G.add_vertex({v5});
-        G.add_vertex({v6});
-        G.add_vertex({v7});
-        G.add_vertex({v8});
-        G.add_vertex({v9});
-        G.add_vertex({v10});
-        G.add_vertex({v11});
+        G.add_vertex(vertex_type{v1});
+        G.add_vertex(vertex_type{v2});
+        G.add_vertex(vertex_type{v3});
+        G.add_vertex(vertex_type{v4});
+        G.add_vertex(vertex_type{v5});
+        G.add_vertex(vertex_type{v6});
+        G.add_vertex(vertex_type{v7});
+        G.add_vertex(vertex_type{v8});
+        G.add_vertex(vertex_type{v9});
+        G.add_vertex(vertex_type{v10});
+        G.add_vertex(vertex_type{v11});
 
         auto [vbegin, vend] = G.vertices();
         auto const n        = std::distance(vbegin, vend);
@@ -79,7 +84,7 @@ SCENARIO("graph searching algorithms", "[graph]")
         std::vector<std::int32_t> visiting_order(count, 0u);
         auto visited_nodes_counter = 0u;
         auto starting_id           = -1;
-        using starting_id_type = decltype(starting_id);
+        using starting_id_type     = decltype(starting_id);
 
         auto const visitor = [&visits, &visiting_order, &visited_nodes_counter, &starting_id](
                                  vertex_type const& source,
@@ -87,9 +92,9 @@ SCENARIO("graph searching algorithms", "[graph]")
             auto const source_id = source.id();
             auto const dest_id   = dest.id();
 
-            // the root of the graph is never 
-            // visited as a dest vertex, so 
-            // if this is the root node, 
+            // the root of the graph is never
+            // visited as a dest vertex, so
+            // if this is the root node,
             // let us update the visit stats
             // for the it.
             if (starting_id == -1)

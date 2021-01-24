@@ -6,18 +6,18 @@
  * @ingroup graph
  */
 
-#include "pcp/traits/graph_vertex_traits.hpp"
+#include "pcp/traits/index_map.hpp"
+#include "pcp/traits/property_map_traits.hpp"
 
 #include <iterator>
-#include <numeric>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/transform.hpp>
+#include <unordered_map>
 #include <utility>
 #include <vector>
 
 namespace pcp {
 namespace graph {
-
-template <class GraphVertex>
-class adjacency_list_edge_iterator_t;
 
 /**
  * @ingroup graph-structures-types
@@ -31,38 +31,59 @@ class adjacency_list_edge_iterator_t;
  *
  * Satisfies MutableDirectedGraph concept.
  *
- * @tparam GraphVertex Any type can be a vertex
+ * @tparam Element Any type
  */
-template <class GraphVertex>
+template <class Element, class IndexMap>
 class directed_adjacency_list_t
 {
-    static_assert(
-        traits::is_graph_vertex_v<GraphVertex>,
-        "GraphVertex must satisfy GraphVertex concept");
-
   public:
-    using self_type                  = directed_adjacency_list_t<GraphVertex>;
-    using vertex_type                = GraphVertex;
-    using vertices_type              = std::vector<vertex_type>;
-    using vertex_iterator_type       = typename vertices_type::iterator;
-    using const_vertex_iterator_type = typename vertices_type::const_iterator;
-    using vertex_iterator_range      = std::pair<vertex_iterator_type, vertex_iterator_type>;
-    using const_vertex_iterator_range =
-        std::pair<const_vertex_iterator_type, const_vertex_iterator_type>;
-    using edge_iterator_type  = adjacency_list_edge_iterator_t<GraphVertex>;
+    using self_type             = directed_adjacency_list_t<Element, IndexMap>;
+    using vertex_type           = Element;
+    using vertices_type         = std::vector<vertex_type>;
+    using vertex_iterator_type  = vertex_type*;
+    using vertex_iterator_range = std::pair<vertex_type*, vertex_type*>;
+    using index_type = typename traits::property_map_traits<IndexMap, vertex_type>::value_type;
+
+    struct hash_fn
+    {
+        hash_fn(IndexMap const& index) : index_(index) {}
+
+        index_type operator()(vertex_type const* v) const { return index_(*v); }
+
+        IndexMap index_;
+    };
+
+    struct key_equal_fn
+    {
+        key_equal_fn(IndexMap const& index) : index_(index) {}
+
+        bool operator()(vertex_type const* v1, vertex_type const* v2) const
+        {
+            return index_(*v1) == index_(*v2);
+        }
+
+        IndexMap index_;
+    };
+
+    using edges_type = std::unordered_multimap<vertex_type*, vertex_type*, hash_fn, key_equal_fn>;
+    using edge_type  = typename edges_type::value_type;
+    using edge_iterator_type  = typename edges_type::iterator;
     using edge_iterator_range = std::pair<edge_iterator_type, edge_iterator_type>;
 
-    using difference_type   = typename vertices_type::difference_type;
-    using size_type         = typename vertices_type::size_type;
-    using connectivity_type = std::vector<std::vector<size_type>>;
+    using difference_type = typename vertices_type::difference_type;
+    using size_type       = typename vertices_type::size_type;
 
-    friend class adjacency_list_edge_iterator_t<GraphVertex>;
-
-    directed_adjacency_list_t()                 = default;
     directed_adjacency_list_t(self_type const&) = default;
     directed_adjacency_list_t(self_type&&)      = default;
     self_type& operator=(self_type const&) = default;
     self_type& operator=(self_type&&) = default;
+
+    directed_adjacency_list_t(IndexMap const& idmap, std::size_t initial_capacity = 4'096)
+        : hash_{idmap},
+          key_equal_{idmap}, edges_{initial_capacity, hash_, key_equal_}, vertices_{}
+    {
+        vertices_.reserve(initial_capacity);
+    }
 
     /**
      * @brief Constructs adjacency list using a range of elements convertible to Vertex
@@ -71,7 +92,11 @@ class directed_adjacency_list_t
      * @param end
      */
     template <class ForwardIter>
-    directed_adjacency_list_t(ForwardIter begin, ForwardIter end)
+    directed_adjacency_list_t(ForwardIter begin, ForwardIter end, IndexMap const& idmap)
+        : hash_{idmap},
+          key_equal_{idmap},
+          edges_{static_cast<size_type>(std::distance(begin, end)), hash_, key_equal_},
+          vertices_{}
     {
         static_assert(
             std::is_convertible_v<
@@ -79,11 +104,7 @@ class directed_adjacency_list_t
                 vertex_type>,
             "begin, end must be iterators to vertex_type");
 
-        auto const vertex_count = static_cast<size_type>(std::distance(begin, end));
-        vertices_.reserve(vertex_count);
-        connectivity_.reserve(vertex_count);
-        for (auto it = begin; it != end; ++it)
-            add_vertex(*it);
+        vertices_.assign(begin, end);
     }
 
     /**
@@ -94,7 +115,7 @@ class directed_adjacency_list_t
 
     /**
      * @brief Check if any vertices are in the graph
-     * @return
+     * @return True if graph has no vertices
      */
     bool empty() const { return vertices_.empty(); }
 
@@ -105,60 +126,32 @@ class directed_adjacency_list_t
      *
      * @return Number of edges
      */
-    size_type edge_count() const
-    {
-        return std::accumulate(
-            std::cbegin(connectivity_),
-            std::cend(connectivity_),
-            size_type{},
-            [](size_type const count, std::vector<size_type> const& edges) {
-                return count + edges.size();
-            });
-    }
+    size_type edge_count() const { return edges_.size(); }
 
     /**
      * @brief Returns a range over all vertices of this graph.
-     * @return The range 'auto range = [first, last]' of the vertices
+     * @return Range of all vertices
      */
-    const_vertex_iterator_range vertices() const
+    vertex_iterator_range vertices()
     {
-        return {std::cbegin(vertices_), std::cend(vertices_)};
+        auto begin = std::addressof(vertices_.front());
+        auto end   = std::addressof(vertices_.back()) + 1;
+        return std::make_pair(begin, end);
     }
-    /**
-     * @brief Returns a range over all vertices of this graph.
-     * @return The range 'auto range = [first, last]' of the vertices
-     */
-    vertex_iterator_range vertices() { return {std::begin(vertices_), std::end(vertices_)}; }
+
     /**
      * @brief Returns a range over all edges of this graph.
      * @return The range 'auto range = [first, last]' of the edges
      */
-    edge_iterator_range edges() const
-    {
-        return {
-            edge_iterator_type{const_cast<self_type*>(this)},
-            edge_iterator_type{const_cast<self_type*>(this), connectivity_.size()}};
-    }
+    edge_iterator_range edges() { return std::make_pair(edges_.begin(), edges_.end()); }
+
     /**
      * @brief Get all outgoing edges of the vertex referenced by vit.
      * Complexity is O(1).
      * @param vit Iterator to the vertex from which we want to get the outgoing edges
-     * @return A range over the outgoing edges of vit
+     * @return A range over the outgoing edges of vit as a pair of iterators
      */
-    edge_iterator_range out_edges_of(const_vertex_iterator_type vit) const
-    {
-        auto const begin   = std::cbegin(vertices_);
-        auto const voffset = std::distance<const_vertex_iterator_type>(begin, vit);
-        auto const vidx    = static_cast<size_type>(voffset);
-        if (connectivity_[vidx].empty())
-        {
-            auto const end = edge_iterator_type{const_cast<self_type*>(this), connectivity_.size()};
-            return {end, end};
-        }
-        auto edge_begin = edge_iterator_type{const_cast<self_type*>(this), vidx};
-        auto edge_end   = edge_iterator_type{const_cast<self_type*>(this), vidx + 1u};
-        return {edge_begin, edge_end};
-    }
+    edge_iterator_range out_edges_of(vertex_iterator_type vit) { return edges_.equal_range(vit); }
 
     /**
      * @brief Add a vertex to the graph.
@@ -167,45 +160,9 @@ class directed_adjacency_list_t
      */
     vertex_iterator_type add_vertex(vertex_type const& v)
     {
-        auto const idx    = vertices_.size();
-        auto const offset = static_cast<difference_type>(idx);
+        auto const offset = vertices_.size();
         vertices_.push_back(v);
-        connectivity_.push_back({});
-        return std::begin(vertices_) + offset;
-    }
-
-    /**
-     * @brief Remove a vertex from the graph.
-     *
-     * Complexity is O(E + V)
-     *
-     * @param vit Iterator to the vertex to remove
-     * @return Iterator to the next vertex in the range of vertices [first, last] before removing
-     * vit
-     */
-    vertex_iterator_type remove_vertex(vertex_iterator_type const& vit)
-    {
-        difference_type const offset = std::distance(std::begin(vertices_), vit);
-        size_type const idx          = static_cast<size_type>(offset);
-        auto next                    = vertices_.erase(vit);
-        connectivity_.erase(std::begin(connectivity_) + offset);
-        for (auto& neighbors : connectivity_)
-        {
-            if (neighbors.empty())
-                continue;
-
-            auto const it = std::remove(std::begin(neighbors), std::end(neighbors), idx);
-            neighbors.erase(it, std::end(neighbors));
-            std::transform(
-                std::begin(neighbors),
-                std::end(neighbors),
-                std::begin(neighbors),
-                [idx](auto const neighbor_index) {
-                    bool const should_be_shifted = neighbor_index > idx;
-                    return should_be_shifted ? neighbor_index - 1 : neighbor_index;
-                });
-        }
-        return next;
+        return std::addressof(vertices_.front()) + offset;
     }
 
     /**
@@ -214,17 +171,9 @@ class directed_adjacency_list_t
      * @param vit Destination vertex
      * @return Iterator to the created edge
      */
-    edge_iterator_type add_edge(vertex_iterator_type const& uit, vertex_iterator_type const& vit)
+    edge_iterator_type add_edge(vertex_iterator_type uit, vertex_iterator_type vit)
     {
-        auto const begin   = std::begin(vertices_);
-        auto const uoffset = std::distance(begin, uit);
-        auto const voffset = std::distance(begin, vit);
-        auto const uidx    = static_cast<size_type>(uoffset);
-        auto const vidx    = static_cast<size_type>(voffset);
-        auto const i       = uidx;
-        auto const j       = connectivity_[uidx].size();
-        connectivity_[uidx].push_back(vidx);
-        return edge_iterator_type{this, i, j};
+        return edges_.insert(std::make_pair(uit, vit));
     }
 
     /**
@@ -232,17 +181,7 @@ class directed_adjacency_list_t
      * @param eit Iterator to the edge to remove
      * @return Iterator to the next edge in the sequence [first, last]
      */
-    edge_iterator_type remove_edge(edge_iterator_type const& eit)
-    {
-        auto next     = eit;
-        auto const i  = eit.i();
-        auto const j  = eit.j();
-        auto const it = std::begin(connectivity_[i]) + j;
-        connectivity_[i].erase(it);
-        if (j >= connectivity_[i].size())
-            ++next;
-        return next;
-    }
+    edge_iterator_type remove_edge(edge_iterator_type eit) { return edges_.erase(eit); }
 
     /**
      * @brief Clear all vertices and edges from the graph
@@ -250,224 +189,14 @@ class directed_adjacency_list_t
     void clear()
     {
         vertices_.clear();
-        connectivity_.clear();
+        edges_.clear();
     }
 
   private:
-    vertices_type vertices_;
-    connectivity_type connectivity_;
-};
-
-/**
- * @ingroup graph-structures-types
- * @brief
- * Iterator to the edges of a directed_adjacency_list_t.
- * The edges returned by dereferencing this iterator aren't
- * the actual edges as stored in the graph's implementation.
- * The edges are considered to be pairs of the graph's
- * vertex iterators.
- * @tparam GraphVertex Vertex type satisfying GraphVertex concept
- */
-template <class GraphVertex>
-class adjacency_list_edge_iterator_t
-{
-  public:
-    using self_type            = adjacency_list_edge_iterator_t<GraphVertex>;
-    using graph_type           = directed_adjacency_list_t<GraphVertex>;
-    using vertices_type        = typename graph_type::vertices_type;
-    using vertex_iterator_type = typename graph_type::vertex_iterator_type;
-    using connectivity_type    = typename graph_type::connectivity_type;
-
-    using value_type        = typename std::pair<vertex_iterator_type, vertex_iterator_type>;
-    using reference         = value_type;
-    using const_reference   = value_type const;
-    using pointer           = value_type*;
-    using const_pointer     = value_type const*;
-    using iterator_category = std::random_access_iterator_tag;
-    using difference_type   = typename connectivity_type::difference_type;
-    using size_type         = typename connectivity_type::size_type;
-
-    adjacency_list_edge_iterator_t(graph_type* graph) : graph_(graph), i_(), j_()
-    {
-        try_next_valid_edge();
-    }
-    adjacency_list_edge_iterator_t(graph_type* graph, size_type i) : graph_(graph), i_(i), j_()
-    {
-        try_next_valid_edge();
-    }
-    adjacency_list_edge_iterator_t(graph_type* graph, size_type i, size_type j)
-        : graph_(graph), i_(i), j_(j)
-    {
-        try_next_valid_edge();
-    }
-
-    adjacency_list_edge_iterator_t(self_type const&) = default;
-    self_type& operator=(self_type const&) = default;
-
-    reference operator*() const
-    {
-        auto const ioffset         = static_cast<difference_type>(i_);
-        auto u                     = std::begin(graph_->vertices_) + ioffset;
-        auto const neighbor_offset = static_cast<difference_type>(graph_->connectivity_[i_][j_]);
-        auto v                     = std::begin(graph_->vertices_) + neighbor_offset;
-        return {u, v};
-    }
-
-    self_type& operator++()
-    {
-        if (++j_ >= graph_->connectivity_[i_].size())
-        {
-            do
-            {
-                j_ = 0u;
-                ++i_;
-            } while (i_ < graph_->connectivity_.size() && graph_->connectivity_[i_].empty());
-        }
-        return *this;
-    }
-
-    self_type operator++(int)
-    {
-        self_type copy{*this};
-        this->operator++();
-        return copy;
-    }
-
-    self_type& operator--()
-    {
-        if (j_ == 0)
-        {
-            do
-            {
-                --i_;
-                j_ = graph_->connectivity_[i_].size();
-            } while (i_ >= 0u && graph_->connectivity_[i_].empty());
-        }
-        --j_;
-        return *this;
-    }
-
-    /**
-     * Preconditions: n must be >= 0
-     */
-    self_type& operator+=(difference_type n)
-    {
-        *this = (*this + n);
-        return *this;
-    }
-
-    /**
-     * Preconditions: n must be >= 0
-     */
-    self_type& operator-=(difference_type n)
-    {
-        *this = (*this - n);
-        return *this;
-    }
-
-    self_type operator+(difference_type n) const
-    {
-        auto i                  = i_;
-        auto j                  = j_;
-        auto const vertex_count = graph_->vertex_count();
-        while (n > 0 && i < vertex_count)
-        {
-            auto const remaining_increments =
-                static_cast<difference_type>(graph_->connectivity_[i].size() - j);
-            if (remaining_increments > n)
-            {
-                j += static_cast<size_type>(n);
-                break;
-            }
-            n -= remaining_increments;
-            do
-            {
-                ++i;
-                j = 0u;
-            } while (i < graph_->connectivity_.size() && graph_->connectivity_[i].empty());
-        }
-        return self_type{graph_, i, j};
-    }
-
-    difference_type operator-(self_type const& other) const
-    {
-        auto const reduce_op = [](auto const s, auto const& edges) {
-            return s + static_cast<difference_type>(edges.size());
-        };
-        auto const iself  = static_cast<difference_type>(i());
-        auto const jself  = static_cast<difference_type>(j());
-        auto const iother = static_cast<difference_type>(other.i());
-        auto const jother = static_cast<difference_type>(other.j());
-        auto const begin  = std::cbegin(graph_->connectivity_);
-        auto const end1   = begin + iself;
-        auto const sum1   = std::accumulate(begin, end1, difference_type{}, reduce_op) + jself;
-        auto const end2   = begin + iother;
-        auto const sum2   = std::accumulate(begin, end2, difference_type{}, reduce_op) + jother;
-        return sum1 - sum2;
-    }
-    self_type operator-(difference_type n) const
-    {
-        auto i = i_;
-        auto j = j_;
-        while (n > 0 && i >= 0u)
-        {
-            auto const remaining_decrements = j + 1u;
-            if (remaining_decrements > n)
-            {
-                j -= n;
-                break;
-            }
-            n -= remaining_decrements;
-            do
-            {
-                --i;
-                j = graph_->connectivity_[i].size() - 1;
-            } while (i >= 0u && graph_->connectivity_[i].empty());
-        }
-        return self_type{graph_, i, j};
-    }
-    friend self_type operator+(difference_type n, self_type const& self) { return self + n; }
-
-    reference operator[](difference_type n) const { return *(*this + n); }
-
-    bool operator==(self_type const& other) const
-    {
-        return (graph_ == other.graph_) && (i_ == other.i_) && (j_ == other.j_);
-    }
-
-    bool operator!=(self_type const& other) const { return !(*this == other); }
-    bool operator<(self_type const& other) const
-    {
-        return i_ < other.i_ || (i_ == other.i_ && j_ < other.j_);
-    }
-    bool operator<=(self_type const& other) const { return (*this < other) || (*this == other); }
-    bool operator>(self_type const& other) const { return !(*this <= other); }
-    bool operator>=(self_type const& other) const { return !(*this < other); }
-
-    size_type i() const { return i_; }
-    size_type j() const { return j_; }
-
-  private:
-    void try_next_valid_edge()
-    {
-        if (i_ >= graph_->connectivity_.size())
-            return;
-
-        if (j_ >= graph_->connectivity_[i_].size())
-        {
-            ++(*this);
-            return;
-        }
-        if (graph_->connectivity_[i_].empty())
-        {
-            ++(*this);
-            return;
-        }
-    }
-
-    graph_type* graph_;
-    size_type i_;
-    size_type j_;
+    hash_fn hash_;           ///< Functor for hashing vertex pointers
+    key_equal_fn key_equal_; ///< Functor for comparing vertex keys
+    edges_type edges_;       ///< hash multimap of neighbors of vertices
+    vertices_type vertices_; ///< vector of the elements to be stored
 };
 
 } // namespace graph
