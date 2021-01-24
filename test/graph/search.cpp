@@ -111,7 +111,7 @@ SCENARIO("graph searching algorithms", "[graph]")
 
         WHEN("visiting the graph in breadth first order")
         {
-            pcp::graph::breadth_first_search(G, a, visitor);
+            pcp::graph::breadth_first_search(G, a, index_map, visitor);
             THEN("the visitor visits nodes in breadth first order")
             {
                 REQUIRE(visited_nodes_counter == count);
@@ -135,7 +135,7 @@ SCENARIO("graph searching algorithms", "[graph]")
         }
         WHEN("traversing the graph in depth first order")
         {
-            pcp::graph::depth_first_search(G, a, visitor);
+            pcp::graph::depth_first_search(G, a, index_map, visitor);
             THEN("the visitor visits nodes in depth first order")
             {
                 REQUIRE(visited_nodes_counter == count);

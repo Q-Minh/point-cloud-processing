@@ -33,10 +33,12 @@ namespace graph {
  *
  * @tparam ForwardIter Iterator to a type convertible to GraphVertex
  * @tparam KnnSearcher Callable satisfying KnnSearcher concept
- * @tparam GraphVertex Vertex type satisfying GraphVertex concept
+ * @tparam IndexMap Type satisfying IndexMap concept
+ * @tparam GraphVertex Vertex type
  * @param begin Iterator to the start of the sequence
  * @param end Iterator to one past the end of the sequence
  * @param knn Callable object implementing the knn searches for each vertex
+ * @param index_map The index map property map
  * @return The undirected graph of k nearest neighbors of each of its vertices
  */
 template <
@@ -102,10 +104,11 @@ auto undirected_knn_graph(
  *
  * @tparam ForwardIter Iterator to a type convertible to GraphVertex
  * @tparam KnnSearcher Callable satisfying KnnSearcher concept
- * @tparam GraphVertex Vertex type satisfying GraphVertex concept
- * @param begin
- * @param end
+ * @tparam GraphVertex Vertex type
+ * @param begin Iterator to the start of the sequence
+ * @param end Iterator to one past the end of the sequence
  * @param knn Callable object implementing the knn searches for each vertex
+ * @param index_map The index map property map
  * @return The directed graph of k nearest neighbors of each of its vertices
  */
 template <

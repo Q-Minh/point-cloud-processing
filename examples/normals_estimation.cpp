@@ -94,9 +94,14 @@ int main(int argc, char** argv)
 
     timer.register_op("propagate normal orientations");
     timer.start();
+    auto const index_map = [](vertex_type const& v) {
+        return v.id();
+    };
+
     pcp::algorithm::propagate_normal_orientations(
         vertices.begin(),
         vertices.end(),
+        index_map,
         knn,
         point_map,
         get_normal,

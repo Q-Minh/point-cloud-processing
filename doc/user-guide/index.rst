@@ -119,7 +119,7 @@ Normals Estimation
 
 .. literalinclude:: ../../examples/normals_estimation.cpp
    :language: cpp
-   :lines: 1-31,37,39,42-55,58-70,73-92,94,97-103,105,108-112,122-124
+   :lines: 1-32,37,39,42-55,58-70,73-92,94,97-108,110,113-117,127-129
 
 Filtering
 ~~~~~~~~~

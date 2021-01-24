@@ -24,10 +24,7 @@ namespace graph {
  * @brief Implementation of an adjacency list based graph.
  *
  * Uses a vector of vertices to stores the vertices and
- * uses a vector of vectors of indices of neighbors to
- * store connectivity information of the graph.
- *
- * Space complexity is O(V * sizeof(Vertex) + E * sizeof(uint64_t))
+ * uses an unordered_multimap to store edges.
  *
  * Satisfies MutableDirectedGraph concept.
  *
@@ -37,13 +34,22 @@ template <class Element, class IndexMap>
 class directed_adjacency_list_t
 {
   public:
-    using self_type             = directed_adjacency_list_t<Element, IndexMap>;
-    using vertex_type           = Element;
-    using vertices_type         = std::vector<vertex_type>;
-    using vertex_iterator_type  = vertex_type*;
-    using vertex_iterator_range = std::pair<vertex_type*, vertex_type*>;
-    using index_type = typename traits::property_map_traits<IndexMap, vertex_type>::value_type;
+    using self_type = directed_adjacency_list_t<Element, IndexMap>; ///< Type of this adjacency list
+    using vertex_type   = Element; ///< The type of element stored is the vertex type
+    using vertices_type = std::vector<vertex_type>; ///< The container for vertices
+    using vertex_iterator_type =
+        vertex_type*; ///< The iterator type over vertices being a pointer to vertex
+    using vertex_iterator_range =
+        std::pair<vertex_type*, vertex_type*>; ///< a range of vertices is exposed as a pair of
+                                               ///< vertex iterators
+    using index_type = typename traits::property_map_traits<IndexMap, vertex_type>::
+        value_type; ///< the type of index used to uniquely identify vertices
 
+    /**
+     * @brief
+     * The functor used for hashing vertices of this graph for the multimap holding our edges.
+     * Simply uses the IndexMap provided.
+     */
     struct hash_fn
     {
         hash_fn(IndexMap const& index) : index_(index) {}
@@ -53,6 +59,11 @@ class directed_adjacency_list_t
         IndexMap index_;
     };
 
+    /**
+     * @brief
+     * The functor used for comparing two vertices for the multimap holding our edges.
+     * Simply uses the IndexMap provided and compares indices by value.
+     */
     struct key_equal_fn
     {
         key_equal_fn(IndexMap const& index) : index_(index) {}
@@ -65,10 +76,17 @@ class directed_adjacency_list_t
         IndexMap index_;
     };
 
-    using edges_type = std::unordered_multimap<vertex_type*, vertex_type*, hash_fn, key_equal_fn>;
-    using edge_type  = typename edges_type::value_type;
-    using edge_iterator_type  = typename edges_type::iterator;
-    using edge_iterator_range = std::pair<edge_iterator_type, edge_iterator_type>;
+    using edges_type =
+        std::unordered_multimap<vertex_type*, vertex_type*, hash_fn, key_equal_fn>; ///< Container
+                                                                                    ///< type
+                                                                                    ///< storing the
+                                                                                    ///< edges
+    using edge_type = typename edges_type::value_type; ///< The type of edge stored by this graph
+    using edge_iterator_type =
+        typename edges_type::iterator; ///< Type of iterator over the edges of the graph
+    using edge_iterator_range =
+        std::pair<edge_iterator_type, edge_iterator_type>; ///< Range of edges represented as a pair
+                                                           ///< of edge iterators
 
     using difference_type = typename vertices_type::difference_type;
     using size_type       = typename vertices_type::size_type;
@@ -78,9 +96,19 @@ class directed_adjacency_list_t
     self_type& operator=(self_type const&) = default;
     self_type& operator=(self_type&&) = default;
 
-    directed_adjacency_list_t(IndexMap const& idmap, std::size_t initial_capacity = 4'096)
-        : hash_{idmap},
-          key_equal_{idmap}, edges_{initial_capacity, hash_, key_equal_}, vertices_{}
+    /**
+     * @brief
+     * Constructs an empty graph and stores the provided index_map.
+     * Reserves space for initial_capacity vertices in our vertex container
+     * and initial_capacity hash table buckets in our edge container.
+     * @param index_map The index map property map
+     * @param initial_capacity The initial allocated memory to reserve for our containers.
+     */
+    directed_adjacency_list_t(IndexMap const& index_map, std::size_t initial_capacity = 4'096)
+        : hash_{index_map},
+          key_equal_{index_map},
+          edges_{initial_capacity, hash_, key_equal_},
+          vertices_{}
     {
         vertices_.reserve(initial_capacity);
     }
@@ -88,13 +116,14 @@ class directed_adjacency_list_t
     /**
      * @brief Constructs adjacency list using a range of elements convertible to Vertex
      * @tparam ForwardIter Iterator type of the range
-     * @param begin
-     * @param end
+     * @param begin Iterator to start of the sequence of elements
+     * @param end Iterator to one past the end of the sequence of elements
+     * @param index_map The index map property map
      */
     template <class ForwardIter>
-    directed_adjacency_list_t(ForwardIter begin, ForwardIter end, IndexMap const& idmap)
-        : hash_{idmap},
-          key_equal_{idmap},
+    directed_adjacency_list_t(ForwardIter begin, ForwardIter end, IndexMap const& index_map)
+        : hash_{index_map},
+          key_equal_{index_map},
           edges_{static_cast<size_type>(std::distance(begin, end)), hash_, key_equal_},
           vertices_{}
     {
@@ -109,7 +138,7 @@ class directed_adjacency_list_t
 
     /**
      * @brief Get number of vertices
-     * @return
+     * @return The number of vertices
      */
     size_type vertex_count() const { return vertices_.size(); }
 

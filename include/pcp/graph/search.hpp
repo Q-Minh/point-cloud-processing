@@ -25,25 +25,30 @@ namespace graph {
  * with its source vertex with a call to op(source_vertex, destination_vertex).
  * Starts from vertex begin.
  * @tparam DirectedGraph Type of graph to traverse
- * @tparam GraphIterator Type of iterator used to traverse the graph
+ * @tparam IndexMap Type satisfying IndexMap concept
  * @tparam BinaryOp Type of callable to call on source and destination vertices
- * @param graph
- * @param op
- * @param begin
+ * @tparam GraphIterator Type of iterator used to traverse the graph
+ * @param graph The graph to traverse
+ * @param begin Iterator to the root vertex of the traversal
+ * @param index_map The index map property map
+ * @param op The binary operation to apply once at each vertex traversed. Takes two parameters of
+ * the type of vertex stored in the graph.
  */
 template <
     class DirectedGraph,
+    class IndexMap,
     class BinaryOp,
     class GraphIterator = typename DirectedGraph::vertex_iterator_type>
-void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op)
+void breadth_first_search(
+    DirectedGraph& graph,
+    GraphIterator begin,
+    IndexMap const& index_map,
+    BinaryOp&& op)
 {
     using vertex_iterator_type = GraphIterator;
     using vertex_type          = typename std::iterator_traits<vertex_iterator_type>::value_type;
     using size_type            = typename DirectedGraph::size_type;
 
-    static_assert(
-        traits::is_graph_vertex_v<vertex_type>,
-        "GraphIterator must be dereferenceable to a type satisfying GraphVertex concept");
     static_assert(
         traits::is_directed_graph_v<DirectedGraph>,
         "graph must satisfy DirectedGraph concept");
@@ -67,7 +72,7 @@ void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& 
         {
             auto [u, v] = *edge;
 
-            auto const destination_id = v->id();
+            auto const destination_id = index_map(*v);
             if (visited[destination_id])
                 continue;
 
@@ -75,7 +80,7 @@ void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& 
             visited[destination_id] = true;
             bfs_queue.push(v);
         }
-        auto const source_id = source->id();
+        auto const source_id = index_map(*source);
         visited[source_id]   = true;
     }
 }
@@ -87,17 +92,21 @@ void breadth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& 
  * with its source vertex with a call to op(source_vertex, destination_vertex).
  * Starts from vertex begin.
  * @tparam DirectedGraph Type of graph to traverse
- * @tparam GraphIterator Type of iterator used to traverse the graph
+ * @tparam IndexMap Type satisfying IndexMap concept
  * @tparam BinaryOp Type of callable to call on source and destination vertices
- * @param graph
- * @param op
- * @param begin
+ * @tparam GraphIterator Type of iterator used to traverse the graph
+ * @param graph The graph to traverse
+ * @param begin Iterator to the root vertex of the traversal
+ * @param index_map The index map property map
+ * @param op The binary operation to apply at edge traversed vertex having signature 
+ * f(vertex_type, vertex_type)
  */
 template <
     class DirectedGraph,
+    class IndexMap,
     class BinaryOp,
     class GraphIterator = typename DirectedGraph::vertex_iterator_type>
-void depth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op)
+void depth_first_search(DirectedGraph& graph, GraphIterator begin, IndexMap index_map, BinaryOp&& op)
 {
     using vertex_iterator_type = GraphIterator;
     using vertex_type          = typename std::iterator_traits<vertex_iterator_type>::value_type;
@@ -126,7 +135,7 @@ void depth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op
         auto [parent, source] = dfs_stack.top();
         dfs_stack.pop();
 
-        auto const source_id = source->id();
+        auto const source_id = index_map(*source);
 
         if (!visited[source_id])
         {
@@ -141,7 +150,7 @@ void depth_first_search(DirectedGraph& graph, GraphIterator begin, BinaryOp&& op
         {
             auto [u, v] = *edge;
 
-            auto const destination_id = v->id();
+            auto const destination_id = index_map(*v);
             if (visited[destination_id])
                 continue;
 

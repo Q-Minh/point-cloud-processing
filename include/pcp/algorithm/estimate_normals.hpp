@@ -161,13 +161,16 @@ void estimate_normals(
  * Adjusts the orientations of a point cloud's normals using a minimum spanning tree
  * of the KNN graph of the point cloud, and propagating the MST's root's normal
  * through the MST.
+ * 
  * @tparam ForwardIter1 Type of input sequence iterator
- * @tparam NormalMap Callable type returning a normal from an input element
- * @tparam TransformOp Callable type taking an input element and its oriented normal
+ * @tparam IndexMap Type satisfying IndexMap concept
  * @tparam KnnSearcher Callable type computing the k neighborhood of an input element
  * @tparam PointMap Callable type returning a point from an input element
+ * @tparam NormalMap Callable type returning a normal from an input element
+ * @tparam TransformOp Callable type taking an input element and its oriented normal
  * @param begin
  * @param end
+ * @param index_map The index map property map
  * @param knn Callable query object for k neighborhoods
  * @param point_map Callable object to get a point from an input element
  * @param normal_map Callable object to get a normal from an input element
@@ -274,6 +277,7 @@ void propagate_normal_orientations(
     graph::breadth_first_search(
         graph,
         root,
+        index_map,
         [op = std::forward<TransformOp>(op), normal_map](auto const& v1, auto const& v2) {
             auto const& n1  = normal_map(v1);
             auto const& n2  = normal_map(v2);

@@ -310,10 +310,7 @@ auto reconstruct_surface_from_point_cloud(
     auto const vertex_knn = [=, &octree, &point_map](vertex_type const& v) {
         return octree.nearest_neighbours(v, k, point_map);
     };
-    auto const get_point = [&vertices](vertex_type const& v) {
-        return pcp::point_t{vertices[v.id()]};
-    };
-    auto const get_normal = [&tangent_planes](vertex_type const& v) {
+    auto const normal_map = [&tangent_planes](vertex_type const& v) {
         return tangent_planes[v.id()].normal();
     };
     auto const transform_op = [&tangent_planes](vertex_type const& v, pcp::normal_t const& n) {
@@ -322,12 +319,17 @@ auto reconstruct_surface_from_point_cloud(
 
     timer.register_op("propagate normal orientations");
     timer.start();
+    auto const index_map = [](vertex_type const& v) {
+        return v.id();
+    };
+
     pcp::algorithm::propagate_normal_orientations(
         vertices.begin(),
         vertices.end(),
+        index_map,
         vertex_knn,
-        get_point,
-        get_normal,
+        point_map,
+        normal_map,
         transform_op);
     progress_forward();
     timer.stop();
