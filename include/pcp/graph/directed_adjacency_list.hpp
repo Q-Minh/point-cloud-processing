@@ -104,7 +104,7 @@ class directed_adjacency_list_t
      * @param index_map The index map property map
      * @param initial_capacity The initial allocated memory to reserve for our containers.
      */
-    directed_adjacency_list_t(IndexMap const& index_map, std::size_t initial_capacity = 4'096)
+    directed_adjacency_list_t(IndexMap const& index_map, std::size_t initial_capacity = 4096)
         : hash_{index_map},
           key_equal_{index_map},
           edges_{initial_capacity, hash_, key_equal_},

@@ -617,7 +617,6 @@ class basic_linked_octree_node_t
     }
 
   protected:
-
     /**
      * @brief
      * The element search implementation
@@ -667,7 +666,6 @@ class basic_linked_octree_node_t
     }
 
   private:
-
     /**
      * @brief
      * Adjust tree structure after an element removal
