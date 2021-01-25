@@ -42,6 +42,7 @@ SCENARIO("computing point cloud normals", "[normals]")
                 point_cloud.cbegin(),
                 point_cloud.cend(),
                 std::back_inserter(normals),
+                point_map,
                 knn,
                 pcp::algorithm::default_normal_transform<pcp::point_t, pcp::normal_t>);
 
@@ -54,7 +55,7 @@ SCENARIO("computing point cloud normals", "[normals]")
                 {
                     auto const& neighbors = octree.nearest_neighbours(point_cloud[i], k, point_map);
                     pcp::normal_t const expected =
-                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend());
+                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend(), point_map);
                     if (pcp::common::are_vectors_equal(normals[i], expected) ||
                         pcp::common::are_vectors_equal(normals[i], -expected))
                         ++valid_normals_count;

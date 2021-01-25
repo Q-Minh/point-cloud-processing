@@ -500,7 +500,8 @@ auto surface_nets(
                     point_type const geometric_center_of_edge_intersection_points =
                         pcp::common::center_of_geometry(
                             edge_intersection_points.cbegin(),
-                            edge_intersection_points.cend());
+                            edge_intersection_points.cend(),
+                            [](point_type const& p) { return p; });
 
                     point_type const mesh_vertex = {
                         mesh_aabb.min.x() +
@@ -992,7 +993,8 @@ auto surface_nets(
         point_type const geometric_center_of_edge_intersection_points =
             pcp::common::center_of_geometry(
                 edge_intersection_points.cbegin(),
-                edge_intersection_points.cend());
+                edge_intersection_points.cend(),
+                [](point_type const& p) { return p; });
 
         point_type const mesh_vertex = {
             mesh_aabb.min.x() + (mesh_aabb.max.x() - mesh_aabb.min.x()) *

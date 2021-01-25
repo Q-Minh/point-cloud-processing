@@ -39,6 +39,7 @@ SCENARIO("computing point cloud tangent planes", "[tangent_plane]")
                 point_cloud.cbegin(),
                 point_cloud.cend(),
                 std::back_inserter(tangent_planes),
+                point_map,
                 knn,
                 pcp::algorithm::default_plane_transform<pcp::point_t, pcp::common::plane3d_t>);
 
@@ -53,9 +54,9 @@ SCENARIO("computing point cloud tangent planes", "[tangent_plane]")
                 {
                     auto const& neighbors = octree.nearest_neighbours(point_cloud[i], k, point_map);
                     pcp::normal_t const expected_normal =
-                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend());
+                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend(), point_map);
                     pcp::point_t const expected_point =
-                        pcp::common::center_of_geometry(neighbors.cbegin(), neighbors.cend());
+                        pcp::common::center_of_geometry(neighbors.cbegin(), neighbors.cend(), point_map);
 
                     if (pcp::common::are_vectors_equal(
                             tangent_planes[i].normal(),

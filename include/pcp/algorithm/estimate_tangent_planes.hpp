@@ -6,7 +6,6 @@
  * @ingroup algorithm
  */
 
-#include <iterator>
 #include "pcp/common/normals/normal_estimation.hpp"
 #include "pcp/common/plane3d.hpp"
 #include "pcp/common/vector3d_queries.hpp"
@@ -14,6 +13,8 @@
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/plane_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
+
+#include <iterator>
 
 namespace pcp {
 namespace algorithm {
@@ -42,6 +43,7 @@ template <
     class ExecutionPolicy,
     class ForwardIter1,
     class ForwardIter2,
+    class PointMap,
     class KnnSearcher,
     class TransformOp,
     class Plane = pcp::common::plane3d_t>
@@ -50,6 +52,7 @@ void estimate_tangent_planes(
     ForwardIter1 begin,
     ForwardIter1 end,
     ForwardIter2 out_begin,
+    PointMap const& point_map,
     KnnSearcher&& knn,
     TransformOp&& op)
 {
@@ -78,17 +81,20 @@ void estimate_tangent_planes(
         "op must be callable by result = op(*begin, plane) where type of result is same as "
         "dereferencing out_begin decltype(*out_begin)");
 
-    auto const transform_op = [knn = std::forward<KnnSearcher>(knn),
+    auto const transform_op = [&,
+                               knn = std::forward<KnnSearcher>(knn),
                                op  = std::forward<TransformOp>(op)](value_type const& v) {
         auto const neighbor_points = knn(v);
         using iterator_type        = decltype(neighbor_points.begin());
-        auto normal                = pcp::estimate_normal<iterator_type, normal_type>(
+        auto normal                = pcp::estimate_normal<iterator_type, PointMap, normal_type>(
             std::begin(neighbor_points),
-            std::end(neighbor_points));
+            std::end(neighbor_points),
+            point_map);
 
-        auto point = pcp::common::center_of_geometry<iterator_type, neighbor_point_type>(
+        auto point = pcp::common::center_of_geometry<iterator_type, PointMap, neighbor_point_type>(
             std::begin(neighbor_points),
-            std::end(neighbor_points));
+            std::end(neighbor_points),
+            point_map);
 
         return op(v, plane_type{point_type{point}, normal});
     };
@@ -103,13 +109,15 @@ void estimate_tangent_planes(
  * of elements using PCA. Results are stored in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator
+ * @tparam PointMap Type satisfying PointMap concept
  * @tparam KnnSearcher Callable type returning k neighborhood of input element
  * @tparam TransformOp Callable type returning an output element with parameters (input element,
  * tangent plane)
  * @tparam Plane Type of tangent plane
- * @param begin
- * @param end
+ * @param begin Iterator to start of sequence of elements
+ * @param end Iterator to one past the end of sequence of elements
  * @param out_begin Start iterator of output sequence
+ * @param point_map The point map property map
  * @param knn The callable object to query k nearest neighbors
  * @param op Transformation callable object taking an input element and its computed tangent plane
  * and returning an output sequence element
@@ -117,6 +125,7 @@ void estimate_tangent_planes(
 template <
     class ForwardIter1,
     class ForwardIter2,
+    class PointMap,
     class KnnSearcher,
     class TransformOp,
     class Plane = pcp::common::plane3d_t>
@@ -124,6 +133,7 @@ void estimate_tangent_planes(
     ForwardIter1 begin,
     ForwardIter1 end,
     ForwardIter2 out_begin,
+    PointMap const& point_map,
     KnnSearcher&& knn,
     TransformOp&& op)
 {
@@ -152,17 +162,20 @@ void estimate_tangent_planes(
         "op must be callable by result = op(*begin, plane) where type of result is same as "
         "dereferencing out_begin decltype(*out_begin)");
 
-    auto const transform_op = [knn = std::forward<KnnSearcher>(knn),
+    auto const transform_op = [&,
+                               knn = std::forward<KnnSearcher>(knn),
                                op  = std::forward<TransformOp>(op)](value_type const& v) {
         auto const neighbor_points = knn(v);
         using iterator_type        = decltype(neighbor_points.begin());
-        auto normal                = pcp::estimate_normal<iterator_type, normal_type>(
+        auto normal                = pcp::estimate_normal<iterator_type, PointMap, normal_type>(
             std::begin(neighbor_points),
-            std::end(neighbor_points));
+            std::end(neighbor_points),
+            point_map);
 
-        auto point = pcp::common::center_of_geometry<iterator_type, neighbor_point_type>(
+        auto point = pcp::common::center_of_geometry<iterator_type, PointMap, neighbor_point_type>(
             std::begin(neighbor_points),
-            std::end(neighbor_points));
+            std::end(neighbor_points),
+            point_map);
 
         return op(v, plane_type{point_type{point}, normal});
     };
