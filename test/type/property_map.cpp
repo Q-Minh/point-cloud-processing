@@ -112,7 +112,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     auto const point_map = [&](dummy_type dummy) {
         return point;
     };
-    auto const bad_point_map = [](pcp::point_t point) {
+    auto const bad_point_map = [](pcp::point_t p) {
         return dummy_type{};
     };
     std::function<pcp::point_t(dummy_type)> point_map_f     = point_map;
@@ -121,7 +121,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     auto const normal_map = [&](dummy_type dummy) {
         return normal;
     };
-    auto const bad_normal_map = [](pcp::normal_t normal) {
+    auto const bad_normal_map = [](pcp::normal_t n) {
         return dummy_type{};
     };
     std::function<pcp::normal_t(dummy_type)> normal_map_f     = normal_map;
@@ -272,7 +272,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     }
 }
 #if defined(__clang__) || defined(__GNUC__)
-    #pragma GCC diagnostic ignored
+    #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop) // warning C4100
     #pragma warning(pop) // warning C26444

@@ -44,6 +44,9 @@ target_link_libraries(pcp INTERFACE Eigen3::Eigen range-v3::range-v3)
 get_target_property(eigen_include_dirs eigen INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(SYSTEM ${eigen_include_dirs})
 
+get_target_property(range_include_dirs range-v3 INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(SYSTEM ${range_include_dirs})
+
 target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:

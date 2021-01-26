@@ -17,7 +17,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
             pcp::graph::directed_adjacency_list_t<std::uint64_t, decltype(index_map)>;
         using vertex_iterator_type = typename graph_type::vertex_iterator_type;
 
-         static_assert(
+        static_assert(
             pcp::traits::is_mutable_directed_graph_v<graph_type>,
             "graph_type must satisfy MutableDirectedGraph concept");
 
@@ -142,26 +142,29 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     auto [begin, end]     = graph.edges();
                     auto const edge_count = std::distance(begin, end);
                     REQUIRE(edge_count == 15);
-                    // using random access
-                    for (auto i = 0; i < edge_count; ++i)
+                    std::array<std::uint8_t, 15> edge_exists{
+                        0u,
+                    };
+                    for (auto it = begin; it != end; ++it)
                     {
-                        auto e1       = std::next(begin, i);
-                        auto [u, v]   = *e1;
-                        auto e2       = std::next(edges.begin(), i);
-                        auto [up, vp] = *e2;
+                        auto [v1, v2] = *it;
+                        auto found_it = std::find_if(
+                            edges.begin(),
+                            edges.end(),
+                            [v1 = v1, v2 = v2](auto const& edge) {
+                                return (*v1 == *edge.first) && (*v2 == *edge.second);
+                            });
+                        if (found_it == edges.end())
+                            continue;
 
-                        REQUIRE(index_map(*u) == index_map(*up));
-                        REQUIRE(index_map(*v) == index_map(*vp));
+                        auto const index =
+                            static_cast<std::size_t>(std::distance(edges.begin(), found_it));
+                        ++edge_exists[index];
                     }
-                    // using forward access
-                    for (auto i = 0; i < edge_count; ++i)
-                    {
-                        auto [u, v]   = *begin++;
-                        auto ep       = std::next(edges.begin(), i);
-                        auto [up, vp] = *ep;
-                        REQUIRE(index_map(*u) == index_map(*up));
-                        REQUIRE(index_map(*v) == index_map(*vp));
-                    }
+
+                    auto const sum = std::accumulate(edge_exists.begin(), edge_exists.end(), 0u);
+                    bool const all_edges_retrieved = (sum == 15u);
+                    REQUIRE(all_edges_retrieved);
                 }
                 WHEN("recovering out edges of vertices of degree > 0")
                 {
@@ -178,7 +181,7 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                     sum = std::accumulate(begin3, end3, vertex_type{0u}, reduce_op);
                     REQUIRE(sum == 36u);
                 }
-                //WHEN("removing vertices")
+                // WHEN("removing vertices")
                 //{
                 //    auto const [begin1, end1] = graph.vertices();
                 //    /**
@@ -207,7 +210,8 @@ SCENARIO("mutable adjacency list", "[adjacency_list]")
                 //        auto const [edges_begin, edges_end] = graph.edges();
                 //        REQUIRE(std::distance(edges_begin, edges_end) == 9);
                 //        auto const sum1 =
-                //            std::accumulate(edges_begin, std::next(edges_begin, 3), 0u, reduce_op);
+                //            std::accumulate(edges_begin, std::next(edges_begin, 3), 0u,
+                //            reduce_op);
                 //        auto const sum2 =
                 //            std::accumulate(std::next(edges_begin, 3), edges_end, 0u, reduce_op);
                 //        REQUIRE(sum1 == 16u);

@@ -32,8 +32,7 @@ namespace pcp {
 template <class ForwardIter, class PointViewMap, class Normal = pcp::normal_t>
 Normal estimate_normal(ForwardIter it, ForwardIter end, PointViewMap const& point_map)
 {
-    using point_view_type = typename std::iterator_traits<ForwardIter>::value_type;
-    using normal_type     = Normal;
+    using normal_type = Normal;
 
     static_assert(
         traits::is_point_view_map_v<PointViewMap, decltype(*it)>,
