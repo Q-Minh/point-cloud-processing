@@ -1,16 +1,23 @@
-#pragma once
+#ifndef PCP_ALGORITHM_SURFACE_NETS_HPP
+#define PCP_ALGORITHM_SURFACE_NETS_HPP
+
+/**
+ * @file
+ * @ingroup algorithm
+ */
+
+#include "pcp/common/axis_aligned_bounding_box.hpp"
+#include "pcp/common/mesh_triangle.hpp"
+#include "pcp/common/points/point.hpp"
+#include "pcp/common/regular_grid3d.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/function_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/triangle_traits.hpp"
 
 #include <algorithm>
 #include <execution>
 #include <mutex>
-#include <pcp/common/axis_aligned_bounding_box.hpp>
-#include <pcp/common/mesh_triangle.hpp>
-#include <pcp/common/points/point.hpp>
-#include <pcp/common/regular_grid3d.hpp>
-#include <pcp/common/vector3d_queries.hpp>
-#include <pcp/traits/function_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
-#include <pcp/traits/triangle_traits.hpp>
 #include <queue>
 #include <unordered_map>
 #include <unordered_set>
@@ -331,6 +338,7 @@ auto get_adjacent_cubes_of_edge(
 }
 
 /**
+ * @ingroup isosurface-extraction
  * @brief
  * Implements the naive surface nets algorithm which approximates the isosurface
  * of the given implicit function at the given isovalue in the given regular grid
@@ -642,6 +650,7 @@ auto surface_nets(
 }
 
 /**
+ * @ingroup isosurface-extraction
  * @brief
  * Implements naive surface nets optimized for cases where
  * you know approximately in which neighborhood there is
@@ -714,7 +723,7 @@ auto surface_nets(
     common::regular_grid3d_t<Scalar> const& grid,
     Point const& hint,
     Scalar const isovalue                           = static_cast<Scalar>(0),
-    std::size_t breadth_first_search_queue_max_size = 32'768u)
+    std::size_t breadth_first_search_queue_max_size = 32768u)
     -> std::pair<std::vector<Point>, std::vector<SharedVertexMeshTriangle>>
 {
     static_assert(
@@ -1104,3 +1113,5 @@ auto surface_nets(
 } // namespace isosurface
 } // namespace algorithm
 } // namespace pcp
+
+#endif // PCP_ALGORITHM_SURFACE_NETS_HPP

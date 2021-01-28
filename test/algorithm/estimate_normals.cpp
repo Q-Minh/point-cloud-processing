@@ -25,7 +25,7 @@ SCENARIO("computing point cloud normals", "[normals]")
 
         pcp::octree_parameters_t<pcp::point_t> params;
         params.voxel_grid = {{-10.f, -10.f, -10.f}, {10.f, 10.f, 10.f}};
-        pcp::octree_t octree(point_cloud.begin(), point_cloud.end(), params);
+        pcp::linked_octree_t octree(point_cloud.begin(), point_cloud.end(), params);
         std::uint64_t const k = 5u;
 
         WHEN("computing the point cloud's normals")
@@ -102,7 +102,7 @@ SCENARIO("computing point cloud normals", "[normals]")
 
             pcp::octree_parameters_t<pcp::point_t> params;
             params.voxel_grid = {{-2.f, -2.f, -2.f}, {2.f, 2.f, 2.f}};
-            pcp::basic_octree_t<vertex_type, decltype(params)> octree(
+            pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree(
                 vertices.cbegin(),
                 vertices.cend(),
                 params);

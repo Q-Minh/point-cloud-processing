@@ -1,15 +1,22 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_VERTEX_HPP
+#define PCP_COMMON_POINTS_VERTEX_HPP
 
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/traits/graph_vertex_traits.hpp"
+#include "pcp/traits/point_traits.hpp"
 #include "point.hpp"
 #include "point_view.hpp"
 
 #include <cstdint>
-#include <pcp/traits/graph_vertex_traits.hpp>
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 
 /**
+ * @ingroup geometric-primitives
  * @brief
  * The basic_point_view_vertex_t type is a basic_point_view_t. It does not
  * hold ownership over the underlying point. It stores an
@@ -38,7 +45,9 @@ class basic_point_view_vertex_t : public basic_point_view_t<PointView>
     self_type& operator=(self_type&&) = default;
     explicit basic_point_view_vertex_t(PointView* point) : parent_type(point), id_(0u) {}
     explicit basic_point_view_vertex_t(id_type id) : parent_type(), id_(id) {}
-    explicit basic_point_view_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id) {}
+    explicit basic_point_view_vertex_t(PointView* point, id_type id) : parent_type(point), id_(id)
+    {
+    }
     basic_point_view_vertex_t(point_type const& other) : parent_type(&other), id_(0u) {}
 
     /**
@@ -100,6 +109,13 @@ class basic_point_view_vertex_t : public basic_point_view_t<PointView>
     id_type id_ = 0u;
 };
 
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * Default vertex type
+ */
 using vertex_t = basic_point_view_vertex_t<pcp::point_t>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_VERTEX_HPP

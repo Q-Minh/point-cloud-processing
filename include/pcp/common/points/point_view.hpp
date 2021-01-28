@@ -1,12 +1,18 @@
-#pragma once
+#ifndef PCP_COMMON_POINTS_POINT_VIEW_HPP
+#define PCP_COMMON_POINTS_POINT_VIEW_HPP
 
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/traits/point_traits.hpp"
 #include "point.hpp"
-
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 
 /**
+ * @ingroup geometric-primitives
  * @brief
  * Non-owning point used as a view over a given point.
  * The basic_point_view_t need only store a pointer to
@@ -66,6 +72,13 @@ class basic_point_view_t
     point_type* point_;
 };
 
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * Default point view type
+ */
 using point_view_t = pcp::basic_point_view_t<pcp::point_t>;
 
 } // namespace pcp
+
+#endif // PCP_COMMON_POINTS_POINT_VIEW_HPP

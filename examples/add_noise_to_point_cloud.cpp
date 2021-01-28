@@ -41,7 +41,7 @@ int main(int argc, char** argv)
     for (std::size_t i = 0; i < points.size(); ++i)
         point_views.push_back(pcp::point_view_t{&points[i]});
 
-    pcp::basic_octree_t<pcp::point_view_t> octree{std::cbegin(point_views), std::cend(point_views)};
+    pcp::basic_linked_octree_t<pcp::point_view_t> octree{std::cbegin(point_views), std::cend(point_views)};
     timer.stop();
 
     timer.register_op("compute stddev of k neighborhoods");

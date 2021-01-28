@@ -1,14 +1,31 @@
-#pragma once
+#ifndef PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP
+#define PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/common/normals/normal.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 #include <Eigen/Core>
 #include <Eigen/Eigenvalues>
 #include <cstdint>
 #include <iterator>
-#include <pcp/common/normals/normal.hpp>
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 
+/**
+ * @ingroup common
+ * @brief
+ * Estimates the normal from a group of points using PCA.
+ * @tparam ForwardIter Type of iterator to the points
+ * @tparam Normal Type of the normal to return
+ * @param it Begin iterator to the points
+ * @param end End iterator to the points
+ * @return
+ */
 template <class ForwardIter, class Normal = pcp::normal_t>
 Normal estimate_normal(ForwardIter it, ForwardIter end)
 {
@@ -52,9 +69,11 @@ Normal estimate_normal(ForwardIter it, ForwardIter end)
         normal = {X(0, 2), X(1, 2), X(2, 2)};
     }
 
-    // normal is already normalized, since Eigen returns 
+    // normal is already normalized, since Eigen returns
     // normalized eigenvectors
     return normal;
 }
 
 } // namespace pcp
+
+#endif // PCP_COMMON_NORMALS_NORMAL_ESTIMATION_HPP

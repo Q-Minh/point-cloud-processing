@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 SCENARIO("octree find", "[octree]")
 {
@@ -33,7 +33,7 @@ SCENARIO("octree find", "[octree]")
                 coordinate_distribution(gen)});
         }
 
-        pcp::octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
         REQUIRE(octree.size() == points.size());
 

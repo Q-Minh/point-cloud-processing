@@ -192,10 +192,7 @@ int main(int argc, char** argv)
         }
         ImGui::End();
     };
-
-    menu.callback_draw_viewer_menu = [&]() {
-        menu.draw_viewer_menu();
-    };
+    
     viewer.core().set_rotation_type(igl::opengl::ViewerCore::RotationType::ROTATION_TYPE_TRACKBALL);
     viewer.data().show_lines = false;
     viewer.launch();
@@ -266,7 +263,7 @@ auto reconstruct_surface_from_point_cloud(
     for (std::size_t i = 0; i < points.size(); ++i)
         vertices.push_back(vertex_type{&points[i], i});
 
-    pcp::basic_octree_t<vertex_type> octree{std::cbegin(vertices), std::cend(vertices)};
+    pcp::basic_linked_octree_t<vertex_type> octree{std::cbegin(vertices), std::cend(vertices)};
     progress_forward();
     timer.stop();
 

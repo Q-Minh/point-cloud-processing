@@ -1,21 +1,28 @@
-#pragma once
+#ifndef PCP_OCTREE_LINKED_OCTREE_NODE_HPP
+#define PCP_OCTREE_LINKED_OCTREE_NODE_HPP
 
-#include "octree_iterator.hpp"
+/**
+ * @file
+ * @ingroup octree
+ */
+
+#include "linked_octree_iterator.hpp"
+#include "pcp/common/intersections.hpp"
+#include "pcp/common/norm.hpp"
+#include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/point_traits.hpp"
 
 #include <algorithm>
 #include <cassert>
 #include <memory>
 #include <numeric>
-#include <pcp/common/intersections.hpp>
-#include <pcp/common/norm.hpp>
-#include <pcp/common/vector3d_queries.hpp>
-#include <pcp/traits/point_traits.hpp>
 #include <queue>
 #include <vector>
 
 namespace pcp {
 
 /**
+ * @ingroup linked-octree
  * @brief Default type used to parameterize octrees.
  * @tparam Point Type of point used by the voxel grid to define its AABB.
  */
@@ -31,9 +38,10 @@ struct octree_parameters_t
 };
 
 template <class PointView, class ParamsType>
-class octree_iterator_t;
+class linked_octree_iterator_t;
 
 /**
+ * @ingroup linked-octree
  * @brief
  * An octree node at any level of the octree. Contains a list of points
  * up to its configured capacity and then delegates further points to its
@@ -42,20 +50,20 @@ class octree_iterator_t;
  * @tparam ParamsType Type containing the octree node's parameters
  */
 template <class PointView, class ParamsType>
-class basic_octree_node_t
+class basic_linked_octree_node_t
 {
     static_assert(traits::is_point_view_v<PointView>, "PointView must satisfy PointView concept");
 
   public:
-    friend class octree_iterator_t<PointView, ParamsType>;
+    friend class linked_octree_iterator_t<PointView, ParamsType>;
 
-    using self_type       = basic_octree_node_t<PointView, ParamsType>;
+    using self_type       = basic_linked_octree_node_t<PointView, ParamsType>;
     using point_view_type = PointView;
     using coordinate_type = typename point_view_type::coordinate_type;
     using params_type     = ParamsType;
     using aabb_type       = typename ParamsType::aabb_type;
     using aabb_point_type = typename aabb_type::point_type;
-    using iterator        = octree_iterator_t<point_view_type, ParamsType>;
+    using iterator        = linked_octree_iterator_t<point_view_type, ParamsType>;
     using const_iterator  = iterator const;
     using value_type      = point_view_type;
     using reference       = value_type&;
@@ -63,8 +71,8 @@ class basic_octree_node_t
     using pointer         = value_type*;
     using const_pointer   = value_type const*;
 
-    basic_octree_node_t() noexcept = default;
-    explicit basic_octree_node_t(params_type const& params)
+    basic_linked_octree_node_t() noexcept = default;
+    explicit basic_linked_octree_node_t(params_type const& params)
         : capacity_(params.node_capacity),
           max_depth_(params.max_depth),
           voxel_grid_(params.voxel_grid),
@@ -81,8 +89,11 @@ class basic_octree_node_t
     }
 
     template <class ForwardIter>
-    explicit basic_octree_node_t(ForwardIter begin, ForwardIter end, params_type const& params)
-        : basic_octree_node_t(params)
+    explicit basic_linked_octree_node_t(
+        ForwardIter begin,
+        ForwardIter end,
+        params_type const& params)
+        : basic_linked_octree_node_t(params)
     {
         insert(begin, end);
     }
@@ -612,3 +623,5 @@ class basic_octree_node_t
 };
 
 } // namespace pcp
+
+#endif // PCP_OCTREE_LINKED_OCTREE_NODE_HPP

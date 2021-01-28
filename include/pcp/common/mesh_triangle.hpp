@@ -1,4 +1,10 @@
-#pragma once
+#ifndef PCP_COMMON_MESH_TRIANGLE_HPP
+#define PCP_COMMON_MESH_TRIANGLE_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
 
 #include <array>
 
@@ -6,6 +12,7 @@ namespace pcp {
 namespace common {
 
 /**
+ * @ingroup geometric-primitives
  * @brief
  * shared_vertex_mesh_triangle is encoded as a shared vertex mesh triangle.
  * shared_vertex_mesh_triangle need only store indices to vertices in a
@@ -26,7 +33,9 @@ class shared_vertex_mesh_triangle
     self_type& operator=(self_type const&) = default;
     self_type& operator=(self_type&&) = default;
 
-    shared_vertex_mesh_triangle(index_type v1, index_type v2, index_type v3) : indices_{v1, v2, v3} {}
+    shared_vertex_mesh_triangle(index_type v1, index_type v2, index_type v3) : indices_{v1, v2, v3}
+    {
+    }
 
     indices_type const& indices() const { return indices_; }
     indices_type& indices() { return indices_; }
@@ -37,3 +46,5 @@ class shared_vertex_mesh_triangle
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_MESH_TRIANGLE_HPP

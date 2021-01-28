@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 SCENARIO("range searches on the octree", "[octree]")
 {
@@ -15,7 +15,7 @@ SCENARIO("range searches on the octree", "[octree]")
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
 
-        pcp::octree_t octree(params);
+        pcp::linked_octree_t octree(params);
         octree.insert({-.5f, -.5f, -.5f}); // 000
         octree.insert({.5f, -.5f, -.5f});  // 100
         octree.insert({.5f, .5f, -.5f});   // 110

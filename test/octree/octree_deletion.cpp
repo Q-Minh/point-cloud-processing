@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 SCENARIO("octree deletion", "[octree]")
 {
@@ -61,7 +61,7 @@ SCENARIO("octree deletion", "[octree]")
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
 
-        pcp::octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
         WHEN("removing existing points one at a time")
         {

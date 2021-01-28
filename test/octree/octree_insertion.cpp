@@ -1,5 +1,5 @@
 #include <catch2/catch.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/octree/linked_octree.hpp>
 
 SCENARIO("octree insertion", "[octree]")
 {
@@ -7,7 +7,7 @@ SCENARIO("octree insertion", "[octree]")
                               std::vector<pcp::point_t>& points) {
         WHEN("inserting a range of points contained in the octree's voxel grid")
         {
-            pcp::octree_t octree(points.cbegin(), points.cend(), params);
+            pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
             THEN("the octree's size is the size of the range")
             {
@@ -26,7 +26,7 @@ SCENARIO("octree insertion", "[octree]")
             points.push_back({0.f, 2.f, 0.f});
             points.push_back({0.f, 0.f, 2.f});
 
-            pcp::octree_t octree(points.cbegin(), points.cend(), params);
+            pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
 
             THEN(
                 "the octree's size is the number of points of the"

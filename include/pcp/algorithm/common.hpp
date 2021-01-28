@@ -1,4 +1,10 @@
-#pragma once
+#ifndef PCP_ALGORITHM_COMMON_HPP
+#define PCP_ALGORITHM_COMMON_HPP
+
+/**
+ * @file
+ * @ingroup algorithm
+ */
 
 namespace pcp {
 
@@ -35,3 +41,5 @@ inline auto const default_plane_transform = [](Input const&, Plane const& plane)
 
 } // namespace algorithm
 } // namespace pcp
+
+#endif // PCP_ALGORITHM_COMMON_HPP

@@ -1,12 +1,21 @@
-#pragma once
+#ifndef PCP_COMMON_REGULAR_GRID3D_HPP
+#define PCP_COMMON_REGULAR_GRID3D_HPP
+
+/**
+ * @file
+ * @ingroup common
+ */
+
+#include "pcp/traits/point_traits.hpp"
 
 #include <array>
-#include <pcp/traits/point_traits.hpp>
 
 namespace pcp {
 namespace common {
 
 /**
+ * @ingroup geometric-primitives
+ * @brief
  * This class is a discretization of continuous 3d space into voxels, which are the smallest volume
  * in the regular grid, in the form of cubes. The grid is represented as:
  *
@@ -29,6 +38,7 @@ namespace common {
  * Many scalar functions can be approximated continuously everywhere in the voxel grid
  * using trilinear interpolation by having the values of the scalar function at every
  * voxel's corners.
+ * @tparam Scalar Any arithmetic type
  */
 template <class Scalar>
 struct regular_grid3d_t
@@ -46,6 +56,7 @@ struct regular_grid3d_t
 };
 
 /**
+ * @ingroup common
  * @brief
  * Computes a regular 3d grid containing min and max.
  * The grid is discretized by the specified dimensions.
@@ -88,3 +99,5 @@ regular_grid3d_t<Scalar> regular_grid_containing(
 
 } // namespace common
 } // namespace pcp
+
+#endif // PCP_COMMON_REGULAR_GRID3D_HPP
