@@ -1,3 +1,5 @@
+#ifdef PCP_KDTREE_KDTREE_HPP
+
 #include <algorithm>
 #include <array>
 #include <cmath>
