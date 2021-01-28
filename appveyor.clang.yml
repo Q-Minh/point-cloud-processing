@@ -1,7 +1,7 @@
 version: 0.0.{build}
 
 image:
-  - ubuntu
+  - Ubuntu2004
 environment:
     matrix:
         - configuration: Debug
