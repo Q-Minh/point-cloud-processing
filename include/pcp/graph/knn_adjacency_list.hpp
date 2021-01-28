@@ -37,7 +37,7 @@ namespace graph {
  * @tparam GraphVertex Vertex type
  * @param begin Iterator to the start of the sequence
  * @param end Iterator to one past the end of the sequence
- * @param knn_map Callable object implementing the knn_map searches for each vertex
+ * @param knn_map Callable object implementing the k nearest neighbour searches for each vertex
  * @param index_map The index map property map
  * @return The undirected graph of k nearest neighbors of each of its vertices
  */
@@ -66,9 +66,7 @@ auto undirected_knn_graph(
     static_assert(
         std::is_convertible_v<typename std::iterator_traits<ForwardIter>::value_type, vertex_type>,
         "ForwardIter must be iterator to a type convertible to GraphVertex");
-    static_assert(
-        traits::is_knn_map_v<KnnMap, GraphVertex>,
-        "knn_map must satisfy KnnMap concept");
+    static_assert(traits::is_knn_map_v<KnnMap, GraphVertex>, "knn_map must satisfy KnnMap concept");
 
     // adds the vertices to the graph in sequential order
     // such that the vertices will be sorted by their id
@@ -107,7 +105,7 @@ auto undirected_knn_graph(
  * @tparam GraphVertex Vertex type
  * @param begin Iterator to the start of the sequence
  * @param end Iterator to one past the end of the sequence
- * @param knn_map Callable object implementing the knn_map searches for each vertex
+ * @param knn_map Callable object implementing the k nearest neighbour searches for each vertex
  * @param index_map The index map property map
  * @return The directed graph of k nearest neighbors of each of its vertices
  */
@@ -136,9 +134,7 @@ auto directed_knn_graph(
     static_assert(
         std::is_convertible_v<typename std::iterator_traits<ForwardIter>::value_type, vertex_type>,
         "ForwardIter must be iterator to a type convertible to GraphVertex");
-    static_assert(
-        traits::is_knn_map_v<KnnMap, GraphVertex>,
-        "knn_map must satisfy KnnMap concept");
+    static_assert(traits::is_knn_map_v<KnnMap, GraphVertex>, "knn_map must satisfy KnnMap concept");
 
     // adds the vertices to the graph in sequential order
     // such that the vertices will be sorted by their id

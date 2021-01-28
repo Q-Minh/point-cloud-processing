@@ -22,7 +22,7 @@ namespace algorithm {
 /**
  * @ingroup tangent-planes-estimation
  * @brief
- * Performs tangent plane estimation on each knn_map neighborhood of the given sequence
+ * Performs tangent plane estimation on each k nearest neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.
  * @tparam ExecutionPolicy STL execution policy
  * @tparam ForwardIter1 Type of input sequence iterator
@@ -100,7 +100,7 @@ void estimate_tangent_planes(
 /**
  * @ingroup tangent-planes-estimation
  * @brief
- * Performs tangent plane estimation on each knn_map neighborhood of the given sequence
+ * Performs tangent plane estimation on each k nearest neighborhood of the given sequence
  * of elements using PCA. Results are stored in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator

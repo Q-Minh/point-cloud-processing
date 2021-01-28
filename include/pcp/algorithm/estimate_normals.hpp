@@ -26,7 +26,7 @@ namespace algorithm {
 /**
  * @ingroup normals-estimation
  * @brief
- * Performs normal estimation on each knn_map neighborhood of the given sequence
+ * Performs normal estimation on each k nearest neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
  * in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
@@ -64,9 +64,7 @@ void estimate_normals(
     TransformOp&& op)
 {
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
-    static_assert(
-        traits::is_knn_map_v<KnnMap, value_type>,
-        "knn_map must satisfy KnnMap concept");
+    static_assert(traits::is_knn_map_v<KnnMap, value_type>, "knn_map must satisfy KnnMap concept");
 
     using normal_type = Normal;
     static_assert(traits::is_normal_v<normal_type>, "Normal must satisfy Normal concept");
@@ -96,7 +94,7 @@ void estimate_normals(
 /**
  * @ingroup normals-estimation
  * @brief
- * Performs normal estimation on each knn_map neighborhood of the given sequence
+ * Performs normal estimation on each k nearest neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
  * in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
@@ -137,9 +135,7 @@ void estimate_normals(
      * the normals estimation implementation.
      */
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
-    static_assert(
-        traits::is_knn_map_v<KnnMap, value_type>,
-        "knn_map must satisfy KnnMap concept");
+    static_assert(traits::is_knn_map_v<KnnMap, value_type>, "knn_map must satisfy KnnMap concept");
 
     using normal_type = Normal;
     static_assert(traits::is_normal_v<normal_type>, "Normal must satisfy Normal concept");
@@ -245,10 +241,10 @@ void propagate_normal_orientations(
      * normals, and high weights to normals approaching orthogonality. He then
      * traverses the MST and flips normal orientations when their inner-product
      * is negative. It seems that in our case, prim's minimum spanning tree algorithm
-     * cannot work, since our knn_map graphs are directed rather than undirected. The
-     * reason for the MST not working is not clear. We thought that having an
-     * undirected graph in the form a directed graph where each undirected edge
-     * is split into two parallel and opposite directed edges would be enough
+     * cannot work, since our k nearest neighbour graphs are directed rather than
+     * undirected. The reason for the MST not working is not clear. We thought that
+     * having an undirected graph in the form a directed graph where each undirected
+     * edge is split into two parallel and opposite directed edges would be enough
      * for prim's mst algorithm to work, but I think it doesn't and I believe
      * that that is the culprit for the normal orientation adjustments not
      * working when using the MST version.

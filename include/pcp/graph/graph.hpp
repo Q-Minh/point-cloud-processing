@@ -20,8 +20,8 @@
  */
 
 #include "directed_adjacency_list.hpp"
+#include "knn_adjacency_list.hpp"
 #include "minimum_spanning_tree.hpp"
 #include "search.hpp"
-#include "knn_adjacency_list.hpp"
 
 #endif // PCP_GRAPH_HPP

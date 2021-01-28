@@ -97,7 +97,7 @@ void breadth_first_search(
  * @param graph The graph to traverse
  * @param begin Iterator to the root vertex of the traversal
  * @param index_map The index map property map
- * @param op The binary operation to apply at edge traversed vertex having signature 
+ * @param op The binary operation to apply at edge traversed vertex having signature
  * f(vertex_type, vertex_type)
  */
 template <
@@ -105,7 +105,11 @@ template <
     class IndexMap,
     class BinaryOp,
     class GraphIterator = typename DirectedGraph::vertex_iterator_type>
-void depth_first_search(DirectedGraph& graph, GraphIterator begin, IndexMap index_map, BinaryOp&& op)
+void depth_first_search(
+    DirectedGraph& graph,
+    GraphIterator begin,
+    IndexMap index_map,
+    BinaryOp&& op)
 {
     using vertex_iterator_type = GraphIterator;
     using vertex_type          = typename std::iterator_traits<vertex_iterator_type>::value_type;
