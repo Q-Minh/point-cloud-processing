@@ -19,7 +19,7 @@ branches:
     - dev
 before_build:
   - sh: |
-      sudo apt install clang-10
+      sudo apt install clang-10 lldb-10 lld-10 libc++-10-dev libc++abi-10-dev libomp-10-dev
       mkdir build;
       coverage=OFF
       if [ "$configuration" = "Debug" ]; then
