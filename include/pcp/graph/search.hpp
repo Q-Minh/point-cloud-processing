@@ -7,7 +7,6 @@
  */
 
 #include "pcp/traits/graph_traits.hpp"
-#include "pcp/traits/graph_vertex_traits.hpp"
 
 #include <queue>
 #include <stack>
@@ -112,9 +111,6 @@ void depth_first_search(DirectedGraph& graph, GraphIterator begin, IndexMap inde
     using vertex_type          = typename std::iterator_traits<vertex_iterator_type>::value_type;
     using size_type            = typename DirectedGraph::size_type;
 
-    static_assert(
-        traits::is_graph_vertex_v<vertex_type>,
-        "GraphIterator must be dereferenceable to a type satisfying GraphVertex concept");
     static_assert(
         traits::is_directed_graph_v<DirectedGraph>,
         "graph must satisfy DirectedGraph concept");

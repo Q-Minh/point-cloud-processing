@@ -2,16 +2,15 @@
 #include <cstdint>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/search.hpp>
-#include <pcp/graph/vertex.hpp>
 
 SCENARIO("graph searching algorithms", "[graph]")
 {
     GIVEN("a graph with cycles")
     {
-        using vertex_type = pcp::graph::vertex_t<>;
+        using vertex_type = std::uint32_t;
 
         auto const index_map = [](vertex_type const& v) {
-            return v.id();
+            return v;
         };
 
         using graph_type = pcp::graph::directed_adjacency_list_t<vertex_type, decltype(index_map)>;
@@ -89,8 +88,8 @@ SCENARIO("graph searching algorithms", "[graph]")
         auto const visitor = [&visits, &visiting_order, &visited_nodes_counter, &starting_id](
                                  vertex_type const& source,
                                  vertex_type const& dest) {
-            auto const source_id = source.id();
-            auto const dest_id   = dest.id();
+            auto const source_id = source;
+            auto const dest_id   = dest;
 
             // the root of the graph is never
             // visited as a dest vertex, so

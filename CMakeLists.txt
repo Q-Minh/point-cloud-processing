@@ -88,7 +88,6 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/search.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/vertex.hpp
 
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/io.hpp
@@ -108,8 +107,6 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/function_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_search_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/plane_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp

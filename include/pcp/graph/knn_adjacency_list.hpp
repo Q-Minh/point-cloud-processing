@@ -7,7 +7,7 @@
  */
 
 #include "directed_adjacency_list.hpp"
-#include "pcp/traits/knn_search_traits.hpp"
+#include "pcp/traits/knn_map.hpp"
 
 #include <algorithm>
 #include <utility>
@@ -32,24 +32,24 @@ namespace graph {
  * The sequence [begin, end] must be sorted by its identifiers ranging from [0, N-1].
  *
  * @tparam ForwardIter Iterator to a type convertible to GraphVertex
- * @tparam KnnSearcher Callable satisfying KnnSearcher concept
+ * @tparam KnnMap Callable satisfying KnnMap concept
  * @tparam IndexMap Type satisfying IndexMap concept
  * @tparam GraphVertex Vertex type
  * @param begin Iterator to the start of the sequence
  * @param end Iterator to one past the end of the sequence
- * @param knn Callable object implementing the knn searches for each vertex
+ * @param knn_map Callable object implementing the knn_map searches for each vertex
  * @param index_map The index map property map
  * @return The undirected graph of k nearest neighbors of each of its vertices
  */
 template <
     class ForwardIter,
-    class KnnSearcher,
+    class KnnMap,
     class IndexMap,
     class GraphVertex = typename std::iterator_traits<ForwardIter>::value_type>
 auto undirected_knn_graph(
     ForwardIter begin,
     ForwardIter end,
-    KnnSearcher knn,
+    KnnMap knn_map,
     IndexMap const& index_map)
     -> directed_adjacency_list_t<typename std::iterator_traits<ForwardIter>::value_type, IndexMap>
 {
@@ -67,8 +67,8 @@ auto undirected_knn_graph(
         std::is_convertible_v<typename std::iterator_traits<ForwardIter>::value_type, vertex_type>,
         "ForwardIter must be iterator to a type convertible to GraphVertex");
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, GraphVertex>,
-        "knn must satisfy KnnSearcher concept");
+        traits::is_knn_map_v<KnnMap, GraphVertex>,
+        "knn_map must satisfy KnnMap concept");
 
     // adds the vertices to the graph in sequential order
     // such that the vertices will be sorted by their id
@@ -77,7 +77,7 @@ auto undirected_knn_graph(
     using difference_type     = decltype(std::distance(vbegin, vend));
     for (auto it = vbegin; it != vend; ++it)
     {
-        auto const& neighbors = knn(*it);
+        auto const& neighbors = knn_map(*it);
         for (auto const& neighbor : neighbors)
         {
             auto const offset      = static_cast<difference_type>(index_map(neighbor));
@@ -103,23 +103,23 @@ auto undirected_knn_graph(
  * The sequence [begin, end] must be sorted.
  *
  * @tparam ForwardIter Iterator to a type convertible to GraphVertex
- * @tparam KnnSearcher Callable satisfying KnnSearcher concept
+ * @tparam KnnMap Callable satisfying KnnMap concept
  * @tparam GraphVertex Vertex type
  * @param begin Iterator to the start of the sequence
  * @param end Iterator to one past the end of the sequence
- * @param knn Callable object implementing the knn searches for each vertex
+ * @param knn_map Callable object implementing the knn_map searches for each vertex
  * @param index_map The index map property map
  * @return The directed graph of k nearest neighbors of each of its vertices
  */
 template <
     class ForwardIter,
-    class KnnSearcher,
+    class KnnMap,
     class IndexMap,
     class GraphVertex = typename std::iterator_traits<ForwardIter>::value_type>
 auto directed_knn_graph(
     ForwardIter begin,
     ForwardIter end,
-    KnnSearcher knn,
+    KnnMap knn_map,
     IndexMap const& index_map)
     -> directed_adjacency_list_t<typename std::iterator_traits<ForwardIter>::value_type, IndexMap>
 {
@@ -137,8 +137,8 @@ auto directed_knn_graph(
         std::is_convertible_v<typename std::iterator_traits<ForwardIter>::value_type, vertex_type>,
         "ForwardIter must be iterator to a type convertible to GraphVertex");
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, GraphVertex>,
-        "knn must satisfy KnnSearcher concept");
+        traits::is_knn_map_v<KnnMap, GraphVertex>,
+        "knn_map must satisfy KnnMap concept");
 
     // adds the vertices to the graph in sequential order
     // such that the vertices will be sorted by their id
@@ -147,7 +147,7 @@ auto directed_knn_graph(
     using difference_type     = decltype(std::distance(vbegin, vend));
     for (auto it = vbegin; it != vend; ++it)
     {
-        auto const& neighbors = knn(*it);
+        auto const& neighbors = knn_map(*it);
         for (auto const& neighbor : neighbors)
         {
             auto const offset      = static_cast<difference_type>(index_map(neighbor));

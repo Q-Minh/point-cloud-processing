@@ -6,7 +6,6 @@
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/points/point_view.hpp>
 #include <pcp/common/points/vertex.hpp>
-#include <pcp/graph/vertex.hpp>
 #include <pcp/octree/octree.hpp>
 
 SCENARIO("computing point cloud normals", "[normals]")

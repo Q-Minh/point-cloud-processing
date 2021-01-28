@@ -12,8 +12,7 @@
 #include "pcp/common/points/point.hpp"
 #include "pcp/graph/knn_adjacency_list.hpp"
 #include "pcp/graph/search.hpp"
-#include "pcp/traits/graph_vertex_traits.hpp"
-#include "pcp/traits/knn_search_traits.hpp"
+#include "pcp/traits/knn_map.hpp"
 #include "pcp/traits/normal_traits.hpp"
 #include "pcp/traits/point_traits.hpp"
 
@@ -27,13 +26,13 @@ namespace algorithm {
 /**
  * @ingroup normals-estimation
  * @brief
- * Performs normal estimation on each knn neighborhood of the given sequence
+ * Performs normal estimation on each knn_map neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
  * in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator
  * @tparam PointViewMap Type satisfying PointViewMap concept
- * @tparam KnnSearcher Callable type returning k neighborhood of input element
+ * @tparam KnnMap Callable type returning k neighborhood of input element
  * @tparam TransformOp Callable type returning an output element with parameters (input element,
  * normal)
  * @tparam Normal Type of normal
@@ -43,7 +42,7 @@ namespace algorithm {
  * @param end Iterator to one past the end of input sequence of elements
  * @param out_begin Start iterator of output sequence
  * @param point_map The point view map property map
- * @param knn The callable object to query k nearest neighbors
+ * @param knn_map The callable object to query k nearest neighbors
  * @param op Transformation callable object taking an input element and its computed normal and
  * returning an output sequence element
  */
@@ -52,7 +51,7 @@ template <
     class ForwardIter1,
     class ForwardIter2,
     class PointViewMap,
-    class KnnSearcher,
+    class KnnMap,
     class TransformOp,
     class Normal = pcp::normal_t>
 void estimate_normals(
@@ -61,13 +60,13 @@ void estimate_normals(
     ForwardIter1 end,
     ForwardIter2 out_begin,
     PointViewMap const& point_map,
-    KnnSearcher&& knn,
+    KnnMap&& knn_map,
     TransformOp&& op)
 {
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, value_type>,
-        "knn must satisfy KnnSearcher concept");
+        traits::is_knn_map_v<KnnMap, value_type>,
+        "knn_map must satisfy KnnMap concept");
 
     using normal_type = Normal;
     static_assert(traits::is_normal_v<normal_type>, "Normal must satisfy Normal concept");
@@ -80,7 +79,7 @@ void estimate_normals(
         "dereferencing out_begin decltype(*out_begin)");
 
     auto const transform_op = [&,
-                               knn = std::forward<KnnSearcher>(knn),
+                               knn = std::forward<KnnMap>(knn_map),
                                op  = std::forward<TransformOp>(op)](value_type const& v) {
         auto const neighbor_points = knn(v);
         using iterator_type        = decltype(neighbor_points.begin());
@@ -97,13 +96,13 @@ void estimate_normals(
 /**
  * @ingroup normals-estimation
  * @brief
- * Performs normal estimation on each knn neighborhood of the given sequence
+ * Performs normal estimation on each knn_map neighborhood of the given sequence
  * of elements using tangent plane estimation through PCA. Results are stored
  * in the out sequence through op.
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam ForwardIter2 Type of output sequence iterator
  * @tparam PointViewMap Type satisfying PointViewMap concept
- * @tparam KnnSearcher Callable type returning k neighborhood of input element
+ * @tparam KnnMap Callable type returning k neighborhood of input element
  * @tparam TransformOp Callable type returning an output element with parameters (input element,
  * normal)
  * @tparam Normal Type of normal
@@ -111,7 +110,7 @@ void estimate_normals(
  * @param end Iterator to one past the end of input sequence of elements
  * @param out_begin Start iterator of output sequence
  * @param point_map The point view map property map
- * @param knn The callable object to query k nearest neighbors
+ * @param knn_map The callable object to query k nearest neighbors
  * @param op Transformation callable object taking an input element and its computed normal and
  * returning an output sequence element
  */
@@ -119,7 +118,7 @@ template <
     class ForwardIter1,
     class ForwardIter2,
     class PointViewMap,
-    class KnnSearcher,
+    class KnnMap,
     class TransformOp,
     class Normal = pcp::normal_t>
 void estimate_normals(
@@ -127,7 +126,7 @@ void estimate_normals(
     ForwardIter1 end,
     ForwardIter2 out_begin,
     PointViewMap const& point_map,
-    KnnSearcher&& knn,
+    KnnMap&& knn_map,
     TransformOp&& op)
 {
     /**
@@ -139,8 +138,8 @@ void estimate_normals(
      */
     using value_type = typename std::iterator_traits<ForwardIter1>::value_type;
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, value_type>,
-        "knn must satisfy KnnSearcher concept");
+        traits::is_knn_map_v<KnnMap, value_type>,
+        "knn_map must satisfy KnnMap concept");
 
     using normal_type = Normal;
     static_assert(traits::is_normal_v<normal_type>, "Normal must satisfy Normal concept");
@@ -153,7 +152,7 @@ void estimate_normals(
         "dereferencing out_begin decltype(*out_begin)");
 
     auto const transform_op = [&,
-                               knn = std::forward<KnnSearcher>(knn),
+                               knn = std::forward<KnnMap>(knn_map),
                                op  = std::forward<TransformOp>(op)](value_type const& v) {
         auto const neighbor_points = knn(v);
         using iterator_type        = decltype(neighbor_points.begin());
@@ -176,14 +175,14 @@ void estimate_normals(
  *
  * @tparam ForwardIter1 Type of input sequence iterator
  * @tparam IndexMap Type satisfying IndexMap concept
- * @tparam KnnSearcher Callable type computing the k neighborhood of an input element
+ * @tparam KnnMap Callable type computing the k neighborhood of an input element
  * @tparam PointViewMap Callable type returning a point from an input element
  * @tparam NormalMap Callable type returning a normal from an input element
  * @tparam TransformOp Callable type taking an input element and its oriented normal
  * @param begin
  * @param end
  * @param index_map The index map property map
- * @param knn Callable query object for k neighborhoods
+ * @param knn_map Callable query object for k neighborhoods
  * @param point_map Callable object to get a point from an input element
  * @param normal_map Callable object to get a normal from an input element
  * @param op Transformation callable object taking an input element and its computed normal
@@ -191,7 +190,7 @@ void estimate_normals(
 template <
     class ForwardIter1,
     class IndexMap,
-    class KnnSearcher,
+    class KnnMap,
     class PointViewMap,
     class NormalMap,
     class TransformOp>
@@ -199,7 +198,7 @@ void propagate_normal_orientations(
     ForwardIter1 begin,
     ForwardIter1 end,
     IndexMap const& index_map,
-    KnnSearcher&& knn,
+    KnnMap&& knn_map,
     PointViewMap&& point_map,
     NormalMap& normal_map,
     TransformOp&& op)
@@ -207,8 +206,8 @@ void propagate_normal_orientations(
     using input_element_type = typename std::iterator_traits<ForwardIter1>::value_type;
 
     static_assert(
-        traits::is_knn_searcher_v<KnnSearcher, input_element_type>,
-        "knn must satisfy KnnSearcher concept");
+        traits::is_knn_map_v<KnnMap, input_element_type>,
+        "knn_map must satisfy KnnMap concept");
 
     static_assert(
         std::is_invocable_v<NormalMap, input_element_type>,
@@ -221,7 +220,7 @@ void propagate_normal_orientations(
         std::is_invocable_v<TransformOp, input_element_type, normal_type>,
         "TransformOp must be callable as op(*begin, normal_map(...))");
 
-    auto graph = graph::directed_knn_graph(begin, end, std::forward<KnnSearcher>(knn), index_map);
+    auto graph = graph::directed_knn_graph(begin, end, std::forward<KnnMap>(knn_map), index_map);
     auto [vbegin, vend] = graph.vertices();
 
     auto const is_higher =
@@ -246,7 +245,7 @@ void propagate_normal_orientations(
      * normals, and high weights to normals approaching orthogonality. He then
      * traverses the MST and flips normal orientations when their inner-product
      * is negative. It seems that in our case, prim's minimum spanning tree algorithm
-     * cannot work, since our knn graphs are directed rather than undirected. The
+     * cannot work, since our knn_map graphs are directed rather than undirected. The
      * reason for the MST not working is not clear. We thought that having an
      * undirected graph in the form a directed graph where each undirected edge
      * is split into two parallel and opposite directed edges would be enough

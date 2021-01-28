@@ -2,7 +2,6 @@
 #include <catch2/catch.hpp>
 #include <numeric>
 #include <pcp/graph/directed_adjacency_list.hpp>
-#include <pcp/graph/vertex.hpp>
 #include <pcp/traits/graph_traits.hpp>
 
 SCENARIO("mutable adjacency list", "[adjacency_list]")
