@@ -20,15 +20,15 @@ branches:
 before_build:
   - sh: |
       sudo apt update
-      sudo apt --yes install clang-10 lldb-10 lld-10 libc++-10-dev libc++abi-10-dev libomp-10-dev
+      sudo apt --yes install clang clangd libc++-dev libc++1 libc++abi-dev libc++abi1 libclang-dev libclang1 liblldb-dev lld lldb llvm-dev llvm-runtime llvm
       mkdir build;
       coverage=OFF
       if [ "$configuration" = "Debug" ]; then
         coverage=ON  
       fi
-      sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++-10 100
-      export CC=/usr/bin/clang-10
-      export CXX=/usr/bin/clang++-10
+      sudo update-alternatives --install /usr/bin/c++ c++ /usr/bin/clang++ 100
+      export CC=/usr/bin/clang
+      export CXX=/usr/bin/clang++
       cmake -S . -B build -DPCP_BUILD_TESTS=ON -DPCP_BUILD_BENCHMARKS=ON -DPCP_BUILD_EXAMPLES=OFF -DCMAKE_BUILD_TYPE=$configuration -DPCP_COVERAGE=$coverage
 build_script:
   - sh: |
