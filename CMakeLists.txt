@@ -93,6 +93,9 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/obj.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
+
+        # kdtree
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/kdtree.hpp
         
         # octree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp

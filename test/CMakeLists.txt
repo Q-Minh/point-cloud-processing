@@ -17,6 +17,7 @@ PRIVATE
   "io/custom_point.hpp"
   "io/obj.cpp"
   "io/ply.cpp"
+  "kdtree/kdtree_insertion.cpp"
   "octree/octree_deletion.cpp"
   "octree/octree_find.cpp"
   "octree/octree_insertion.cpp"

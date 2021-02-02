@@ -1,144 +1,202 @@
-#ifdef PCP_KDTREE_KDTREE_HPP
+#ifndef PCP_basic_kdtree_t_HPP
+#define PCP_basic_kdtree_t_HPP
 
+#include "pcp/traits/range_traits.hpp"
 #include <algorithm>
 #include <array>
 #include <cmath>
-#include <iostream>
+#include <map>
 #include <random>
+#include <tuple>
 #include <vector>
- 
-/**
- * Class that represents a point, type must be numeric
- */
-template<typename type, size_t dimensions>
-class point {
-public:
+#include "pcp/common/points/point.hpp"
+//#include <iostream>
 
-    private:
-    std::array<type, dimensions> coordinates;
-    
-    point(std::initializer_list<type> list) {
-        size_t n =  n(dimensions, list.size());
-        std::copy_n(list.begin(), n, coordinates.begin());
-    }
+namespace pcp {
 
-    point(std::array<type, dimensions> coords) : coordinates(coords) {}
-    /**
-     * Returns the coordinate in the given dimension.
-     *
-     * @param index dimension index (zero based)
-     * @return coordinate in the given dimension
-     */
-    type getCoordinate(size_t index) const {
-        return coordinates[index];
-    }
-    /**
-     * Function that returns the euclidean distance between two points.
-     * @param point another point
-     * @return euclidean distance between 2 points
-     */
-    double euclideanDistance(const point& point) const {
+// k-d tree implementation
+//
 
-        double distance = 0;
-        for (size_t i = 0; i < dimensions; i++) {
-            double diff = point.getCoordinate(i) - getCoordinate(i);
-            distance += diff * diff;
+template <typename type>
+class basic_kdtree_t
+{
+
+  public:
+    using point_type = pcp::basic_point_t<type>;
+
+  private:
+    struct node
+    {
+        std::vector<point_type> points_;
+        node* left_;
+        node* right_;
+
+        node(const point_type& pt)
+        {
+            insert_point(pt);
+            left_  = nullptr;
+            right_ = nullptr;
         }
-        return distance;
-    }
-};
- 
-
-template<typename type, size_t dimensions>
-class kdtree {
-public:
-    typedef point<type, dimensions> pointType;
-private:
-    // Node that wraps pointer class, contains references to its children
-    struct kdnode {
-        kdnode* rightChildren;
-        kdnode* leftChildren;
-        pointType point;
-        kdnode(const pointType& point) : point(point), leftChildren(nullpointr), rightChildren(nullpointr) {}
-
-
-        type getCoordinate(size_t index) const {
-            return point.getCoordinate(index);
+        node()
+        {
+            left_  = nullptr;
+            right_ = nullptr;
         }
-        double euclideanDistance(const pointType& point) const {
-            return this->point.euclideanDistance(point);
+        size_t get_coordinate(size_t index_coordinate, size_t index_point)
+        {
+            // intermediate node or leaf node with only a single point => index_coordinate = 0
+            if (index_coordinate == 0)
+                return points_[index_point].x;
+            else if (index_coordinate == 2)
+                return points_[index_point].y;
+            else
+                return points_[index_point].z;
         }
-
+        
+        void insert_point(const point_type& p) { points_.push_back(p);}
     };
-    kdnode* rootNode = nullpointr;
-    kdnode* bestNode = nullpointr;
-    double bestDistance = 0;
-    std::vector<kdnode> nodes;
-    size_t visited = 0;
-    
-    //comparator for the iterator
-    struct comparator {
+
+
+    node* root_;
+    size_t size_;
+    std::vector<point_type> points_;
+    struct comparator
+    {
         size_t index;
-        comparator(size_t index) : index(index) {
+        comparator(size_t index) : index(index) {}
+        bool operator()(const point_type& p1, const point_type& p2) const
+        {
+            if (index== 0)
+                return (p2.x() > p1.x());
+            else if (index == 2)
+                return (p2.y() > p1.y());
+            else
+                return (p2.z() > p1.z());
+
+
         }
-        bool operator()(const kdnode& n1, const kdnode& n2) const {
-            return n2.point.getCoordinate(index) > n1.point.getCoordinate(index);
+    };
+
+  struct node* new_node(const point_type pt)
+    {
+        struct node* temp = new node;
+        temp->insert_point(pt);
+        temp->left_ = temp->right_ = NULL;
+        return temp;
+    } 
+ 
+
+    node* create_tree(node* root, size_t begin, size_t end, size_t index, size_t fixed_depth, size_t depth)
+    {
+        if (end <= begin)
+            return nullptr;
+        //we will add all the remaining points to a node,
+        else if (depth == fixed_depth-1)
+        {
+            size_++;
+            if (root == nullptr)
+                root = new_node(points_[begin]);
+            else
+            {
+           
+                root->insert_point(points_[begin]);
+            }
+            for (size_t i = begin+1; i < end; i++)
+            {   
+                root->insert_point(points_[i]);
+            }
+            return root;
+        } 
+        else
+        {
+            size_++;
+            size_t n = begin + (end - begin) / 2;
+            std::nth_element(&points_[begin], &points_[n], &points_[end], comparator(index));
+            index   = (index + 1) % 3;
+            if (root == nullptr)
+                root = new_node(points_[n]);
+            else
+            {
+                root->insert_point(points_[n]);
+            }
+           root->left_ =  create_tree(root->left_,begin, n, index, fixed_depth, depth+1);
+           root->right_ = create_tree(root->right_,n + 1, end, index,fixed_depth,depth+1);
+            return root;
         }
 
-    };
-    /**
-     * Function to create a kdTree and return its root
-     * @param index the index of the coordinates of the point (ex: in 3d (x,y,z), index 0 would be x)
-     * @param first the first node to start from
-     * @param last  the last node to start from
-     * @return the root of the tree
-     */
-    kdnode* createKDTree(size_t index,size_t first, size_t last) {
-        if (last <= first) {
-            return nullpointr;
-        }
-        size_t middle =  (last - first)/2 + first;
-        std::nth_element(&nodes[first], &nodes[middle], &nodes[0] + last, comparator(index));
-        index = (index + 1) % dimensions;
-        nodes[n].leftChildren = createKDTree(index,first, middle);
-        nodes[n].rightChildren = createKDTree(index,middle + 1, end);
-        return &nodes[n];
     }
  
 
 
-public:
-    kdtree(const kdtree&) = delete;
-    kdtree& operator=(const kdtree&) = delete;
+  
+
+ 
+  public:
+
+    basic_kdtree_t(const basic_kdtree_t&) = delete;
+    basic_kdtree_t& operator=(const basic_kdtree_t&) = delete;
+
+
     /**
-     * Constructor using 2 iterators
-     * adds every points in the range to the tree.
+     * Constructor taking a pair of iterators. Adds each
+     * point in the range [begin, end) to the tree.
      *
-     * @param first first element in the range range
-     * @param last last element in the range
+     * @param begin start of range
+     * @param end end of range
      */
-    template<typename iterator>
-    kdtree(iterator start, iterator end) : nodes(begin, end) {
-
-        rootNode = createKDTree(0, 0,nodes.size());
+    template <typename iterator>
+    basic_kdtree_t(iterator begin, iterator end,size_t fixed_depth)
+    {
+        size_ = 0;
+        points_.reserve(std::distance(begin, end));
+        for (auto i = begin; i != end; ++i)
+            points_.emplace_back(*i);
+        root_ = new node();
+        create_tree(root_,0, points_.size()-1, 0, fixed_depth, 0);
     }
- 
- 
-    /**
-     * Returns true if the tree is empty.
-     */
-    bool empty() const { 
-        return nodes.empty(); 
+    /* Given a binary tree, print its nodes according to the
+   "bottom-up" postorder traversal. */
+    void print_in_order(struct node* node)
+    {
+        if (node == NULL)
+            return;
+
+        // first recur on left subtree
+        print_in_order(node->left_);
+
+        for (int i = 0; i < node->points_.size(); i++)
+        {
+            std::cout << " x : " << node->points_[i].x() << "  y: " << node->points_[i].y() << " z "
+                      << node->points_[i].z() << "\n";
+            ;
+        }
+
+        // then recur on right subtree
+        print_in_order(node->right_);
+    }
+    void print_in_order() { print_in_order(root_); }
+
+    void nearest_n(node* root, const point_type& point, size_t index)
+    {
+       
+
     }
 
+
     /**
-     * Function that returns the best distance
+     * Returns true if the tree is empty, false otherwise.
      */
-    double euclideanDistance() const {
-         return std::sqrt(bestDistance);
-     }
-
-    };
+    bool empty() const { return points_.empty(); }
 
 
- 
+    size_t const& size() { return size_; }
+
+
+
+};
+
+
+} // namespace pcp
+using kdtree_t = pcp::basic_kdtree_t<float> ;
+
+#endif // PCP_basic_kdtree_t_HPP
