@@ -314,26 +314,26 @@ bool get_is_cube_active(std::array<bool, 12> const& edge_bipolarity_array)
  * @return
  */
 auto get_adjacent_cubes_of_edge(
-    std::size_t i,
-    std::size_t j,
-    std::size_t k,
+    std::int64_t i,
+    std::int64_t j,
+    std::int64_t k,
     std::size_t edge,
     std::int8_t const adjacent_cubes_of_edges[12][3][3])
     -> std::array<std::array<std::size_t, 3>, 3>
 {
     std::array<std::array<std::size_t, 3>, 3> adjacent_cubes;
     adjacent_cubes[0] = {
-        i + adjacent_cubes_of_edges[edge][0][0],
-        j + adjacent_cubes_of_edges[edge][0][1],
-        k + adjacent_cubes_of_edges[edge][0][2]};
+        static_cast<std::size_t>(i + adjacent_cubes_of_edges[edge][0][0]),
+        static_cast<std::size_t>(j + adjacent_cubes_of_edges[edge][0][1]),
+        static_cast<std::size_t>(k + adjacent_cubes_of_edges[edge][0][2])};
     adjacent_cubes[1] = {
-        i + adjacent_cubes_of_edges[edge][1][0],
-        j + adjacent_cubes_of_edges[edge][1][1],
-        k + adjacent_cubes_of_edges[edge][1][2]};
+        static_cast<std::size_t>(i + adjacent_cubes_of_edges[edge][1][0]),
+        static_cast<std::size_t>(j + adjacent_cubes_of_edges[edge][1][1]),
+        static_cast<std::size_t>(k + adjacent_cubes_of_edges[edge][1][2])};
     adjacent_cubes[2] = {
-        i + adjacent_cubes_of_edges[edge][2][0],
-        j + adjacent_cubes_of_edges[edge][2][1],
-        k + adjacent_cubes_of_edges[edge][2][2]};
+        static_cast<std::size_t>(i + adjacent_cubes_of_edges[edge][2][0]),
+        static_cast<std::size_t>(j + adjacent_cubes_of_edges[edge][2][1]),
+        static_cast<std::size_t>(k + adjacent_cubes_of_edges[edge][2][2])};
     return adjacent_cubes;
 }
 
@@ -500,7 +500,8 @@ auto surface_nets(
                     point_type const geometric_center_of_edge_intersection_points =
                         pcp::common::center_of_geometry(
                             edge_intersection_points.cbegin(),
-                            edge_intersection_points.cend());
+                            edge_intersection_points.cend(),
+                            [](point_type const& p) { return p; });
 
                     point_type const mesh_vertex = {
                         mesh_aabb.min.x() +
@@ -934,8 +935,12 @@ auto surface_nets(
 
             // since this edge is bipolar, all cubes adjacent to it
             // are also active, so we add them to the queue
-            auto const adjacent_cubes_of_edge =
-                get_adjacent_cubes_of_edge(i, j, k, e, adjacent_cubes_of_edges);
+            auto const adjacent_cubes_of_edge = get_adjacent_cubes_of_edge(
+                static_cast<std::int64_t>(i),
+                static_cast<std::int64_t>(j),
+                static_cast<std::int64_t>(k),
+                e,
+                adjacent_cubes_of_edges);
 
             auto const c1 = get_active_cube_index<grid_type>(
                 adjacent_cubes_of_edge[0][0],
@@ -992,7 +997,8 @@ auto surface_nets(
         point_type const geometric_center_of_edge_intersection_points =
             pcp::common::center_of_geometry(
                 edge_intersection_points.cbegin(),
-                edge_intersection_points.cend());
+                edge_intersection_points.cend(),
+                [](point_type const& p) { return p; });
 
         point_type const mesh_vertex = {
             mesh_aabb.min.x() + (mesh_aabb.max.x() - mesh_aabb.min.x()) *

@@ -1,18 +1,29 @@
 #include <catch2/catch.hpp>
 #include <pcp/octree/linked_octree.hpp>
 
+namespace octree_iterator_test {
+auto const point_map = [](pcp::point_t const& p) {
+    return p;
+};
+}
+
 /*
  * Overload STL algorithms to optimize certain operations
  */
 namespace std {
 
 template <>
-inline pcp::linked_octree_t::const_iterator find<pcp::linked_octree_t::const_iterator, pcp::point_t>(
+inline pcp::linked_octree_t::const_iterator
+find<pcp::linked_octree_t::const_iterator, pcp::point_t>(
     pcp::linked_octree_t::const_iterator begin,
     pcp::linked_octree_t::const_iterator end,
     pcp::point_t const& value)
 {
-    return pcp::find(begin, end, value);
+    if (begin == end)
+        return end;
+
+    auto const* root = begin.root();
+    return root->find(value, octree_iterator_test::point_map);
 }
 
 template <>
@@ -21,7 +32,17 @@ inline auto count<pcp::linked_octree_t::const_iterator, pcp::point_t>(
     pcp::linked_octree_t::const_iterator end,
     pcp::point_t const& value) -> pcp::linked_octree_t::const_iterator::difference_type
 {
-    return pcp::count(begin, end, value);
+    if (begin == end)
+        return 0u;
+
+    auto const* root = begin.root();
+    std::vector<pcp::point_t> points;
+    root->range_search(
+        pcp::axis_aligned_bounding_box_t<pcp::point_t>{value, value},
+        points,
+        octree_iterator_test::point_map);
+
+    return points.size();
 }
 
 } // namespace std
@@ -83,7 +104,11 @@ SCENARIO("octree iterators are valid LegacyForwardIterator types", "[octree]")
 
     GIVEN("an octree")
     {
-        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(
+            points.cbegin(),
+            points.cend(),
+            octree_iterator_test::point_map,
+            params);
 
         WHEN("using its octree iterators")
         {

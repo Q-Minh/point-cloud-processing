@@ -2,15 +2,19 @@
 #include <cstdint>
 #include <pcp/graph/directed_adjacency_list.hpp>
 #include <pcp/graph/search.hpp>
-#include <pcp/graph/vertex.hpp>
 
 SCENARIO("graph searching algorithms", "[graph]")
 {
     GIVEN("a graph with cycles")
     {
-        using vertex_type = pcp::graph::vertex_t<>;
-        using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
-        graph_type G;
+        using vertex_type = std::uint32_t;
+
+        auto const index_map = [](vertex_type const& v) {
+            return v;
+        };
+
+        using graph_type = pcp::graph::directed_adjacency_list_t<vertex_type, decltype(index_map)>;
+        graph_type G{index_map};
         auto v1  = 0u;
         auto v2  = 1u;
         auto v3  = 2u;
@@ -23,17 +27,17 @@ SCENARIO("graph searching algorithms", "[graph]")
         auto v10 = 9u;
         auto v11 = 10u;
 
-        G.add_vertex({v1});
-        G.add_vertex({v2});
-        G.add_vertex({v3});
-        G.add_vertex({v4});
-        G.add_vertex({v5});
-        G.add_vertex({v6});
-        G.add_vertex({v7});
-        G.add_vertex({v8});
-        G.add_vertex({v9});
-        G.add_vertex({v10});
-        G.add_vertex({v11});
+        G.add_vertex(vertex_type{v1});
+        G.add_vertex(vertex_type{v2});
+        G.add_vertex(vertex_type{v3});
+        G.add_vertex(vertex_type{v4});
+        G.add_vertex(vertex_type{v5});
+        G.add_vertex(vertex_type{v6});
+        G.add_vertex(vertex_type{v7});
+        G.add_vertex(vertex_type{v8});
+        G.add_vertex(vertex_type{v9});
+        G.add_vertex(vertex_type{v10});
+        G.add_vertex(vertex_type{v11});
 
         auto [vbegin, vend] = G.vertices();
         auto const n        = std::distance(vbegin, vend);
@@ -79,17 +83,17 @@ SCENARIO("graph searching algorithms", "[graph]")
         std::vector<std::int32_t> visiting_order(count, 0u);
         auto visited_nodes_counter = 0u;
         auto starting_id           = -1;
-        using starting_id_type = decltype(starting_id);
+        using starting_id_type     = decltype(starting_id);
 
         auto const visitor = [&visits, &visiting_order, &visited_nodes_counter, &starting_id](
                                  vertex_type const& source,
                                  vertex_type const& dest) {
-            auto const source_id = source.id();
-            auto const dest_id   = dest.id();
+            auto const source_id = source;
+            auto const dest_id   = dest;
 
-            // the root of the graph is never 
-            // visited as a dest vertex, so 
-            // if this is the root node, 
+            // the root of the graph is never
+            // visited as a dest vertex, so
+            // if this is the root node,
             // let us update the visit stats
             // for the it.
             if (starting_id == -1)
@@ -106,7 +110,7 @@ SCENARIO("graph searching algorithms", "[graph]")
 
         WHEN("visiting the graph in breadth first order")
         {
-            pcp::graph::breadth_first_search(G, a, visitor);
+            pcp::graph::breadth_first_search(G, a, index_map, visitor);
             THEN("the visitor visits nodes in breadth first order")
             {
                 REQUIRE(visited_nodes_counter == count);
@@ -119,18 +123,16 @@ SCENARIO("graph searching algorithms", "[graph]")
                 REQUIRE(all_nodes_visited_once);
 
                 bool const all_nodes_visited_in_breadth_first_order =
-                    visiting_order[v1] == 0u && visiting_order[v2] == 1u &&
-                    visiting_order[v3] == 2u && visiting_order[v4] == 3u &&
-                    visiting_order[v5] == 4u && visiting_order[v6] == 5u &&
-                    visiting_order[v7] == 6u && visiting_order[v8] == 7u &&
-                    visiting_order[v9] == 8u && visiting_order[v10] == 9u &&
-                    visiting_order[v11] == 10u;
+                    visiting_order[v1] == 0 && visiting_order[v2] <= 3 && visiting_order[v3] <= 3 &&
+                    visiting_order[v4] <= 3 && visiting_order[v5] == 4 && visiting_order[v6] <= 8 &&
+                    visiting_order[v7] <= 8 && visiting_order[v8] <= 8 && visiting_order[v9] <= 8 &&
+                    visiting_order[v10] <= 10 && visiting_order[v11] <= 10;
                 REQUIRE(all_nodes_visited_in_breadth_first_order);
             }
         }
         WHEN("traversing the graph in depth first order")
         {
-            pcp::graph::depth_first_search(G, a, visitor);
+            pcp::graph::depth_first_search(G, a, index_map, visitor);
             THEN("the visitor visits nodes in depth first order")
             {
                 REQUIRE(visited_nodes_counter == count);
