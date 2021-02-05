@@ -11,11 +11,6 @@
 #include "pcp/traits/coordinate_map.hpp"
 
 #include <algorithm>
-#include <array>
-#include <cmath>
-#include <memory>
-#include <tuple>
-#include <vector>
 
 namespace pcp {
 namespace kdtree {
@@ -53,7 +48,7 @@ class basic_linked_kdtree_t
         ForwardIter end,
         CoordinateMap coordinate_map = CoordinateMap{},
         std::size_t max_depth        = 12u,
-        kdtree::construction_t c     = kdtree::construction_t::presort)
+        kdtree::construction_t c     = kdtree::construction_t::nth_element)
         : max_depth_{max_depth}, storage_(begin, end), root_{}, coordinate_map_{coordinate_map}
     {
         if (c == kdtree::construction_t::nth_element)

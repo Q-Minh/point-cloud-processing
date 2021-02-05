@@ -3,7 +3,7 @@ set_target_properties(pcp-benchmarks PROPERTIES FOLDER pcp-benchmarks)
 
 target_sources(pcp-benchmarks
 PRIVATE
-  octree_benchmark.cpp
+  spatial_data_structures_benchmark.cpp
 )
 
 # do not include google benchmark tests in our project

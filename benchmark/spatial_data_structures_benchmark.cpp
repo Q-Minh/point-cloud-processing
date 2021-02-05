@@ -1,9 +1,14 @@
 #include <benchmark/benchmark.h>
+#include <pcp/kdtree/kdtree.hpp>
 #include <pcp/octree/octree.hpp>
 #include <random>
 
 auto const default_point_map = [](pcp::point_t const& p) {
     return p;
+};
+
+auto const default_coordinate_map = [](pcp::point_t const& p) {
+    return std::array<float, 3u>{p.x(), p.y(), p.z()};
 };
 
 float constexpr get_bm_min()
@@ -97,6 +102,26 @@ static void bm_linked_octree_construction(benchmark::State& state)
     {
         pcp::linked_octree_t octree(points.cbegin(), points.cend(), default_point_map, params);
         benchmark::DoNotOptimize(octree.size());
+    }
+}
+
+static void bm_linked_kdtree_construction(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> const points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+    auto depth = static_cast<std::size_t>(state.range(1));
+
+    for (auto _ : state)
+    {
+        pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+            points.begin(),
+            points.end(),
+            default_coordinate_map,
+            depth,
+            pcp::kdtree::construction_t::nth_element};
+        benchmark::DoNotOptimize(kdtree.size());
     }
 }
 
@@ -231,6 +256,30 @@ static void bm_linked_octree_iterator_traversal(benchmark::State& state)
     }
 }
 
+static void bm_linked_kdtree_iterator_traversal(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    auto depth = static_cast<std::size_t>(state.range(1));
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree(
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        depth,
+        pcp::kdtree::construction_t::nth_element);
+    for (auto _ : state)
+    {
+        bool const all = std::all_of(kdtree.cbegin(), kdtree.cend(), [](auto const& p) {
+            return pcp::common::are_vectors_equal(p, p);
+        });
+        benchmark::DoNotOptimize(all);
+    }
+}
+
 BENCHMARK(bm_vector_construction)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})
@@ -251,6 +300,16 @@ BENCHMARK(bm_linked_octree_construction)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_construction)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 11u})
+    ->Args({1 << 16, 11u})
+    ->Args({1 << 20, 11u})
+    ->Args({1 << 24, 11u})
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 BENCHMARK(bm_vector_range_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})
@@ -299,6 +358,12 @@ BENCHMARK(bm_linked_octree_iterator_traversal)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_iterator_traversal)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 
 int main(int argc, char** argv)
 {

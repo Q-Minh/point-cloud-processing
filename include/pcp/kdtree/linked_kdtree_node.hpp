@@ -6,8 +6,7 @@
  * @ingroup kd-tree
  */
 
-#include <algorithm>
-#include <array>
+#include <memory>
 #include <vector>
 
 namespace pcp {
