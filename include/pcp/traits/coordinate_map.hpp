@@ -15,6 +15,9 @@ template <class CoordinateMap, class Key>
 static constexpr std::size_t dimensionality =
     std::tuple_size<std::invoke_result_t<CoordinateMap, Key>>::value;
 
+template <class CoordinateMap, class Key>
+using coordinate_type = typename std::invoke_result_t<CoordinateMap, Key>::value_type;
+
 } // namespace traits
 } // namespace pcp
 

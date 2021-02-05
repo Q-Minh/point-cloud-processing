@@ -6,23 +6,20 @@
  * @ingroup kd-tree
  */
 
-#include "pcp/common/points/point.hpp"
-
 #include <algorithm>
 #include <array>
 #include <vector>
 
 namespace pcp {
 
+template <class Element>
 class basic_linked_kdtree_node_t
 {
   public:
     using self_type     = basic_linked_kdtree_node_t;
     using self_type_ptr = std::unique_ptr<self_type>;
-    using element_type  = pcp::point_t;
+    using element_type  = Element;
     using points_type   = std::vector<element_type*>;
-
-    enum class construction_t { approximate_median, exact_median };
 
     self_type_ptr& left() { return left_; }
     self_type_ptr& right() { return right_; }
@@ -36,10 +33,13 @@ class basic_linked_kdtree_node_t
     points_type& points() { return points_; }
     points_type const& points() const { return points_; }
 
+    bool is_leaf() const { return left_ == nullptr && right_ == nullptr; }
+    bool is_internal() const { return !is_leaf(); }
+
   private:
     std::unique_ptr<self_type> left_;
     std::unique_ptr<self_type> right_;
-    std::vector<pcp::point_t*> points_;
+    points_type points_;
 };
 
 } // namespace pcp

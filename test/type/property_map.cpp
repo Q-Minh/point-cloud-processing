@@ -180,6 +180,9 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     std::function<coordinate_type(dummy_type)> coordinate_map_f           = coordinate_map;
     std::function<std::array<float, 4u>(dummy_type)> bad_coordinate_map_f = bad_coordinate_map;
 
+    // TODO: move to better place?
+    REQUIRE(std::is_same_v<pcp::traits::coordinate_type<decltype(coordinate_map), dummy_type>, float>);
+
     GIVEN("property maps as std::function")
     {
         WHEN("property maps are valid")
