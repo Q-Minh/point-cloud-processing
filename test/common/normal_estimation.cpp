@@ -19,7 +19,10 @@ SCENARIO("normal estimation", "[normal_estimation]")
 
         WHEN("estimating the normal from those points")
         {
-            auto const normal = pcp::estimate_normal(points.cbegin(), points.cend());
+            auto const point_map = [](pcp::point_t const& p) {
+                return p;
+            };
+            auto const normal = pcp::estimate_normal(points.cbegin(), points.cend(), point_map);
             THEN("The estimated normal is correctly computed")
             {
                 pcp::normal_t expected_normal{0.f, 0.f, 1.f};

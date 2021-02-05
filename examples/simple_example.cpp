@@ -26,6 +26,16 @@ int main(int argc, char** argv)
         points | ranges::views::transform([](auto& point) { return point_view_type{&point}; });
 
     /**
+     * This is a type of property map, specifically, a PointViewMap. 
+     * In this case, the map takes in a pcp::point_view_t and simply 
+     * returns it. In other cases, the map could take any other type 
+     * and return another type of point from it.
+     */
+    auto const point_view_map = [](point_view_type const& p) {
+        return p;
+    };
+
+    /**
      * We provide spatial query acceleration containers for you
      * using STL-like interfaces. Any begin/end iterator pairs
      * of points are treated as point clouds by pcp.p
@@ -37,7 +47,7 @@ int main(int argc, char** argv)
      * footprint and minimizing copy bandwidth.
      */
     using octree_type = pcp::basic_linked_octree_t<point_view_type>;
-    octree_type octree{point_views.begin(), point_views.end()};
+    octree_type octree{point_views.begin(), point_views.end(), point_view_map};
 
     /**
      * It's easy to associate quantities to points of our point clouds
@@ -55,7 +65,7 @@ int main(int argc, char** argv)
             pcp::sphere_t<pcp::point_t> sphere{};
             sphere.radius              = 0.01f;
             sphere.position            = point_type{p};
-            auto const points_in_range = octree.range_search(sphere);
+            auto const points_in_range = octree.range_search(sphere, point_view_map);
             auto const pi              = 3.14159f;
             auto const r3              = sphere.radius * sphere.radius * sphere.radius;
             auto const volume          = 4.f / 3.f * pi * r3;
@@ -70,8 +80,8 @@ int main(int argc, char** argv)
      * callable types instead, so you can use any type of
      * knn search you want.
      */
-    auto const knn = [&octree](auto const& p) {
-        return octree.nearest_neighbours(p, 15u);
+    auto const knn = [&](auto const& p) {
+        return octree.nearest_neighbours(p, 15u, point_view_map);
     };
 
     /**

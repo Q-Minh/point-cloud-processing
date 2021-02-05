@@ -2,6 +2,10 @@
 #include <pcp/octree/octree.hpp>
 #include <random>
 
+auto const default_point_map = [](pcp::point_t const& p) {
+    return p;
+};
+
 float constexpr get_bm_min()
 {
     return -100.f;
@@ -91,7 +95,7 @@ static void bm_linked_octree_construction(benchmark::State& state)
 
     for (auto _ : state)
     {
-        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), default_point_map, params);
         benchmark::DoNotOptimize(octree.size());
     }
 }
@@ -127,12 +131,12 @@ static void bm_linked_octree_range_search(benchmark::State& state)
         pcp::axis_aligned_bounding_box_t<pcp::point_t>{{min, min, min}, {max, max, max}};
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
-    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), default_point_map, params);
 
     for (auto _ : state)
     {
         pcp::axis_aligned_bounding_box_t range = get_range(min, max);
-        std::vector<pcp::point_t> found_points = octree.range_search(range);
+        std::vector<pcp::point_t> found_points = octree.range_search(range, default_point_map);
         benchmark::DoNotOptimize(found_points.data());
     }
 }
@@ -178,12 +182,12 @@ static void bm_linked_octree_knn_search(benchmark::State& state)
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
-    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), default_point_map, params);
     std::uint64_t const k = static_cast<std::uint64_t>(state.range(3));
     for (auto _ : state)
     {
         auto const reference          = get_reference_point(min, max);
-        std::vector<pcp::point_t> knn = octree.nearest_neighbours(reference, k);
+        std::vector<pcp::point_t> knn = octree.nearest_neighbours(reference, k, default_point_map);
         benchmark::DoNotOptimize(knn.data());
     }
 }
@@ -217,7 +221,7 @@ static void bm_linked_octree_iterator_traversal(benchmark::State& state)
     params.node_capacity = static_cast<std::uint32_t>(state.range(1));
     params.max_depth     = static_cast<decltype(params.max_depth)>(state.range(2));
 
-    pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+    pcp::linked_octree_t octree(points.cbegin(), points.cend(), default_point_map, params);
     for (auto _ : state)
     {
         bool const all = std::all_of(octree.cbegin(), octree.cend(), [](auto const& p) {

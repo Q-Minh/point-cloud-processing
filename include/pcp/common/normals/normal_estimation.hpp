@@ -7,6 +7,7 @@
  */
 
 #include "pcp/common/normals/normal.hpp"
+#include "pcp/traits/point_map.hpp"
 #include "pcp/traits/point_traits.hpp"
 
 #include <Eigen/Core>
@@ -21,27 +22,29 @@ namespace pcp {
  * @brief
  * Estimates the normal from a group of points using PCA.
  * @tparam ForwardIter Type of iterator to the points
+ * @tparam PointViewMap Type satisfying PointViewMap concept
  * @tparam Normal Type of the normal to return
  * @param it Begin iterator to the points
  * @param end End iterator to the points
+ * @param point_map The point view map property map
  * @return
  */
-template <class ForwardIter, class Normal = pcp::normal_t>
-Normal estimate_normal(ForwardIter it, ForwardIter end)
+template <class ForwardIter, class PointViewMap, class Normal = pcp::normal_t>
+Normal estimate_normal(ForwardIter it, ForwardIter end, PointViewMap const& point_map)
 {
-    using point_view_type = typename std::iterator_traits<ForwardIter>::value_type;
-    using normal_type     = Normal;
+    using normal_type = Normal;
 
     static_assert(
-        traits::is_point_view_v<point_view_type>,
-        "Type of dereferenced ForwardIter must satisfy PointView concept");
+        traits::is_point_view_map_v<PointViewMap, decltype(*it)>,
+        "Type of point_map must satisfy PointViewMap concept");
 
     auto const n = std::distance(it, end);
     Eigen::Matrix3Xf V;
     V.resize(3, n);
     for (auto i = 0; i < n; ++i, ++it)
     {
-        V.block(0, i, 3, 1) = Eigen::Vector3f(it->x(), it->y(), it->z());
+        auto p              = point_map(*it);
+        V.block(0, i, 3, 1) = Eigen::Vector3f(p.x(), p.y(), p.z());
     }
 
     Eigen::Vector3f const Mu      = V.rowwise().mean();

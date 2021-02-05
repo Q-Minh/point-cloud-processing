@@ -6,7 +6,6 @@
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/points/point_view.hpp>
 #include <pcp/common/points/vertex.hpp>
-#include <pcp/graph/vertex.hpp>
 #include <pcp/octree/octree.hpp>
 
 SCENARIO("computing point cloud normals", "[normals]")
@@ -23,21 +22,26 @@ SCENARIO("computing point cloud normals", "[normals]")
             return pcp::point_t{dis(gen), dis(gen), dis(gen)};
         });
 
+        auto const point_map = [](pcp::point_t const& p) {
+            return p;
+        };
+
         pcp::octree_parameters_t<pcp::point_t> params;
         params.voxel_grid = {{-10.f, -10.f, -10.f}, {10.f, 10.f, 10.f}};
-        pcp::linked_octree_t octree(point_cloud.begin(), point_cloud.end(), params);
+        pcp::linked_octree_t octree(point_cloud.begin(), point_cloud.end(), point_map, params);
         std::uint64_t const k = 5u;
 
         WHEN("computing the point cloud's normals")
         {
             std::vector<pcp::normal_t> normals;
             auto const knn = [=, &octree](pcp::point_t const& p) {
-                return octree.nearest_neighbours(p, k);
+                return octree.nearest_neighbours(p, k, point_map);
             };
             pcp::algorithm::estimate_normals(
                 point_cloud.cbegin(),
                 point_cloud.cend(),
                 std::back_inserter(normals),
+                point_map,
                 knn,
                 pcp::algorithm::default_normal_transform<pcp::point_t, pcp::normal_t>);
 
@@ -48,9 +52,9 @@ SCENARIO("computing point cloud normals", "[normals]")
                 std::size_t valid_normals_count = 0u;
                 for (std::size_t i = 0u; i < n; ++i)
                 {
-                    auto const& neighbors = octree.nearest_neighbours(point_cloud[i], k);
+                    auto const& neighbors = octree.nearest_neighbours(point_cloud[i], k, point_map);
                     pcp::normal_t const expected =
-                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend());
+                        pcp::estimate_normal(neighbors.cbegin(), neighbors.cend(), point_map);
                     if (pcp::common::are_vectors_equal(normals[i], expected) ||
                         pcp::common::are_vectors_equal(normals[i], -expected))
                         ++valid_normals_count;
@@ -100,35 +104,40 @@ SCENARIO("computing point cloud normals", "[normals]")
             for (std::uint32_t i = 0; i < point_cloud.size(); ++i)
                 vertices.push_back(vertex_type{&point_cloud[i], i});
 
-            pcp::octree_parameters_t<pcp::point_t> params;
-            params.voxel_grid = {{-2.f, -2.f, -2.f}, {2.f, 2.f, 2.f}};
-            pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree(
-                vertices.cbegin(),
-                vertices.cend(),
-                params);
-
-            // pcp::propagate_normal_orientations requires the knn searcher to
-            // return vertices satisfying the GraphVertex concept
-            auto const knn = [&octree, &vertices](vertex_type const& v) {
-                std::uint64_t const k = 2u;
-                return octree.nearest_neighbours(vertices[v.id()], k);
-            };
-            auto const get_point = [&point_cloud](vertex_type const& v) {
+            // prepare property maps
+            auto const point_map = [&point_cloud](vertex_type const& v) {
                 return point_cloud[v.id()];
             };
-            auto const get_normal = [&normals](vertex_type const& v) {
+            auto const index_map = [](vertex_type const& v) {
+                return v.id();
+            };
+            auto const normal_map = [&normals](vertex_type const& v) {
                 return normals[v.id()];
             };
             auto const transform_op = [&normals](vertex_type const& v, pcp::normal_t const& n) {
                 normals[v.id()] = n;
             };
 
+            pcp::octree_parameters_t<pcp::point_t> params;
+            params.voxel_grid = {{-2.f, -2.f, -2.f}, {2.f, 2.f, 2.f}};
+            pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree(
+                vertices.cbegin(),
+                vertices.cend(),
+                point_map,
+                params);
+
+            auto const knn = [&](vertex_type const& v) {
+                std::uint64_t const k = 2u;
+                return octree.nearest_neighbours(vertices[v.id()], k, point_map);
+            };
+
             pcp::algorithm::propagate_normal_orientations(
                 vertices.begin(),
                 vertices.end(),
+                index_map,
                 knn,
-                get_point,
-                get_normal,
+                point_map,
+                normal_map,
                 transform_op);
 
             THEN("the estimated normal orientations are more consistent")

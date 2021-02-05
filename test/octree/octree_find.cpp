@@ -33,7 +33,11 @@ SCENARIO("octree find", "[octree]")
                 coordinate_distribution(gen)});
         }
 
-        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+        auto const point_map = [](pcp::point_t const& p) {
+            return p;
+        };
+
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), point_map, params);
 
         REQUIRE(octree.size() == points.size());
 
@@ -41,13 +45,12 @@ SCENARIO("octree find", "[octree]")
         {
             std::size_t const idx = index_distribution(gen);
             auto const& p         = points[idx];
-            auto const it         = octree.find(p);
+            auto const it         = octree.find(p, point_map);
 
             THEN("the corresponding iterator is returned")
             {
                 REQUIRE(it != octree.cend());
-                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
-                REQUIRE(pcp::common::are_vectors_equal(*it, p));
+                REQUIRE(pcp::common::are_vectors_equal(point_map(*it), p));
             }
         }
         WHEN(
@@ -55,24 +58,16 @@ SCENARIO("octree find", "[octree]")
             "octree's voxel grid but that was not inserted in the octree")
         {
             pcp::point_t const p{min, max, min};
-            auto const it = octree.find(p);
+            auto const it = octree.find(p, point_map);
 
-            THEN("the end iterator is returned")
-            {
-                REQUIRE(it == octree.cend());
-                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
-            }
+            THEN("the end iterator is returned") { REQUIRE(it == octree.cend()); }
         }
         WHEN("searching for a point that is not contained in the octree's voxel grid")
         {
             pcp::point_t const p{min - 1.f, min - 1.f, min - 1.f};
-            auto const it = octree.find(p);
+            auto const it = octree.find(p, point_map);
 
-            THEN("the end iterator is returned")
-            {
-                REQUIRE(it == octree.cend());
-                REQUIRE(it == pcp::find(octree.cbegin(), octree.cend(), p));
-            }
+            THEN("the end iterator is returned") { REQUIRE(it == octree.cend()); }
         }
     }
 }

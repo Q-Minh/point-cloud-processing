@@ -11,7 +11,12 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
     {
         using point_type  = pcp::point_t;
         using vertex_type = pcp::basic_point_view_vertex_t<point_type>;
-        using graph_type  = pcp::graph::directed_adjacency_list_t<vertex_type>;
+
+        auto const index_map = [](vertex_type const& v) {
+            return v.id();
+        };
+
+        using graph_type = pcp::graph::directed_adjacency_list_t<vertex_type, decltype(index_map)>;
 
         static_assert(
             pcp::traits::is_directed_graph_v<graph_type>,
@@ -64,7 +69,9 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
                 std::cbegin(vertices),
                 std::cend(vertices),
                 std::cbegin(points),
-                [](auto const& p1, auto const& p2) { return pcp::common::are_vectors_equal(p1, p2); });
+                [](auto const& p1, auto const& p2) {
+                    return pcp::common::are_vectors_equal(p1, p2);
+                });
             REQUIRE(are_vertices_and_points_equal);
         }
 
@@ -74,19 +81,24 @@ SCENARIO("k nearest neighbours undirected adjacency list", "[undirected_knn_adja
         params.node_capacity = 2u;
         params.voxel_grid    = {{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
 
+        auto const point_map = [](vertex_type const& v) {
+            return pcp::point_t{v.x(), v.y(), v.z()};
+        };
+
         pcp::basic_linked_octree_t<vertex_type, params_type> octree{
             std::cbegin(vertices),
             std::cend(vertices),
+            point_map,
             params};
 
         std::uint64_t k = 2u;
-        auto knn = [&octree, k](vertex_type const& v) {
-            return octree.nearest_neighbours(v, k);
+        auto knn        = [&, k](vertex_type const& v) {
+            return octree.nearest_neighbours(v, k, point_map);
         };
 
         WHEN("creating a directed_knn_adjacency_list_t from the octree")
         {
-            auto graph = pcp::graph::undirected_knn_graph(vertices.begin(), vertices.end(), knn);
+            auto graph = pcp::graph::undirected_knn_graph(vertices.begin(), vertices.end(), knn, index_map);
 
             THEN("the graph's edge count is 'vertex_count * k nearest neighbours * 2'")
             {

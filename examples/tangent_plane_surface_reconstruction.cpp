@@ -192,7 +192,7 @@ int main(int argc, char** argv)
         }
         ImGui::End();
     };
-    
+
     viewer.core().set_rotation_type(igl::opengl::ViewerCore::RotationType::ROTATION_TYPE_TRACKBALL);
     viewer.data().show_lines = false;
     viewer.launch();
@@ -263,12 +263,19 @@ auto reconstruct_surface_from_point_cloud(
     for (std::size_t i = 0; i < points.size(); ++i)
         vertices.push_back(vertex_type{&points[i], i});
 
-    pcp::basic_linked_octree_t<vertex_type> octree{std::cbegin(vertices), std::cend(vertices)};
+    auto const point_map = [](vertex_type const& v) {
+        return *v.point();
+    };
+
+    pcp::basic_linked_octree_t<vertex_type> octree{
+        std::cbegin(vertices),
+        std::cend(vertices),
+        point_map};
     progress_forward();
     timer.stop();
 
-    auto const point_knn = [=, &octree](vertex_type const& v) {
-        auto const& neighbours = octree.nearest_neighbours(v, k);
+    auto const point_knn = [=, &octree, &point_map](vertex_type const& v) {
+        auto const& neighbours = octree.nearest_neighbours(v, k, point_map);
         return std::vector<point_type>(neighbours.cbegin(), neighbours.cend());
     };
 
@@ -300,13 +307,10 @@ auto reconstruct_surface_from_point_cloud(
     progress_forward();
     timer.stop();
 
-    auto const vertex_knn = [=, &octree](vertex_type const& v) {
-        return octree.nearest_neighbours(v, k);
+    auto const vertex_knn = [=, &octree, &point_map](vertex_type const& v) {
+        return octree.nearest_neighbours(v, k, point_map);
     };
-    auto const get_point = [&vertices](vertex_type const& v) {
-        return pcp::point_t{vertices[v.id()]};
-    };
-    auto const get_normal = [&tangent_planes](vertex_type const& v) {
+    auto const normal_map = [&tangent_planes](vertex_type const& v) {
         return tangent_planes[v.id()].normal();
     };
     auto const transform_op = [&tangent_planes](vertex_type const& v, pcp::normal_t const& n) {
@@ -315,28 +319,34 @@ auto reconstruct_surface_from_point_cloud(
 
     timer.register_op("propagate normal orientations");
     timer.start();
+    auto const index_map = [](vertex_type const& v) {
+        return v.id();
+    };
+
     pcp::algorithm::propagate_normal_orientations(
         vertices.begin(),
         vertices.end(),
+        index_map,
         vertex_knn,
-        get_point,
-        get_normal,
+        point_map,
+        normal_map,
         transform_op);
     progress_forward();
     timer.stop();
 
-    auto const signed_distance_function = [=, &octree, &tangent_planes](float x, float y, float z) {
-        point_type const p{x, y, z};
-        auto const nearest_neighbours = octree.nearest_neighbours(p, 1u);
-        auto const& nearest_vertex    = nearest_neighbours.front();
-        auto const idx                = nearest_vertex.id();
-        auto const& tangent_plane     = tangent_planes[idx];
-        auto const o                  = tangent_plane.point();
-        auto const n                  = tangent_plane.normal();
-        auto const op                 = p - o;
-        auto const f                  = pcp::common::inner_product(op, n);
-        return f;
-    };
+    auto const signed_distance_function =
+        [=, &octree, &tangent_planes, &point_map](float x, float y, float z) {
+            point_type const p{x, y, z};
+            auto const nearest_neighbours = octree.nearest_neighbours(p, 1u, point_map);
+            auto const& nearest_vertex    = nearest_neighbours.front();
+            auto const idx                = nearest_vertex.id();
+            auto const& tangent_plane     = tangent_planes[idx];
+            auto const o                  = tangent_plane.point();
+            auto const n                  = tangent_plane.normal();
+            auto const op                 = p - o;
+            auto const f                  = pcp::common::inner_product(op, n);
+            return f;
+        };
 
     timer.register_op("surface nets");
     timer.start();
@@ -348,7 +358,7 @@ auto reconstruct_surface_from_point_cloud(
         octree.voxel_grid().max,
         {dimx, dimy, dimz});
 
-    auto const mesh = [&points, &octree, &k](auto const& sdf, auto const& grid, algorithm algo) {
+    auto const mesh = [=, &octree, &point_map](auto const& sdf, auto const& grid, algorithm algo) {
         if (algo == parallel)
         {
             return pcp::algorithm::isosurface::surface_nets(std::execution::par, sdf, grid);
@@ -363,8 +373,8 @@ auto reconstruct_surface_from_point_cloud(
                 std::execution::par,
                 points.cbegin(),
                 points.cend(),
-                [&octree, &k](pcp::point_t const& p1, pcp::point_t const& p2) {
-                    auto const& neighbours1 = octree.nearest_neighbours(p1, k);
+                [=, &octree, &point_map](pcp::point_t const& p1, pcp::point_t const& p2) {
+                    auto const& neighbours1 = octree.nearest_neighbours(p1, k, point_map);
                     float const sum1        = std::accumulate(
                         neighbours1.cbegin(),
                         neighbours1.cend(),
@@ -376,7 +386,7 @@ auto reconstruct_surface_from_point_cloud(
 
                     auto const mean_distance1 = sum1 / static_cast<float>(neighbours1.size());
 
-                    auto const& neighbours2 = octree.nearest_neighbours(p2, k);
+                    auto const& neighbours2 = octree.nearest_neighbours(p2, k, point_map);
                     float const sum2        = std::accumulate(
                         neighbours2.cbegin(),
                         neighbours2.cend(),
@@ -391,7 +401,7 @@ auto reconstruct_surface_from_point_cloud(
                     return mean_distance1 < mean_distance2;
                 });
 
-            auto const kneighbours = octree.nearest_neighbours(*max_density_point, k);
+            auto const kneighbours = octree.nearest_neighbours(*max_density_point, k, point_map);
             auto const hint        = std::accumulate(
                                   kneighbours.cbegin(),
                                   kneighbours.cend(),

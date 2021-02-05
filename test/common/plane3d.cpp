@@ -43,7 +43,11 @@ SCENARIO("3d planes", "[plane3d]")
 
         WHEN("estimating their tangent plane")
         {
-            auto const tangent_plane = pcp::common::tangent_plane(points.cbegin(), points.cend());
+            auto const point_map = [](pcp::point_t const& p) {
+                return p;
+            };
+
+            auto const tangent_plane = pcp::common::tangent_plane(points.cbegin(), points.cend(), point_map);
 
             THEN("the tangent plane has correct normal and point") 
             {

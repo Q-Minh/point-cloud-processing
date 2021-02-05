@@ -25,63 +25,63 @@ struct dummy_type
 unsigned int fidentity_map(dummy_type dummy)
 {
     return 0u;
-};
+}
 
 unsigned int findex_map(dummy_type dummy)
 {
     return 0u;
-};
+}
 
 pcp::point_t fpoint_map(dummy_type dummy)
 {
     return pcp::point_t{};
-};
+}
 
 pcp::normal_t fnormal_map(dummy_type dummy)
 {
     return pcp::normal_t{};
-};
+}
 
 std::vector<pcp::point_t> fknn_map(dummy_type dummy)
 {
     return std::vector<pcp::point_t>{};
-};
+}
 
 std::vector<pcp::point_t> frange_neighbor_map(dummy_type dummy, pcp::sphere_t<pcp::point_t> sphere)
 {
     return std::vector<pcp::point_t>();
-};
+}
 
 float fsigned_distance_map(dummy_type dummy)
 {
     return float{};
-};
+}
 
-void fbad_identity_map(dummy_type dummy){};
+void fbad_identity_map(dummy_type dummy){}
 
 float fbad_index_map(dummy_type dummy)
 {
     return 0.f;
-};
+}
 
 pcp::sphere_t<pcp::point_t> fbad_point_map(dummy_type dummy)
 {
     return pcp::sphere_t<pcp::point_t>{};
-};
+}
 
 dummy_type fbad_normal_map(pcp::normal_t normal)
 {
     return dummy_type{};
-};
+}
 
 pcp::point_t fbad_knn_map(dummy_type dummy)
 {
     return pcp::point_t{};
-};
+}
 
-void fbad_range_neighbor_map(dummy_type dummy, pcp::sphere_t<pcp::point_t> sphere){};
+void fbad_range_neighbor_map(dummy_type dummy, pcp::sphere_t<pcp::point_t> sphere){}
 
-void fbad_signed_distance_map(dummy_type dummy){};
+void fbad_signed_distance_map(dummy_type dummy){}
 
 #if defined(_MSC_VER)
     #pragma warning(push)
@@ -112,7 +112,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     auto const point_map = [&](dummy_type dummy) {
         return point;
     };
-    auto const bad_point_map = [](pcp::point_t point) {
+    auto const bad_point_map = [](pcp::point_t p) {
         return dummy_type{};
     };
     std::function<pcp::point_t(dummy_type)> point_map_f     = point_map;
@@ -121,7 +121,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     auto const normal_map = [&](dummy_type dummy) {
         return normal;
     };
-    auto const bad_normal_map = [](pcp::normal_t normal) {
+    auto const bad_normal_map = [](pcp::normal_t n) {
         return dummy_type{};
     };
     std::function<pcp::normal_t(dummy_type)> normal_map_f     = normal_map;
@@ -272,7 +272,7 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     }
 }
 #if defined(__clang__) || defined(__GNUC__)
-    #pragma GCC diagnostic ignored
+    #pragma GCC diagnostic pop
 #elif defined(_MSC_VER)
     #pragma warning(pop) // warning C4100
     #pragma warning(pop) // warning C26444

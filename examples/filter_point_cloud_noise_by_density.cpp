@@ -35,15 +35,17 @@ int main(int argc, char** argv)
 
     timer.register_op("setup octree");
     timer.start();
-    std::vector<pcp::point_view_t> point_views(points.size(), pcp::point_view_t{});
-    std::transform(
-        std::execution::par,
-        points.begin(),
-        points.end(),
-        point_views.begin(),
-        [](pcp::point_t& p) { return pcp::point_view_t(&p); });
+    auto point_views =
+        points | ranges::views::transform([](auto& p) { return pcp::point_view_t{&p}; });
 
-    pcp::basic_linked_octree_t<pcp::point_view_t> octree{point_views.cbegin(), point_views.cend()};
+    auto const point_view_map = [](pcp::point_view_t const& p) {
+        return p;
+    };
+
+    pcp::basic_linked_octree_t<pcp::point_view_t> octree{
+        point_views.begin(),
+        point_views.end(),
+        point_view_map};
     timer.stop();
 
     timer.register_op("compute k neighborhood average radius");
@@ -54,8 +56,8 @@ int main(int argc, char** argv)
         points.cbegin(),
         points.cend(),
         mean_distances.begin(),
-        [&octree, &k](pcp::point_t const& p) {
-            auto const& neighbours = octree.nearest_neighbours(p, k);
+        [&](pcp::point_t const& p) {
+            auto const& neighbours = octree.nearest_neighbours(p, k, point_view_map);
             float const sum        = std::accumulate(
                 neighbours.cbegin(),
                 neighbours.cend(),
@@ -80,9 +82,9 @@ int main(int argc, char** argv)
         std::execution::par,
         points.begin(),
         points.end(),
-        [&octree, &radius, &density_threshold, &radius_multiplier](pcp::point_t const& p) {
+        [&](pcp::point_t const& p) {
             pcp::sphere_t<pcp::point_t> ball{p, radius * radius_multiplier};
-            auto const& points_in_ball = octree.range_search(ball);
+            auto const& points_in_ball = octree.range_search(ball, point_view_map);
             auto const density         = points_in_ball.size();
             return density < density_threshold;
         });
@@ -94,7 +96,7 @@ int main(int argc, char** argv)
     pcp::io::write_ply(output_ply, points, _, pcp::io::ply_format_t::binary_little_endian);
     timer.stop();
 
-    for (auto const [operation, duration] : timer.ops)
+    for (auto const & [operation, duration] : timer.ops)
     {
         std::cout << operation << ": "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()

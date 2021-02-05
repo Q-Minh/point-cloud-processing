@@ -5,9 +5,13 @@ SCENARIO("octree insertion", "[octree]")
 {
     auto const insertion = [](pcp::octree_parameters_t<pcp::point_t> const& params,
                               std::vector<pcp::point_t>& points) {
+        auto const point_map = [](pcp::point_t const& p) {
+            return p;
+        };
+
         WHEN("inserting a range of points contained in the octree's voxel grid")
         {
-            pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+            pcp::linked_octree_t octree(points.cbegin(), points.cend(), point_map, params);
 
             THEN("the octree's size is the size of the range")
             {
@@ -26,7 +30,7 @@ SCENARIO("octree insertion", "[octree]")
             points.push_back({0.f, 2.f, 0.f});
             points.push_back({0.f, 0.f, 2.f});
 
-            pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+            pcp::linked_octree_t octree(points.cbegin(), points.cend(), point_map, params);
 
             THEN(
                 "the octree's size is the number of points of the"
