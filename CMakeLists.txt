@@ -98,6 +98,8 @@ INTERFACE
 
         # kdtree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/kdtree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/linked_kdtree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/linked_kdtree_node.hpp
         
         # octree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp

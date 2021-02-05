@@ -8,6 +8,7 @@
 #include <igl/writePLY.h>
 #include <iostream>
 #include <pcp/pcp.hpp>
+#include <range/v3/view/transform.hpp>
 #include <sstream>
 
 using point_type  = pcp::point_t;
@@ -257,14 +258,13 @@ auto reconstruct_surface_from_point_cloud(
     pcp::common::basic_timer_t timer;
     timer.register_op("setup octree");
     timer.start();
+    using vertex_type = std::size_t;
     std::vector<vertex_type> vertices;
-    vertices.reserve(points.size());
+    vertices.resize(points.size());
+    std::iota(vertices.begin(), vertices.end(), 0u);
 
-    for (std::size_t i = 0; i < points.size(); ++i)
-        vertices.push_back(vertex_type{&points[i], i});
-
-    auto const point_map = [](vertex_type const& v) {
-        return *v.point();
+    auto const point_map = [&](vertex_type const& v) {
+        return points[v];
     };
 
     pcp::basic_linked_octree_t<vertex_type> octree{
@@ -274,9 +274,10 @@ auto reconstruct_surface_from_point_cloud(
     progress_forward();
     timer.stop();
 
-    auto const point_knn = [=, &octree, &point_map](vertex_type const& v) {
-        auto const& neighbours = octree.nearest_neighbours(v, k, point_map);
-        return std::vector<point_type>(neighbours.cbegin(), neighbours.cend());
+    auto const knn_map = [=, &octree, &point_map](vertex_type const& v) {
+        auto target            = point_map(v);
+        auto const& neighbours = octree.nearest_neighbours(target, k, point_map);
+        return neighbours;
     };
 
     std::vector<plane_type> tangent_planes;
@@ -291,8 +292,9 @@ auto reconstruct_surface_from_point_cloud(
             vertices.cbegin(),
             vertices.cend(),
             tangent_planes.begin(),
-            point_knn,
-            pcp::algorithm::default_plane_transform<point_type, plane_type>);
+            point_map,
+            knn_map,
+            pcp::algorithm::default_plane_transform<vertex_type, plane_type>);
     }
     else
     {
@@ -301,26 +303,28 @@ auto reconstruct_surface_from_point_cloud(
             vertices.cbegin(),
             vertices.cend(),
             tangent_planes.begin(),
-            point_knn,
-            pcp::algorithm::default_plane_transform<point_type, plane_type>);
+            point_map,
+            knn_map,
+            pcp::algorithm::default_plane_transform<vertex_type, plane_type>);
     }
     progress_forward();
     timer.stop();
 
     auto const vertex_knn = [=, &octree, &point_map](vertex_type const& v) {
-        return octree.nearest_neighbours(v, k, point_map);
+        auto target = point_map(v);
+        return octree.nearest_neighbours(target, k, point_map);
     };
     auto const normal_map = [&tangent_planes](vertex_type const& v) {
-        return tangent_planes[v.id()].normal();
+        return tangent_planes[v].normal();
     };
     auto const transform_op = [&tangent_planes](vertex_type const& v, pcp::normal_t const& n) {
-        tangent_planes[v.id()].normal(n);
+        tangent_planes[v].normal(n);
     };
 
     timer.register_op("propagate normal orientations");
     timer.start();
     auto const index_map = [](vertex_type const& v) {
-        return v.id();
+        return v;
     };
 
     pcp::algorithm::propagate_normal_orientations(
@@ -339,8 +343,7 @@ auto reconstruct_surface_from_point_cloud(
             point_type const p{x, y, z};
             auto const nearest_neighbours = octree.nearest_neighbours(p, 1u, point_map);
             auto const& nearest_vertex    = nearest_neighbours.front();
-            auto const idx                = nearest_vertex.id();
-            auto const& tangent_plane     = tangent_planes[idx];
+            auto const& tangent_plane     = tangent_planes[nearest_vertex];
             auto const o                  = tangent_plane.point();
             auto const n                  = tangent_plane.normal();
             auto const op                 = p - o;
@@ -379,8 +382,8 @@ auto reconstruct_surface_from_point_cloud(
                         neighbours1.cbegin(),
                         neighbours1.cend(),
                         0.f,
-                        [&p1](float val, pcp::point_view_t const& neighbour) {
-                            auto const distance = pcp::common::norm(pcp::point_t(neighbour) - p1);
+                        [&](float val, vertex_type const& neighbour) {
+                            auto const distance = pcp::common::norm(point_map(neighbour) - p1);
                             return val + distance;
                         });
 
@@ -391,8 +394,8 @@ auto reconstruct_surface_from_point_cloud(
                         neighbours2.cbegin(),
                         neighbours2.cend(),
                         0.f,
-                        [&p2](float val, pcp::point_view_t const& neighbour) {
-                            auto const distance = pcp::common::norm(pcp::point_t(neighbour) - p2);
+                        [&](float val, vertex_type const& neighbour) {
+                            auto const distance = pcp::common::norm(point_map(neighbour) - p2);
                             return val + distance;
                         });
 
@@ -406,8 +409,9 @@ auto reconstruct_surface_from_point_cloud(
                                   kneighbours.cbegin(),
                                   kneighbours.cend(),
                                   pcp::point_t{0.f, 0.f, 0.f},
-                                  [](pcp::point_t const& val, pcp::point_view_t const& p) {
-                                      return val + pcp::point_t{p.x(), p.y(), p.z()};
+                                  [&](pcp::point_t const& val, vertex_type const& v) {
+                                      auto p = point_map(v);
+                                      return val + p;
                                   }) /
                               static_cast<float>(kneighbours.size());
 
