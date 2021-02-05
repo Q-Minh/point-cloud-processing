@@ -108,7 +108,6 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_node.hpp
 
         # traits
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/function_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
@@ -117,10 +116,12 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/property_map_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/triangle_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/vector3d_traits.hpp
 
         # traits (property maps)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/coordinate_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/identity_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/index_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_map.hpp

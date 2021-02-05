@@ -2,6 +2,7 @@
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/sphere.hpp>
+#include <pcp/traits/coordinate_map.hpp>
 #include <pcp/traits/identity_map.hpp>
 #include <pcp/traits/index_map.hpp>
 #include <pcp/traits/knn_map.hpp>
@@ -22,6 +23,14 @@ struct dummy_type
     #pragma warning(push)
     #pragma warning(disable : 4100)
 #endif
+
+using coordinate_type = std::array<float, 3u>;
+
+coordinate_type fcoordinate_map(dummy_type dummy)
+{
+    return coordinate_type{};
+}
+
 unsigned int fidentity_map(dummy_type dummy)
 {
     return 0u;
@@ -57,7 +66,12 @@ float fsigned_distance_map(dummy_type dummy)
     return float{};
 }
 
-void fbad_identity_map(dummy_type dummy){}
+std::array<int, 3u> fbad_coordinate_map(dummy_type dummy)
+{
+    return std::array<int, 3u>{};
+}
+
+void fbad_identity_map(dummy_type dummy) {}
 
 float fbad_index_map(dummy_type dummy)
 {
@@ -79,9 +93,9 @@ pcp::point_t fbad_knn_map(dummy_type dummy)
     return pcp::point_t{};
 }
 
-void fbad_range_neighbor_map(dummy_type dummy, pcp::sphere_t<pcp::point_t> sphere){}
+void fbad_range_neighbor_map(dummy_type dummy, pcp::sphere_t<pcp::point_t> sphere) {}
 
-void fbad_signed_distance_map(dummy_type dummy){}
+void fbad_signed_distance_map(dummy_type dummy) {}
 
 #if defined(_MSC_VER)
     #pragma warning(push)
@@ -156,12 +170,24 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     std::function<float(dummy_type)> signed_distance_map_f           = signed_distance_map;
     std::function<char const*(dummy_type)> bad_signed_distance_map_f = bad_signed_distance_map;
 
+    using coordinate_type     = std::array<float, 3u>;
+    auto const coordinate_map = [](dummy_type dummy) {
+        return coordinate_type{};
+    };
+    auto const bad_coordinate_map = [](dummy_type dummy) {
+        return std::array<float, 4u>{};
+    };
+    std::function<coordinate_type(dummy_type)> coordinate_map_f           = coordinate_map;
+    std::function<std::array<float, 4u>(dummy_type)> bad_coordinate_map_f = bad_coordinate_map;
+
     GIVEN("property maps as std::function")
     {
         WHEN("property maps are valid")
         {
             THEN("property map traits return true")
             {
+                REQUIRE(pcp::traits::
+                            is_coordinate_map_v<decltype(coordinate_map_f), dummy_type, float, 3u>);
                 REQUIRE(pcp::traits::is_identity_map_v<decltype(identity_map_f), dummy_type>);
                 REQUIRE(pcp::traits::is_index_map_v<decltype(index_map_f), dummy_type>);
                 REQUIRE(pcp::traits::is_point_map_v<decltype(point_map_f), dummy_type>);
@@ -179,6 +205,9 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
         {
             THEN("property map traits return false")
             {
+                REQUIRE(
+                    !pcp::traits::
+                        is_coordinate_map_v<decltype(bad_coordinate_map_f), dummy_type, float, 3u>);
                 REQUIRE(!pcp::traits::is_identity_map_v<decltype(bad_identity_map_f), dummy_type>);
                 REQUIRE(!pcp::traits::is_index_map_v<decltype(bad_index_map_f), dummy_type>);
                 REQUIRE(!pcp::traits::is_point_map_v<decltype(bad_point_map_f), pcp::point_t>);
@@ -200,6 +229,8 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
         {
             THEN("property map traits return true")
             {
+                REQUIRE(pcp::traits::
+                            is_coordinate_map_v<decltype(coordinate_map), dummy_type, float, 3u>);
                 REQUIRE(pcp::traits::is_identity_map_v<decltype(identity_map), dummy_type>);
                 REQUIRE(pcp::traits::is_index_map_v<decltype(index_map), dummy_type>);
                 REQUIRE(pcp::traits::is_point_map_v<decltype(point_map), dummy_type>);
@@ -217,6 +248,9 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
         {
             THEN("property map traits return false")
             {
+                REQUIRE(
+                    !pcp::traits::
+                        is_coordinate_map_v<decltype(bad_coordinate_map), dummy_type, float, 3u>);
                 REQUIRE(!pcp::traits::is_identity_map_v<decltype(bad_identity_map), dummy_type>);
                 REQUIRE(!pcp::traits::is_index_map_v<decltype(bad_index_map), dummy_type>);
                 REQUIRE(!pcp::traits::is_point_map_v<decltype(bad_point_map), pcp::point_t>);
@@ -238,6 +272,8 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
         {
             THEN("property map traits return true")
             {
+                REQUIRE(pcp::traits::
+                            is_coordinate_map_v<decltype(fcoordinate_map), dummy_type, float, 3u>);
                 REQUIRE(pcp::traits::is_identity_map_v<decltype(fidentity_map), dummy_type>);
                 REQUIRE(pcp::traits::is_index_map_v<decltype(findex_map), dummy_type>);
                 REQUIRE(pcp::traits::is_point_map_v<decltype(fpoint_map), dummy_type>);
@@ -255,6 +291,9 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
         {
             THEN("property map traits return false")
             {
+                REQUIRE(
+                    !pcp::traits::
+                        is_coordinate_map_v<decltype(fbad_coordinate_map), dummy_type, float, 3u>);
                 REQUIRE(!pcp::traits::is_identity_map_v<decltype(fbad_identity_map), dummy_type>);
                 REQUIRE(!pcp::traits::is_index_map_v<decltype(fbad_index_map), dummy_type>);
                 REQUIRE(!pcp::traits::is_point_map_v<decltype(fbad_point_map), dummy_type>);
