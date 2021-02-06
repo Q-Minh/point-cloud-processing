@@ -6,6 +6,7 @@
  * @ingroup kd-tree
  */
 
+#include "pcp/common/axis_aligned_bounding_box.hpp"
 #include "pcp/common/points/point.hpp"
 #include "pcp/kdtree/linked_kdtree_node.hpp"
 #include "pcp/traits/coordinate_map.hpp"

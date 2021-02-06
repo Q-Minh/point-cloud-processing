@@ -1,5 +1,4 @@
 #include <catch2/catch.hpp>
-#include <iostream>
 #include <pcp/common/points/point.hpp>
 #include <pcp/common/vector3d.hpp>
 #include <pcp/common/vector3d_queries.hpp>
@@ -75,9 +74,9 @@ SCENARIO("kdtree insertion", "[kdtree]")
             THEN("The tree's storage contains all the inserted points")
             {
                 auto const has_point = [&](pcp::point_t const& p) {
-                    auto begin = kdtree.begin();
-                    auto end   = kdtree.end();
-                    auto const equals = [p1=p](pcp::point_t const& p2) {
+                    auto begin        = kdtree.begin();
+                    auto end          = kdtree.end();
+                    auto const equals = [p1 = p](pcp::point_t const& p2) {
                         return pcp::common::are_vectors_equal(p1, p2);
                     };
                     return std::find_if(begin, end, equals) != end;

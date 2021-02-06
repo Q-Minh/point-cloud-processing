@@ -7,6 +7,7 @@ PRIVATE
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/surface_nets.cpp"
+  "common/aabb.cpp"
   "common/plane3d.cpp"
   "common/tokenize.cpp"
   "common/normal_estimation.cpp"
