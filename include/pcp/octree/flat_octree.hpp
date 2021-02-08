@@ -14,16 +14,27 @@
 #include <unordered_map>
 #include <vector>
 
+#include <range/v3/view/subrange.hpp>
+#include <range/v3/view/transform.hpp>
+
 namespace pcp {
 
 /**
  * @ingroup flat_octree
  * @brief Default type used to parameterize flat reprentation of octrees.
 */
+template <class Point>
 struct flat_octree_parameters_t
 {
-    std::uint8_t depth = 12u;
+    using aabb_type = axis_aligned_bounding_box_t<Point>;
+    using point_type = Point;
+
+    std::uint8_t depth = 9u;
+    aabb_type voxel_grid{};
 };
+
+template <class Element, class ParamsType>
+class flat_octree_iterator_t;
 
 /**
  * @ingroup flat-octree
@@ -38,59 +49,96 @@ struct flat_octree_parameters_t
  * @tparam PointView Type satisfying PointView concept
  * @tparam ParamsType Type containing the parameters for this octree
  */
-template <class PointView, class ParamsType = flat_octree_parameters_t>
+template <class Element, class ParamsType = flat_octree_parameters_t>
 class basic_flat_octree_t
 {
   public:
-    using point_view_type = PointView;
+    friend class flat_octree_iterator_t<Element, ParamsType>;
+
+    using element_type = Element;
     using params_type = ParamsType;
-    using value_type = point_view_type;
+    using value_type = element_type;
     using reference = value_type&;
     using const_reference = value_type const&;
     using pointer = value_type*;
     using const_pointer = value_type const*;
-    using self_type = basic_flat_octree_t<PointView, ParamsType>;
+    using aabb_type = typename params_type::aabb_type;
+    using aabb_point_type = typename aabb_type::point_type;
+    using self_type = basic_flat_octree_t<element_type, params_type>;
+
+  private:
+    using container_type = std::vector<element_type>;
+    using key_type = std::uint64_t;
+    using map_type = std::unordered_map<key_type, container_type>;
+
+
+  public:
+    basic_flat_octree_t(self_type&& other) = default;
 
     explicit basic_flat_octree_t(params_type const& params) 
-        : depth_(params.depth), size_(0u)
+        : depth_(params.depth), size_(0u), voxel_grid_(params.voxel_grid)
     { 
         assert((depth_ > 0u) && (depth_ <= 21u));
+        assert(
+            (voxel_grid_.min.x() < voxel_grid_.max.x()) &&
+            (voxel_grid_.min.y() < voxel_grid_.max.y()) &&
+            (voxel_grid_.min.z() < voxel_grid_.max.z()));
     }
 
-    template <class ForwardIter>
+    template <class ForwardIter, class PointViewMap>
     explicit basic_flat_octree_t(
         ForwardIter begin, 
         ForwardIter end, 
+        PointViewMap const& point_view,
         params_type const& params)
         : basic_flat_octree_t(params)
     {
-        insert(begin, end);
+        insert(begin, end, point_view);
     }
 
-    template <class ForwardIter>
-    explicit basic_flat_octree_t(ForwardIter begin, ForwardIter end) 
-        : depth_(12u), size_(0u)
+    template <class ForwardIter, class PointViewMap>
+    explicit basic_flat_octree_t(
+        ForwardIter begin,
+        ForwardIter end, PointViewMap const& point_view)
+        : depth_{}, size_{}, voxel_grid_{}
     {
-        insert(begin, end);
+        params_type params;
+        auto const projection = [&](element_type const& e) {
+            return point_view(e);
+        };
+        auto rng = ranges::make_subrange(begin, end) | ranges::views::transform(projection);
+        using rng_iter_type = decltype(rng.begin());
+        auto const bbox =
+            pcp::bounding_box<rng_iter_type, aabb_point_type, aabb_type>(rng.begin(), rng.end());
+        depth_      = params.depth;
+        voxel_grid_ = bbox;
+        size_       = insert(begin, end, point_view);
     }
+    
 
-    template <class ForwardIter>
-    std::size_t insert(ForwardIter begin, ForwardIter end)
+    template <class ForwardIter, class PointViewMap>
+    std::size_t insert(ForwardIter begin, ForwardIter end, PointViewMap const& point_view)
     {
         // static assert here
         auto const inserted = std::accumulate(
             begin,
             end,
             static_cast<std::size_t(0u)>,
-            [this](std::size_t const count, point_view_type const& p) {
-                return this->insert(p) ? count + 1 : count;
+            [this, &point_view](std::size_t const count, point_view_type const& p) {
+                return this->insert(p, point_view) ? count + 1 : count;
             });
         size_ += inserted;
         return inserted;
     }
 
-    bool insert(point_view_type const& p) 
+    template <class PointViewMap>
+    bool insert(element_type const& element, PointViewMap const& point_view) 
     { 
+        auto p = point_view(element);
+
+        if (!voxel_grid_.contains(p))
+            return false;
+
         std::uint64_t encoding = encode(p);
         std::vector<point_view_type> points = map_[encoding];
         points.push_back(p);
@@ -103,12 +151,12 @@ class basic_flat_octree_t
      * @param p A point in the leaf
      * @return A list of all points that reside in the same leaf
      */
-    std::vector<point_view_type> find(point_view_type const& p) 
+    std::vector<element_type> find(point_view_type const& p) 
     {
         std::uint64_t encoding = encode(p);
 
         /* Might need to replace this to make a proper copy v v v*/
-        std::vector<point_view_type> points = map_[encoding];
+        std::vector<element_type> points = map_[encoding];
 
         return points;
     }
@@ -156,12 +204,35 @@ class basic_flat_octree_t
     bool empty() const { return size() == 0u; }
 
   private:
-    std::uint64_t encode(point_view_type const& p) {}
+    std::uint64_t encode(element_type const& element) 
+    {
+        std::uint32_t const m = std::pow(2, depth_);
+        //auto const scale_x    = get_next_power_of_2(voxel_grid_.max.x() -)
 
+
+        //auto const scale     = [](element_type const& e) -> float {
+               
+        //}
+    }
+
+    // std::float_t 
+
+    std::uint32_t get_next_power_of_2(std::uint32_t n)
+    {
+        std::uint32_t r = 1, i = 0;
+        while (r < n)
+        {
+            r = r << 1;
+            ++i;
+        }
+        return r;
+    }
+
+    aabb_type voxel_grid_;
     std::size_t size_;
     std::uint8_t depth_;
-    std::unordered_map<std::uint64_t, std::vector<point_view_type>> map_;
+    map_type map_;
    
 };
 
-using flat_octree_t = pcp::basic_flat_octree_t<pcp::point_t, flat_octree_parameters_t>;
+using flat_octree_t = pcp::basic_flat_octree_t<pcp::point_t, flat_octree_parameters_t<pcp::point_t>;
