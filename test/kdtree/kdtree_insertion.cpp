@@ -60,16 +60,13 @@ SCENARIO("kdtree insertion", "[kdtree]")
         points.assign(
             {p00, p10, p20, p30, p40, p50, p60, p70, p01, p11, p21, p31, p41, p51, p61, p71});
 
-        WHEN("Constructing a kd-tree using exact median approach")
+        WHEN("Constructing a kd-tree using nth element approach")
         {
-            auto const depth = 4u;
+            pcp::kdtree::construction_params_t params{};
+            params.max_depth    = 4u;
+            params.construction = pcp::kdtree::construction_t::nth_element;
 
-            kdtree_type kdtree{
-                points.begin(),
-                points.end(),
-                coordinate_map,
-                depth,
-                pcp::kdtree::construction_t::nth_element};
+            kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
 
             THEN("The tree's storage contains all the inserted points")
             {

@@ -111,7 +111,10 @@ static void bm_linked_kdtree_construction(benchmark::State& state)
     auto constexpr max = get_bm_max();
     std::vector<pcp::point_t> const points =
         get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
-    auto depth = static_cast<std::size_t>(state.range(1));
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth                           = static_cast<std::size_t>(state.range(1));
+    params.construction                        = pcp::kdtree::construction_t::nth_element;
 
     for (auto _ : state)
     {
@@ -119,8 +122,7 @@ static void bm_linked_kdtree_construction(benchmark::State& state)
             points.begin(),
             points.end(),
             default_coordinate_map,
-            depth,
-            pcp::kdtree::construction_t::nth_element};
+            params};
         benchmark::DoNotOptimize(kdtree.size());
     }
 }
@@ -263,14 +265,15 @@ static void bm_linked_kdtree_iterator_traversal(benchmark::State& state)
     std::vector<pcp::point_t> points =
         get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
 
-    auto depth = static_cast<std::size_t>(state.range(1));
+    pcp::kdtree::construction_params_t params;
+    params.max_depth                           = static_cast<std::size_t>(state.range(1));
+    params.construction                        = pcp::kdtree::construction_t::nth_element;
 
     pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree(
         points.begin(),
         points.end(),
         default_coordinate_map,
-        depth,
-        pcp::kdtree::construction_t::nth_element);
+        params);
     for (auto _ : state)
     {
         bool const all = std::all_of(kdtree.cbegin(), kdtree.cend(), [](auto const& p) {

@@ -19,6 +19,7 @@ PRIVATE
   "io/obj.cpp"
   "io/ply.cpp"
   "kdtree/kdtree_insertion.cpp"
+  "kdtree/knn.cpp"
   "octree/octree_deletion.cpp"
   "octree/octree_find.cpp"
   "octree/octree_insertion.cpp"
