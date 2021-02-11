@@ -91,10 +91,18 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
             THEN("nearest points are the 4 points in that same octant")
             {
                 REQUIRE(nearest_neighbors.size() == k);
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[0], first_nearest));
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[1], second_nearest));
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[2], third_nearest));
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[3], fourth_nearest));
+
+                for (auto const& neighbor :
+                     {first_nearest, second_nearest, third_nearest, fourth_nearest})
+                {
+                    bool const has_nearest_neighbour =
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[0]) ||
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[1]) ||
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[2]) ||
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[3]);
+
+                    REQUIRE(has_nearest_neighbour);
+                }
             }
         }
         WHEN("searching for k nearest neighbors with k=3 in the octant with 4 points")
@@ -105,13 +113,20 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
             THEN("nearest points are the 3 nearest points in that same octant")
             {
                 REQUIRE(nearest_neighbors.size() == k);
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[0], first_nearest));
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[1], second_nearest));
-                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[2], third_nearest));
+
+                for (auto const& neighbor : {first_nearest, second_nearest, third_nearest})
+                {
+                    bool const has_nearest_neighbour =
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[0]) ||
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[1]) ||
+                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[2]);
+
+                    REQUIRE(has_nearest_neighbour);
+                }
             }
         }
     }
-    /*GIVEN("a randomly constructed octree")
+    GIVEN("a randomly constructed kdtree")
     {
         std::random_device rd;
         std::mt19937 gen(rd());
@@ -121,31 +136,24 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
         std::uniform_int_distribution<std::size_t> size_distribution(1'000, 100'000);
         std::uniform_int_distribution<std::size_t> k_distribution(1u, 10u);
 
-        pcp::octree_parameters_t<pcp::point_t> params;
-        params.node_capacity = node_capacity;
-        params.max_depth     = static_cast<std::uint8_t>(max_depth);
-        params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
-            pcp::point_t{-2.f, -2.f, -2.f},
-            pcp::point_t{2.f, 2.f, 2.f}};
+        pcp::kdtree::construction_params_t params;
+        params.construction = pcp::kdtree::construction_t::nth_element;
+        params.max_depth    = 12u;
 
-        pcp::linked_octree_t octree(params);
-
-        auto const size = size_distribution(gen);
-        for (std::size_t i = 0; i < size; ++i)
+        auto const non_kneighbors_count = size_distribution(gen);
+        std::vector<pcp::point_t> points{};
+        points.reserve(non_kneighbors_count);
+        for (std::size_t i = 0; i < non_kneighbors_count; ++i)
         {
-            octree.insert(
-                pcp::point_t{
-                    coordinate_distribution(gen),
-                    coordinate_distribution(gen),
-                    coordinate_distribution(gen)},
-                point_map);
+            points.push_back(pcp::point_t{
+                coordinate_distribution(gen),
+                coordinate_distribution(gen),
+                coordinate_distribution(gen)});
         }
 
-        REQUIRE(octree.size() == size);
-
-        WHEN("inserting in the octree k nearest points to the reference point")
+        WHEN("inserting in the kdtree k nearest points to the target point")
         {
-            pcp::point_t const reference = {-1.f, 1.f, 1.f};
+            pcp::point_t const target = {-1.f, 1.f, 1.f};
             std::vector<pcp::point_t> k_inserted_points;
 
             auto const k = k_distribution(gen);
@@ -157,12 +165,17 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
                     far_coordinate_distribution(gen)});
             }
 
-            octree.insert(k_inserted_points.cbegin(), k_inserted_points.cend(), point_map);
+            for (auto const& k_neighbour : k_inserted_points)
+            {
+                points.push_back(k_neighbour);
+            }
+
+            kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
+            REQUIRE(kdtree.size() == non_kneighbors_count + k);
 
             THEN("k nearest neighbour search returns those k points")
             {
-                std::vector<pcp::point_t> nearest_neighbours =
-                    octree.nearest_neighbours(reference, k, point_map);
+                std::vector<pcp::point_t> nearest_neighbours = kdtree.nearest_neighbours(target, k);
 
                 REQUIRE(nearest_neighbours.size() == k);
 
@@ -181,5 +194,5 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
                 REQUIRE(found_nearest_points);
             }
         }
-    }*/
+    }
 }

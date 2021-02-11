@@ -145,57 +145,10 @@ class basic_linked_kdtree_t
                 return less_than_coordinates(coordinates1, coordinates2);
             };
 
-        /**
-         * State tracking variables
-         */
-        std::size_t current_depth{0u};
         node_type const* current_node = root_.get();
         std::priority_queue<element_type*, std::vector<element_type*>, decltype(less_than_elements)>
             max_heap(less_than_elements);
 
-        /**
-         * Downwards pass:
-         * Find the leaf node in which we would have inserted the point `target`, to find
-         * a best first estimate of where the nearest neighbours should be found.
-         */
-        while (current_node->is_internal())
-        {
-            auto const dimension     = current_depth % K;
-            auto const& median       = current_node->points().front();
-            auto const& median_point = coordinate_map_(*median);
-
-            if (target[dimension] >= median_point[dimension])
-            {
-                current_node = current_node->right().get();
-            }
-            if (target[dimension] < median_point[dimension])
-            {
-                current_node = current_node->left().get();
-            }
-        }
-
-        // Initialize max heap with best initial guesses
-        auto const& elements = current_node->points();
-        for (auto const& element : elements)
-        {
-            bool const is_heap_full = max_heap.size() == k;
-            if (!is_heap_full)
-            {
-                max_heap.push(element);
-                continue;
-            }
-
-            element_type const* heap_root = max_heap.top();
-            if (!less_than_elements(element, heap_root))
-                continue;
-
-            max_heap.pop();
-            max_heap.push(element);
-        }
-
-        // recursive tree traversal
-        node_type const* downwards_pass_node = current_node;
-        current_node                         = root_.get();
         recurse_knn<decltype(less_than_coordinates), decltype(less_than_elements)>(
             target,
             k,
@@ -205,7 +158,6 @@ class basic_linked_kdtree_t
             less_than_coordinates,
             less_than_elements,
             max_heap,
-            downwards_pass_node,
             distance);
 
         std::vector<element_type> knearest_neighbours{};
@@ -324,105 +276,32 @@ class basic_linked_kdtree_t
     /**
      * @brief Do not use.
      */
-    void construct_presort()
-    {
-        // std::sort(storage_.begin(), storage_.end(), less_than_t{coordinate_map_});
-        // std::size_t first         = 0u;
-        // std::size_t last          = storage_.size() - 1u;
-        // std::size_t current_depth = 0u;
-        // root_                     = construct_presort_recursive(first, last, current_depth);
-    }
+    void construct_presort() {}
 
     std::unique_ptr<node_type>
     construct_presort_recursive(std::size_t first, std::size_t last, std::size_t current_depth)
     {
-        ///**
-        // * No left sub-tree for parent node
-        // */
-        // if (last < first)
-        //{
-        //    return nullptr;
-        //}
-
-        // auto node    = std::make_unique<node_type>();
-        // auto& points = node->points();
-
-        ///**
-        // * Leaf node
-        // */
-        // if (current_depth == max_depth_ - 1u)
-        //{
-        //    points.resize((last + 1u) - first);
-        //    auto begin     = storage_.begin() + first;
-        //    auto end       = storage_.begin() + last + 1u;
-        //    auto out_begin = points.begin();
-
-        //    std::transform(begin, end, out_begin, [](element_type& e) {
-        //        return std::addressof(e);
-        //    });
-        //    return node;
-        //}
-
-        ///**
-        // * Leaf node
-        // */
-        // if (first == last)
-        //{
-        //    points.push_back(std::addressof(storage_[first]));
-        //    return node;
-        //}
-
-        //// 0, 1, 2, 3, 4, 5, 6, 7, 8, 9
-
-        //// root: (0 + 9) / 2 = 4
-        ////       left=(0, 3) --- right=(5,9)
-
-        //// left recurse: (0 + 3) / 2 = 1
-        ////               left=(0,0) --- right=(2,3)
-
-        //// right recurse: (5 + 9) / 2 = 7
-        ////                left=(5, 6) ---- right=(8,9)
-
-        //// left-left recurse: end condition
-
-        //// left-right recurse: (2 + 3) / 2 = 2
-        ////                     left=null --- right=(3,3)
-
-        //// right-left recurse: (5 + 6) / 2 = 5
-        ////                     left=null --- right=(6,6)
-
-        //// right-right recurse: (8 + 9) / 2 = 8
-        ////                      left=null --- right=(9,9)
-
-        // auto median = (first + last) / 2u;
-        // points.push_back(std::addressof(storage_[median]));
-
-        // auto left_child  = construct_presort_recursive(first, median - 1u, current_depth + 1u);
-        // auto right_child = construct_presort_recursive(median + 1u, last, current_depth + 1u);
-        // node->set_left(std::move(left_child));
-        // node->set_right(std::move(right_child));
-
-        // return node;
     }
 
-    template <class LessThanCoordinatesType, class LessThanElementsType, class DistanceFunctionType>
+    template <class CoordinatesLessThanType, class ElementLessThanType, class DistanceFunctionType>
     void recurse_knn(
         coordinates_type const& target,
         std::size_t k,
         node_type const* current_node,
         aabb_type const& current_aabb,
         std::size_t current_depth,
-        LessThanCoordinatesType const& less_than_coordinates,
-        LessThanElementsType const& less_than_elements,
-        std::priority_queue<element_type*, std::vector<element_type*>, LessThanElementsType>&
+        CoordinatesLessThanType const& coordinates_less_than,
+        ElementLessThanType const& element_less_than,
+        std::priority_queue<element_type*, std::vector<element_type*>, ElementLessThanType>&
             max_heap,
-        node_type const* downwards_pass_node,
         DistanceFunctionType const& distance) const
     {
-        // Don't revisit the initial node
-        if (current_node == downwards_pass_node)
-            return;
-
+        /**
+         * Add elements of the current node in our current
+         * best k nearest neighbours if those elements are
+         * better k nearest neighbours (close than the max
+         * heap's root)
+         */
         auto const& elements = current_node->points();
         for (auto const& element : elements)
         {
@@ -434,7 +313,7 @@ class basic_linked_kdtree_t
             }
 
             element_type const* heap_root = max_heap.top();
-            if (!less_than_elements(element, heap_root))
+            if (!element_less_than(element, heap_root))
                 continue;
 
             max_heap.pop();
@@ -456,67 +335,51 @@ class basic_linked_kdtree_t
         auto left_nearest_aabb_point  = left_aabb.nearest_point_from(target);
         auto right_nearest_aabb_point = right_aabb.nearest_point_from(target);
 
-        auto const visit_left = [&]() {
-            bool const has_left_child = left_child != nullptr;
-            if (has_left_child)
+        auto const is_heap_full = [&]() {
+            return max_heap.size() == k;
+        };
+
+        auto const visit = [&](node_type const* child,
+                               aabb_type const& child_aabb,
+                               coordinates_type nearest_aabb_point) {
+            bool const has_child = child != nullptr;
+            if (has_child)
             {
-                auto heap_root        = max_heap.top();
-                auto root_coordinates = coordinate_map_(*heap_root);
-                bool const should_recurse_left =
-                    max_heap.size() < k ||
-                    less_than_coordinates(left_nearest_aabb_point, root_coordinates);
-                if (should_recurse_left)
+                auto heap_root             = max_heap.top();
+                auto heap_root_coordinates = coordinate_map_(*heap_root);
+                bool const should_recurse =
+                    !is_heap_full() ||
+                    coordinates_less_than(nearest_aabb_point, heap_root_coordinates);
+
+                if (should_recurse)
                 {
-                    recurse_knn<LessThanCoordinatesType, LessThanElementsType>(
+                    recurse_knn<CoordinatesLessThanType, ElementLessThanType>(
                         target,
                         k,
-                        left_child,
-                        left_aabb,
+                        child,
+                        child_aabb,
                         current_depth + 1u,
-                        less_than_coordinates,
-                        less_than_elements,
+                        coordinates_less_than,
+                        element_less_than,
                         max_heap,
-                        downwards_pass_node,
                         distance);
                 }
             }
         };
 
-        auto const visit_right = [&]() {
-            bool const has_right_child = right_child != nullptr;
-            if (has_right_child)
-            {
-                auto heap_root        = max_heap.top();
-                auto root_coordinates = coordinate_map_(*heap_root);
-                bool const should_recurse_right =
-                    max_heap.size() < k ||
-                    less_than_coordinates(right_nearest_aabb_point, root_coordinates);
-                if (should_recurse_right)
-                {
-                    recurse_knn<LessThanCoordinatesType, LessThanElementsType>(
-                        target,
-                        k,
-                        right_child,
-                        right_aabb,
-                        current_depth + 1u,
-                        less_than_coordinates,
-                        less_than_elements,
-                        max_heap,
-                        downwards_pass_node,
-                        distance);
-                }
-            }
-        };
-
+        /**
+         * Visit the child subtree closest to the target point first, and then
+         * visit the other child.
+         */
         if (distance(left_nearest_aabb_point, target) < distance(right_nearest_aabb_point, target))
         {
-            visit_left();
-            visit_right();
+            visit(left_child, left_aabb, left_nearest_aabb_point);
+            visit(right_child, right_aabb, right_nearest_aabb_point);
         }
         else
         {
-            visit_right();
-            visit_left();
+            visit(right_child, right_aabb, right_nearest_aabb_point);
+            visit(left_child, left_aabb, left_nearest_aabb_point);
         }
     }
 
