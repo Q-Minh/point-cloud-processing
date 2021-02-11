@@ -113,8 +113,8 @@ static void bm_linked_kdtree_construction(benchmark::State& state)
         get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
 
     pcp::kdtree::construction_params_t params;
-    params.max_depth                           = static_cast<std::size_t>(state.range(1));
-    params.construction                        = pcp::kdtree::construction_t::nth_element;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
 
     for (auto _ : state)
     {
@@ -219,6 +219,57 @@ static void bm_linked_octree_knn_search(benchmark::State& state)
     }
 }
 
+static void bm_linked_kdtree_knn_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+    std::uint64_t const k = static_cast<std::uint64_t>(state.range(2));
+    for (auto _ : state)
+    {
+        auto const reference          = get_reference_point(min, max);
+        std::vector<pcp::point_t> knn = kdtree.nearest_neighbours(reference, k);
+        benchmark::DoNotOptimize(knn.data());
+    }
+}
+
+static void bm_linked_kdtree_adaptive_depth_knn_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.construction          = pcp::kdtree::construction_t::nth_element;
+    params.compute_max_depth     = true;
+    params.max_elements_per_leaf = 64u;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+    std::uint64_t const k = static_cast<std::uint64_t>(state.range(1));
+    for (auto _ : state)
+    {
+        auto const reference          = get_reference_point(min, max);
+        std::vector<pcp::point_t> knn = kdtree.nearest_neighbours(reference, k);
+        benchmark::DoNotOptimize(knn.data());
+    }
+}
+
 static void bm_vector_iterator_traversal(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
@@ -266,8 +317,8 @@ static void bm_linked_kdtree_iterator_traversal(benchmark::State& state)
         get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
 
     pcp::kdtree::construction_params_t params;
-    params.max_depth                           = static_cast<std::size_t>(state.range(1));
-    params.construction                        = pcp::kdtree::construction_t::nth_element;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
 
     pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree(
         points.begin(),
@@ -345,6 +396,26 @@ BENCHMARK(bm_linked_octree_knn_search)
     ->Args({1 << 16, 512u, 21u, 10u})
     ->Args({1 << 20, 512u, 21u, 10u})
     ->Args({1 << 24, 512u, 21u, 10u});
+BENCHMARK(bm_linked_kdtree_knn_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 12u, 10u})
+    ->Args({1 << 16, 12u, 10u})
+    ->Args({1 << 20, 12u, 10u})
+    ->Args({1 << 24, 12u, 10u})
+    ->Args({1 << 12, 15u, 10u})
+    ->Args({1 << 16, 15u, 10u})
+    ->Args({1 << 20, 15u, 10u})
+    ->Args({1 << 24, 15u, 10u})
+    ->Args({1 << 12, 18u, 10u})
+    ->Args({1 << 16, 18u, 10u})
+    ->Args({1 << 20, 18u, 10u})
+    ->Args({1 << 24, 18u, 10u});
+BENCHMARK(bm_linked_kdtree_adaptive_depth_knn_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 10u})
+    ->Args({1 << 16, 10u})
+    ->Args({1 << 20, 10u})
+    ->Args({1 << 24, 10u});
 BENCHMARK(bm_vector_iterator_traversal)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})

@@ -13,6 +13,7 @@
 #include "pcp/traits/coordinate_map.hpp"
 
 #include <algorithm>
+#include <cmath>
 #include <queue>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/transform.hpp>
@@ -28,6 +29,8 @@ struct construction_params_t
     std::size_t max_depth                           = 12u;
     construction_t construction                     = construction_t::nth_element;
     std::size_t min_element_count_for_parallel_exec = 32'768;
+    bool compute_max_depth                          = false;
+    std::size_t max_elements_per_leaf               = 64u;
 };
 
 } // namespace kdtree
@@ -74,6 +77,15 @@ class basic_linked_kdtree_t
             begin,
             end,
             coordinate_map);
+
+        if (params.compute_max_depth)
+        {
+            std::size_t const num_elements = storage_.size();
+            auto const adaptive_max_depth  = std::log2(
+                static_cast<double>(num_elements) /
+                static_cast<double>(params.max_elements_per_leaf));
+            max_depth_ = static_cast<std::size_t>(adaptive_max_depth);
+        }
 
         if (params.construction == kdtree::construction_t::nth_element)
         {
