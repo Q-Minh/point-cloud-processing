@@ -112,13 +112,13 @@ class basic_linked_kdtree_t
     const_iterator cend() const { return storage_.cend(); }
 
     node_type_ptr const& root() const { return root_; }
+    aabb_type const& aabb() const { return aabb_; }
 
     std::vector<element_type> nearest_neighbours(
-        element_type const& element_target,
+        coordinates_type const& target,
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
-        coordinates_type const& target = coordinate_map_(element_target);
         auto const distance = [this](coordinates_type const& c1, coordinates_type const& c2) {
             auto const difference = [](auto&& tup) {
                 auto const& c1 = std::get<0>(tup);
@@ -179,7 +179,17 @@ class basic_linked_kdtree_t
             knearest_neighbours.push_back(*max_heap.top());
             max_heap.pop();
         }
+        std::reverse(knearest_neighbours.begin(), knearest_neighbours.end());
         return knearest_neighbours;
+    }
+
+    std::vector<element_type> nearest_neighbours(
+        element_type const& element_target,
+        std::size_t k,
+        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
+    {
+        coordinates_type const& target = coordinate_map_(element_target);
+        return nearest_neighbours(target, k, eps);
     }
 
   public:

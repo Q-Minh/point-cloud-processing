@@ -10,6 +10,7 @@
 #include "pcp/common/normals/normal.hpp"
 #include "pcp/common/normals/normal_estimation.hpp"
 #include "pcp/common/points/point.hpp"
+#include "pcp/common/vector3d_queries.hpp"
 #include "pcp/graph/knn_adjacency_list.hpp"
 #include "pcp/graph/search.hpp"
 #include "pcp/traits/knn_map.hpp"
@@ -293,7 +294,7 @@ void propagate_normal_orientations(
             // flip normal orientation if
             // the angle between n1, n2 is
             // > 90 degrees
-            if (prod < zero)
+            if (prod < zero && !common::floating_point_equals(prod, zero))
             {
                 op(v2, -n2);
             }

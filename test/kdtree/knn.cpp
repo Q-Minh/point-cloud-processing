@@ -8,7 +8,7 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
         return std::array<float, 3u>{p.x(), p.y(), p.z()};
     };
 
-    using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
+    using kdtree_type    = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
     auto const max_depth = GENERATE(1u, 2u, 4u, 12u);
 
     GIVEN("a kdtree with 1 point in each octant")
@@ -93,17 +93,10 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
             {
                 REQUIRE(nearest_neighbors.size() == k);
 
-                for (auto const& neighbor :
-                     {first_nearest, second_nearest, third_nearest, fourth_nearest})
-                {
-                    bool const has_nearest_neighbour =
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[0]) ||
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[1]) ||
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[2]) ||
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[3]);
-
-                    REQUIRE(has_nearest_neighbour);
-                }
+                REQUIRE(pcp::common::are_vectors_equal(first_nearest, nearest_neighbors[0]));
+                REQUIRE(pcp::common::are_vectors_equal(second_nearest, nearest_neighbors[1]));
+                REQUIRE(pcp::common::are_vectors_equal(third_nearest, nearest_neighbors[2]));
+                REQUIRE(pcp::common::are_vectors_equal(fourth_nearest, nearest_neighbors[3]));
             }
         }
         WHEN("searching for k nearest neighbors with k=3 in the octant with 4 points")
@@ -115,15 +108,9 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
             {
                 REQUIRE(nearest_neighbors.size() == k);
 
-                for (auto const& neighbor : {first_nearest, second_nearest, third_nearest})
-                {
-                    bool const has_nearest_neighbour =
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[0]) ||
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[1]) ||
-                        pcp::common::are_vectors_equal(neighbor, nearest_neighbors[2]);
-
-                    REQUIRE(has_nearest_neighbour);
-                }
+                REQUIRE(pcp::common::are_vectors_equal(first_nearest, nearest_neighbors[0]));
+                REQUIRE(pcp::common::are_vectors_equal(second_nearest, nearest_neighbors[1]));
+                REQUIRE(pcp::common::are_vectors_equal(third_nearest, nearest_neighbors[2]));
             }
         }
     }
