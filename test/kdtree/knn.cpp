@@ -9,12 +9,13 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
     };
 
     using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
+    auto const max_depth = GENERATE(1u, 2u, 4u, 12u);
 
     GIVEN("a kdtree with 1 point in each octant")
     {
         pcp::kdtree::construction_params_t params;
         params.construction = pcp::kdtree::construction_t::nth_element;
-        params.max_depth    = 12u;
+        params.max_depth    = max_depth;
 
         std::vector<pcp::point_t> points;
         points.push_back({-.5f, -.5f, -.5f}); // 000
@@ -80,7 +81,7 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
 
         pcp::kdtree::construction_params_t params;
         params.construction = pcp::kdtree::construction_t::nth_element;
-        params.max_depth    = 12u;
+        params.max_depth    = max_depth;
         kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
 
         WHEN("searching for k nearest neighbors with k=4 in the octant with 4 points")
@@ -138,7 +139,7 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
 
         pcp::kdtree::construction_params_t params;
         params.construction = pcp::kdtree::construction_t::nth_element;
-        params.max_depth    = 12u;
+        params.max_depth    = max_depth;
 
         auto const non_kneighbors_count = size_distribution(gen);
         std::vector<pcp::point_t> points{};
