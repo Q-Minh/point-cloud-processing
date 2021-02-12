@@ -256,7 +256,7 @@ auto reconstruct_surface_from_point_cloud(
     };
 
     pcp::common::basic_timer_t timer;
-    timer.register_op("setup octree");
+    timer.register_op("setup kdtree");
     timer.start();
     using vertex_type = std::size_t;
     std::vector<vertex_type> vertices;
@@ -267,16 +267,29 @@ auto reconstruct_surface_from_point_cloud(
         return points[v];
     };
 
-    pcp::basic_linked_octree_t<vertex_type> octree{
-        std::cbegin(vertices),
-        std::cend(vertices),
-        point_map};
+    auto const coordinate_map = [&](vertex_type const& v) {
+        return std::array<float, 3u>{points[v].x(), points[v].y(), points[v].z()};
+    };
+
+    pcp::kdtree::construction_params_t params;
+    params.compute_max_depth = true;
+
+    pcp::basic_linked_kdtree_t<vertex_type, 3u, decltype(coordinate_map)> kdtree{
+        vertices.begin(),
+        vertices.end(),
+        coordinate_map,
+        params};
+    // pcp::basic_linked_octree_t<vertex_type> octree{
+    //    std::cbegin(vertices),
+    //    std::cend(vertices),
+    //    point_map};
     progress_forward();
     timer.stop();
 
-    auto const knn_map = [=, &octree, &point_map](vertex_type const& v) {
-        auto target            = point_map(v);
-        auto const& neighbours = octree.nearest_neighbours(target, k, point_map);
+    auto const knn_map = [=, &kdtree, &point_map](vertex_type const& v) {
+        auto target = point_map(v);
+        // auto const& neighbours = octree.nearest_neighbours(target, k, point_map);
+        auto const& neighbours = kdtree.nearest_neighbours(v, k);
         return neighbours;
     };
 
@@ -310,9 +323,10 @@ auto reconstruct_surface_from_point_cloud(
     progress_forward();
     timer.stop();
 
-    auto const vertex_knn = [=, &octree, &point_map](vertex_type const& v) {
+    auto const vertex_knn = [=, &kdtree, &point_map](vertex_type const& v) {
         auto target = point_map(v);
-        return octree.nearest_neighbours(target, k, point_map);
+        // return octree.nearest_neighbours(target, k, point_map);
+        return kdtree.nearest_neighbours(v, k);
     };
     auto const normal_map = [&tangent_planes](vertex_type const& v) {
         return tangent_planes[v].normal();
@@ -339,9 +353,10 @@ auto reconstruct_surface_from_point_cloud(
     timer.stop();
 
     auto const signed_distance_function =
-        [=, &octree, &tangent_planes, &point_map](float x, float y, float z) {
+        [=, &kdtree, &tangent_planes, &point_map](float x, float y, float z) {
             point_type const p{x, y, z};
-            auto const nearest_neighbours = octree.nearest_neighbours(p, 1u, point_map);
+            // auto const nearest_neighbours = octree.nearest_neighbours(p, 1u, point_map);
+            auto const nearest_neighbours = kdtree.nearest_neighbours({p.x(), p.y(), p.z()}, 1u);
             auto const& nearest_vertex    = nearest_neighbours.front();
             auto const& tangent_plane     = tangent_planes[nearest_vertex];
             auto const o                  = tangent_plane.point();
@@ -356,12 +371,17 @@ auto reconstruct_surface_from_point_cloud(
     auto const dimx = dims[0];
     auto const dimy = dims[1];
     auto const dimz = dims[2];
-    auto const grid = pcp::common::regular_grid_containing(
-        octree.voxel_grid().min,
-        octree.voxel_grid().max,
+    // auto const grid = pcp::common::regular_grid_containing(
+    //    octree.voxel_grid().min,
+    //    octree.voxel_grid().max,
+    //    {dimx, dimy, dimz});
+    auto const& aabb = kdtree.aabb();
+    auto const grid  = pcp::common::regular_grid_containing(
+        pcp::point_t{aabb.min[0], aabb.min[1], aabb.min[2]},
+        pcp::point_t{aabb.max[0], aabb.max[1], aabb.max[2]},
         {dimx, dimy, dimz});
 
-    auto const mesh = [=, &octree, &point_map](auto const& sdf, auto const& grid, algorithm algo) {
+    auto const mesh = [=, &kdtree, &point_map](auto const& sdf, auto const& grid, algorithm algo) {
         if (algo == parallel)
         {
             return pcp::algorithm::isosurface::surface_nets(std::execution::par, sdf, grid);
@@ -376,9 +396,11 @@ auto reconstruct_surface_from_point_cloud(
                 std::execution::par,
                 points.cbegin(),
                 points.cend(),
-                [=, &octree, &point_map](pcp::point_t const& p1, pcp::point_t const& p2) {
-                    auto const& neighbours1 = octree.nearest_neighbours(p1, k, point_map);
-                    float const sum1        = std::accumulate(
+                [=, &kdtree, &point_map](pcp::point_t const& p1, pcp::point_t const& p2) {
+                    // auto const& neighbours1 = octree.nearest_neighbours(p1, k, point_map);
+                    auto const& neighbours1 =
+                        kdtree.nearest_neighbours({p1.x(), p1.y(), p1.z()}, k);
+                    float const sum1 = std::accumulate(
                         neighbours1.cbegin(),
                         neighbours1.cend(),
                         0.f,
@@ -389,8 +411,10 @@ auto reconstruct_surface_from_point_cloud(
 
                     auto const mean_distance1 = sum1 / static_cast<float>(neighbours1.size());
 
-                    auto const& neighbours2 = octree.nearest_neighbours(p2, k, point_map);
-                    float const sum2        = std::accumulate(
+                    // auto const& neighbours2 = octree.nearest_neighbours(p2, k, point_map);
+                    auto const& neighbours2 =
+                        kdtree.nearest_neighbours({p2.x(), p2.y(), p2.z()}, k);
+                    float const sum2 = std::accumulate(
                         neighbours2.cbegin(),
                         neighbours2.cend(),
                         0.f,
@@ -404,8 +428,11 @@ auto reconstruct_surface_from_point_cloud(
                     return mean_distance1 < mean_distance2;
                 });
 
-            auto const kneighbours = octree.nearest_neighbours(*max_density_point, k, point_map);
-            auto const hint        = std::accumulate(
+            // auto const kneighbours = octree.nearest_neighbours(*max_density_point, k, point_map);
+            auto const kneighbours = kdtree.nearest_neighbours(
+                {max_density_point->x(), max_density_point->y(), max_density_point->z()},
+                k);
+            auto const hint = std::accumulate(
                                   kneighbours.cbegin(),
                                   kneighbours.cend(),
                                   pcp::point_t{0.f, 0.f, 0.f},

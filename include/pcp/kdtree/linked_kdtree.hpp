@@ -144,9 +144,7 @@ class basic_linked_kdtree_t
             [eps, target, distance](coordinates_type const& c1, coordinates_type const& c2) {
                 auto const distance1 = distance(target, c1);
                 auto const distance2 = distance(target, c2);
-
-                return distance1 < distance2 &&
-                       !common::floating_point_equals(distance1, distance2, eps);
+                return distance1 < distance2;
             };
 
         auto const less_than_elements =
@@ -170,7 +168,8 @@ class basic_linked_kdtree_t
             less_than_coordinates,
             less_than_elements,
             max_heap,
-            distance);
+            distance,
+            eps);
 
         std::vector<element_type> knearest_neighbours{};
         knearest_neighbours.reserve(k);
@@ -316,7 +315,8 @@ class basic_linked_kdtree_t
         ElementLessThanType const& element_less_than,
         std::priority_queue<element_type*, std::vector<element_type*>, ElementLessThanType>&
             max_heap,
-        DistanceFunctionType const& distance) const
+        DistanceFunctionType const& distance,
+        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
         /**
          * Add elements of the current node in our current
@@ -328,6 +328,24 @@ class basic_linked_kdtree_t
         for (auto const& element : elements)
         {
             bool const is_heap_full = max_heap.size() == k;
+            // TODO: Make array element checking code generated at compile time
+            //       using possibly integer sequence, or other TMP techniques
+            auto const are_kd_vectors_equal = [=](auto const& v1, auto const& v2) {
+                auto rng = ranges::views::zip(v1, v2);
+                return std::all_of(rng.begin(), rng.end(), [=](auto&& tup) {
+                    auto const& c1 = std::get<0>(tup);
+                    auto const& c2 = std::get<1>(tup);
+                    return common::floating_point_equals(c1, c2, eps);
+                });
+            };
+            auto const is_target = [&, this](element_type const& e) {
+                coordinates_type const& element_coordinates = coordinate_map_(e);
+                return are_kd_vectors_equal(target, element_coordinates);
+            };
+
+            if (is_target(*element))
+                continue;
+
             if (!is_heap_full)
             {
                 max_heap.push(element);
@@ -367,11 +385,10 @@ class basic_linked_kdtree_t
             bool const has_child = child != nullptr;
             if (has_child)
             {
-                auto heap_root             = max_heap.top();
-                auto heap_root_coordinates = coordinate_map_(*heap_root);
+                element_type const* heap_root = max_heap.empty() ? nullptr : max_heap.top();
                 bool const should_recurse =
                     !is_heap_full() ||
-                    coordinates_less_than(nearest_aabb_point, heap_root_coordinates);
+                    coordinates_less_than(nearest_aabb_point, coordinate_map_(*heap_root));
 
                 if (should_recurse)
                 {
@@ -384,7 +401,8 @@ class basic_linked_kdtree_t
                         coordinates_less_than,
                         element_less_than,
                         max_heap,
-                        distance);
+                        distance,
+                        eps);
                 }
             }
         };

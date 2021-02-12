@@ -3,7 +3,7 @@
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/io/ply.hpp>
-#include <pcp/octree/octree.hpp>
+#include <pcp/kdtree/kdtree.hpp>
 #include <range/v3/range/conversion.hpp>
 #include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
@@ -45,11 +45,21 @@ int main(int argc, char** argv)
     auto const normal_map = [&](index_type const& i) {
         return normals[i];
     };
+    auto const coordinate_map = [&](index_type const& i) {
+        return std::array<float, 3u>{points[i].x(), points[i].y(), points[i].z()};
+    };
 
-    pcp::basic_linked_octree_t<index_type> octree(indices.begin(), indices.end(), point_map);
+    pcp::kdtree::construction_params_t params;
+    params.compute_max_depth = true;
+
+    pcp::basic_linked_kdtree_t<index_type, 3u, decltype(coordinate_map)> kdtree{
+        indices.begin(),
+        indices.end(),
+        coordinate_map,
+        params};
 
     auto const knn = [&](index_type const& i) {
-        return octree.nearest_neighbours(points[i], k, point_map);
+         return kdtree.nearest_neighbours(i, k);
     };
 
     auto const transform_op = [&](index_type const& i, pcp::normal_t const& n) {
