@@ -21,6 +21,7 @@
 #include <stack>
 
 namespace pcp {
+   
 namespace kdtree {
 enum class construction_t { nth_element, presort };
 
@@ -34,7 +35,24 @@ struct construction_params_t
 };
 
 } // namespace kdtree
-
+/**
+ * @ingroup linked-kdtree
+ * @brief
+ * An kdtree is a tree data structure for K-dimensional quantities that is
+ * very similar to a binary search tree but for k dimensions instead of 1 dimension,
+ * the left child of a always smaller than the node itself and the right child is always
+ * greater than the node itself. To compare, we simply alternate the dimension every
+ * time we increase the depth. ex (k=2) : depth 0 => compare on the 1st dimension,
+ * depth 1 => compare on the 2nd dimension, depth 2 =? compare on the 1st dimension again
+ *
+ * Our Kdtree implmentation uses a flat storage that contains all the index of the elements
+ * and the nodes are simply pointers to the flat storage, the depth of the tree
+ * is adjustable and in our implementation the leaf nodes might contain more
+ * than one element.
+ *
+ * @tparam Element Type of the kdtree's elements
+ * @tparam CoordinateMap The mapping between the index of an element and its coordinates
+ */
 template <class Element, std::size_t K, class CoordinateMap>
 class basic_linked_kdtree_t
 {
@@ -61,6 +79,16 @@ class basic_linked_kdtree_t
         traits::is_coordinate_map_v<CoordinateMap, Element, coordinate_type, K>,
         "CoordinateMap must satisfy CoordinateMap concept");
 
+
+    /**
+     * @brief 
+     * Constructs this kdtree from a range of elements and a coordinate map
+     * @tparam ForwardIter 
+     * @param begin Begin iterator to the elements
+     * @param end The point view property map
+     * @param coordinate_map The coordinate map for the mapping between the element and its coordinates
+     * @param params The configuration for this kdtree
+    */
     template <class ForwardIter>
     basic_linked_kdtree_t(
         ForwardIter begin,
@@ -98,27 +126,72 @@ class basic_linked_kdtree_t
         }
     }
 
+    /**
+     * @brief Checks if kdtree is empty
+     * @return True if kdtree is empty
+     * 
+    */
     bool empty() const { return storage_.empty(); }
+
+    /**
+     * @brief Number of elements in the kdtree
+     * @return Number of elements in the kdtree 
+    */
     std::size_t size() const { return storage_.size(); }
+
+    /**
+     * @brief Removes all elements from the kdtree
+    */
     void clear()
     {
         root_.reset();
         storage_.clear();
     }
 
+    /**
+     * @brief Iterator to the first element of this kdtree
+     * @return Iterator to the first element of this kdtree 
+    */
     iterator begin() { return storage_.begin(); }
+
+    /**
+     * @brief End iterator to this kdtree's elements
+     * @return  End iterator to this kdtree's elements
+    */
     iterator end() { return storage_.end(); }
+
+    /**
+     * @brief Const iterator to the first element of this ktree
+     * @return Const iterator to the first element of this kdtree
+    */
     const_iterator cbegin() const { return storage_.cbegin(); }
     const_iterator cend() const { return storage_.cend(); }
 
+    /**
+     * @brief Root of the kdtree
+     * @return Root of the kdtree
+    */
     node_type_ptr const& root() const { return root_; }
+    /**
+     * @brief Bounding box of the kdtree
+     * @return Bounding box of the kdtree 
+    */
     aabb_type const& aabb() const { return aabb_; }
 
+    /**
+     * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space 
+     * The implementation is recursive
+     * @param target the coordinates to the reference point for which we want the k nearest neighbors
+     * @param k The number of neighbors to return that are nearest to the specified point
+     * @param eps eps The error tolerance for floating point equality
+     * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
+    */
     std::vector<element_type> nearest_neighbours(
         coordinates_type const& target,
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
+        //lambda function to calculat ethe distance between 2 elements 
         auto const distance = [this](coordinates_type const& c1, coordinates_type const& c2) {
             auto const difference = [](auto&& tup) {
                 auto const& c1 = std::get<0>(tup);
@@ -182,6 +255,14 @@ class basic_linked_kdtree_t
         return knearest_neighbours;
     }
 
+    /**
+     * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space
+     * The implementation is recursive
+     * @param element_target The reference point for which we want the k nearest neighbors
+     * @param k The number of neighbors to return that are nearest to the specified point
+     * @param eps eps The error tolerance for floating point equality
+     * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
+    */
     std::vector<element_type> nearest_neighbours(
         element_type const& element_target,
         std::size_t k,
@@ -191,9 +272,15 @@ class basic_linked_kdtree_t
         return nearest_neighbours(target, k, eps);
     }
 
+  /**
+   * @brief comparator for elements on a certain dimension
+   * @tparam Element 
+   * @tparam CoordinateMap 
+  */
   public:
     struct less_than_t
     {
+
       public:
         less_than_t(std::size_t dimension, CoordinateMap const& coordinate_map)
             : dimension_{dimension}, coordinate_map_{coordinate_map} {};
@@ -303,6 +390,7 @@ class basic_linked_kdtree_t
     construct_presort_recursive(std::size_t first, std::size_t last, std::size_t current_depth)
     {
     }
+
 
     template <class CoordinatesLessThanType, class ElementLessThanType, class DistanceFunctionType>
     void recurse_knn(
