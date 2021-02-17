@@ -11,6 +11,8 @@
 
 `pcp` is a toolkit of common point cloud processing algorithms using C++17.
 
+![Tangent Plane Surface Reconstruction Example](./doc/tangent-plane-surface-reconstruction-example.gif)
+
 ## Prerequisites
 
 - [CMake](https://cmake.org/)
@@ -22,27 +24,61 @@
 #include <execution>
 #include <filesystem>
 #include <pcp/pcp.hpp>
+#include <range/v3/view.hpp>
 
 int main(int argc, char** argv)
 {
-    // read in point cloud
+    using point_type      = pcp::point_t;
+    using point_view_type = pcp::point_view_t;
+    using normal_type     = pcp::normal_t;
+
     std::filesystem::path input_ply{argv[1]};
-    auto [points, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(input_ply);
+    auto [points, normals] = pcp::io::read_ply<point_type, normal_type>(input_ply);
 
-    // setup acceleration structure
-    pcp::linked_octree_t octree{points.cbegin(), points.cend()};
+    auto point_views =
+        points | ranges::views::transform([](auto& point) { return point_view_type{&point}; });
 
-    // compute point densities in parallel in 0.01f radius balls
+    using octree_type = pcp::basic_linked_octree_t<point_view_type>;
+    octree_type octree{point_views.begin(), point_views.end()};
+
     std::vector<float> density(points.size(), 0.f);
-    std::transform(std::execution::par, points.cbegin(), points.cend(), density.begin(), [&](auto const& p) {
-        pcp::common::sphere_t sphere{};
-        sphere.radius = 0.01f;
-        sphere.position = p;
-        auto const points_in_range = octree.range_search(sphere);
-        return static_cast<float>(points_in_range.size()) / (4.f/3.f*3.14159f*sphere.radius*sphere.radius*sphere.radius);
-    });
+    std::transform(
+        std::execution::par,
+        point_views.begin(),
+        point_views.end(),
+        density.begin(),
+        [&](auto const& p) {
+            pcp::sphere_t<pcp::point_t> sphere{};
+            sphere.radius              = 0.01f;
+            sphere.position            = point_type{p};
+            auto const points_in_range = octree.range_search(sphere);
+            auto const pi              = 3.14159f;
+            auto const r3              = sphere.radius * sphere.radius * sphere.radius;
+            auto const volume          = 4.f / 3.f * pi * r3;
+            return static_cast<float>(points_in_range.size()) / volume;
+        });
 
-    // do something else ...
+    normals.resize(points.size());
+
+    auto const knn = [&octree](auto const& p) {
+        return octree.nearest_neighbours(p, 15u);
+    };
+
+    pcp::algorithm::estimate_normals(
+        std::execution::par,
+        point_views.begin(),
+        point_views.end(),
+        normals.begin(),
+        knn,
+        pcp::algorithm::default_normal_transform<point_view_type, normal_type>);
+
+    pcp::io::write_ply(
+        std::filesystem::path{argv[2]},
+        points,
+        normals,
+        pcp::io::ply_format_t::binary_little_endian);
+
+    return 0;
 }
 ```
 
