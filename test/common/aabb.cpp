@@ -8,6 +8,91 @@ SCENARIO("axis aligned bounding boxes", "[aabb]")
         return std::array<float, 3u>{p.x(), p.y(), p.z()};
     };
 
+    GIVEN("Points that are all negative, their maximum should be also negative")
+    {
+        std::vector<pcp::point_t> points{};
+        pcp::point_t p00{-0.1f, -0.1f, -0.1f};
+        pcp::point_t p01{-0.2f, -0.2f, -0.2f};
+
+        pcp::point_t p10{-2.0f, -2.0f, -2.0f};
+        pcp::point_t p11{-2.2f, -2.2f, -2.2f};
+
+        points.assign({p00, p01, p10, p11});
+        auto begin = points.begin();
+        auto end   = points.end();
+
+        WHEN("computing its kd aabb")
+        {
+            auto const aabb =
+                pcp::kd_bounding_box<float, 3u, decltype(coordinate_map), decltype(begin)>(
+                    begin,
+                    end,
+                    coordinate_map);
+
+            THEN("containment queries are valid")
+            {
+                REQUIRE(!aabb.contains({2.1f, 2.1f, 2.1f}));
+                REQUIRE(aabb.contains({-0.1f, -0.1f, -0.1f}));
+                REQUIRE(!aabb.contains({0.0f, 0.0f, 0.0f}));
+            }
+
+            using aabb_point_type        = typename decltype(aabb)::point_type;
+            auto const are_points_equals = [](aabb_point_type const& p1,
+                                              aabb_point_type const& p2) {
+                return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+            };
+            THEN("nearest point from queries are valid")
+            {
+                auto nearest_point = aabb.nearest_point_from({-3.0f, -3.0f, -3.0f});
+                REQUIRE(are_points_equals(nearest_point, {-2.2f, -2.2f, -2.2f}));
+                nearest_point = aabb.nearest_point_from({0.0f, 0.0f, 0.0f});
+                REQUIRE(are_points_equals(nearest_point, {-0.1f, -0.1f, -0.1f}));
+            }
+        }
+    }
+    GIVEN("Points that are all positive, their minimum should be also positive")
+    {
+        std::vector<pcp::point_t> points{};
+        pcp::point_t p00{0.1f, 0.1f, 0.1f};
+        pcp::point_t p01{0.2f, 0.2f, 0.2f};
+
+        pcp::point_t p10{2.0f, 2.0f, 2.0f};
+        pcp::point_t p11{2.2f, 2.2f, 2.2f};
+
+        points.assign({p00, p01, p10, p11});
+        auto begin = points.begin();
+        auto end   = points.end();
+
+        WHEN("computing its kd aabb")
+        {
+            auto const aabb =
+                pcp::kd_bounding_box<float, 3u, decltype(coordinate_map), decltype(begin)>(
+                    begin,
+                    end,
+                    coordinate_map);
+
+            THEN("containment queries are valid")
+            {
+                REQUIRE(!aabb.contains({2.3f, 2.3f, 2.3f}));
+                REQUIRE(aabb.contains({0.1f, 0.1f, 0.1f}));
+                REQUIRE(!aabb.contains({0.0f, 0.0f, 0.0f}));
+            }
+
+            using aabb_point_type        = typename decltype(aabb)::point_type;
+            auto const are_points_equals = [](aabb_point_type const& p1,
+                                              aabb_point_type const& p2) {
+                return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+            };
+            THEN("nearest point from queries are valid")
+            {
+                auto nearest_point = aabb.nearest_point_from({3.0f, 3.0f, 3.0f});
+                REQUIRE(are_points_equals(nearest_point, {2.2f, 2.2f, 2.2f}));
+                nearest_point = aabb.nearest_point_from({0.0f, 0.0f, 0.0f});
+                REQUIRE(are_points_equals(nearest_point, {0.1f, 0.1f, 0.1f}));
+            }
+        }
+    }
+
     GIVEN(
         "A kd point cloud with k=3 and with 2 points in each octant of a [0, 4]^3 grid and bounds "
         "(.1, .1, .1) to (2.8, 2.8, 2.8)")

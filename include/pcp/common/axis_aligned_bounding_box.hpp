@@ -20,6 +20,12 @@
 
 namespace pcp {
 
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * https://en.wikipedia.org/wiki/Bounding_volume
+ * @tparam CoordinateType
+ */
 template <class CoordinateType, std::size_t K>
 struct kd_axis_aligned_bounding_box_t
 {
@@ -27,21 +33,32 @@ struct kd_axis_aligned_bounding_box_t
     using point_type  = std::array<scalar_type, K>;
 
     point_type min{}, max{};
-
+    /**
+     * @brief
+     * Containment predicate.
+     * @param p
+     * @return true if point p is contained in this AABB
+     */
     bool contains(point_type const& p) const
     {
         auto const greater_than_or_equal = [](point_type const& p1, point_type const& p2) -> bool {
             auto rng = ranges::views::zip(p1, p2);
-            bool const is_greater_than_or_equal = std::all_of(rng.begin(), rng.end(), [](auto&& tup) {
-                auto const& c1 = std::get<0>(tup);
-                auto const& c2 = std::get<1>(tup);
-                return c1 >= c2;
-            });
+            bool const is_greater_than_or_equal =
+                std::all_of(rng.begin(), rng.end(), [](auto&& tup) {
+                    auto const& c1 = std::get<0>(tup);
+                    auto const& c2 = std::get<1>(tup);
+                    return c1 >= c2;
+                });
             return is_greater_than_or_equal;
         };
 
+        /**
+         * @brief
+         * @param p
+         * @return
+         */
         auto const less_than_or_equal = [](point_type const& p1, point_type const& p2) -> bool {
-            auto rng          = ranges::views::zip(p1, p2);
+            auto rng                         = ranges::views::zip(p1, p2);
             bool const is_less_than_or_equal = std::all_of(rng.begin(), rng.end(), [](auto&& tup) {
                 auto const& c1 = std::get<0>(tup);
                 auto const& c2 = std::get<1>(tup);
@@ -52,7 +69,12 @@ struct kd_axis_aligned_bounding_box_t
 
         return greater_than_or_equal(p, min) && less_than_or_equal(p, max);
     }
-
+    /**
+     * Predicate for closest point from this AABB to the point p
+     * in Euclidean space.
+     * @param p The point closest to the returned point
+     * @return The closest point from this AABB to the point p
+     */
     point_type nearest_point_from(point_type const& p) const
     {
         point_type nearest_point = p;
@@ -123,6 +145,18 @@ struct axis_aligned_bounding_box_t
     }
 };
 
+/**
+ * @ingroup common
+ * @brief
+ * Computes the axis aligned bounding box from a group of points
+ * @tparam CoordinateType
+ * @tparam CoordinateMap
+ * @tparam ForwardIter
+ * @param begin
+ * @param end
+ * @param coordinate_map
+ * @return
+ */
 template <class CoordinateType, std::size_t K, class CoordinateMap, class ForwardIter>
 inline kd_axis_aligned_bounding_box_t<CoordinateType, K>
 kd_bounding_box(ForwardIter begin, ForwardIter end, CoordinateMap const& coordinate_map)
@@ -135,7 +169,7 @@ kd_bounding_box(ForwardIter begin, ForwardIter end, CoordinateMap const& coordin
     for (auto i = 0u; i < aabb.min.size(); ++i)
     {
         aabb.min[i] = std::numeric_limits<scalar_type>::max();
-        aabb.max[i] = std::numeric_limits<scalar_type>::min();
+        aabb.max[i] = std::numeric_limits<scalar_type>::lowest();
     }
 
     std::array<std::mutex, K> min_mutex;
@@ -188,9 +222,9 @@ inline AABB bounding_box(ForwardIter begin, ForwardIter end)
     aabb.min.x(std::numeric_limits<typename Point::coordinate_type>::max());
     aabb.min.y(std::numeric_limits<typename Point::coordinate_type>::max());
     aabb.min.z(std::numeric_limits<typename Point::coordinate_type>::max());
-    aabb.max.x(std::numeric_limits<typename Point::coordinate_type>::min());
-    aabb.max.y(std::numeric_limits<typename Point::coordinate_type>::min());
-    aabb.max.z(std::numeric_limits<typename Point::coordinate_type>::min());
+    aabb.max.x(std::numeric_limits<typename Point::coordinate_type>::lowest());
+    aabb.max.y(std::numeric_limits<typename Point::coordinate_type>::lowest());
+    aabb.max.z(std::numeric_limits<typename Point::coordinate_type>::lowest());
 
     aabb = std::accumulate(begin, end, aabb, [](aabb_type& bbox, point_view_type const& p) {
         if (p.x() < bbox.min.x())

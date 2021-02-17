@@ -54,6 +54,66 @@ SCENARIO("KNN searches on linked kdtrees", "[kdtree]")
             }
         }
     }
+
+    GIVEN(
+        "a kdtree with only 1 point and the kdtree has the same point as the target point and for "
+        "k=1")
+    {
+        pcp::kdtree::construction_params_t params;
+        params.construction = pcp::kdtree::construction_t::nth_element;
+        params.max_depth    = max_depth;
+
+        std::vector<pcp::point_t> points;
+        points.push_back({-.5f, -.5f, -.5f});
+
+        kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
+
+        WHEN("searching for k nearest neighbors with k=1")
+        {
+            auto const k = 1u;
+
+            auto const reference          = pcp::point_t{-.5f, -.5f, -.5};
+            auto const& nearest_neighbors = kdtree.nearest_neighbours(reference, k);
+
+            THEN(
+                "returns nothing since the target point is the same as the only point in the "
+                "kdtree")
+            {
+                REQUIRE(nearest_neighbors.size() == 0);
+            }
+        }
+    }
+    GIVEN(
+        "a kdtree with only 2 points and the kdtree has the same point as the target point and for "
+        "k=2")
+    {
+        pcp::kdtree::construction_params_t params;
+        params.construction = pcp::kdtree::construction_t::nth_element;
+        params.max_depth    = max_depth;
+
+        std::vector<pcp::point_t> points;
+        points.push_back({-.5f, -.5f, -.5f});
+        pcp::point_t const first_nearest{-1.0f, -1.0f, -1.0f};
+        points.push_back(first_nearest);
+
+        kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
+
+        WHEN("searching for k nearest neighbors with k=2")
+        {
+            auto const k = 2u;
+
+            auto const reference          = pcp::point_t{-.5f, -.5f, -.5};
+            auto const& nearest_neighbors = kdtree.nearest_neighbours(reference, k);
+
+            THEN(
+                "returns the nearest neighbor, it should only return one neighbor since the other "
+                "neighbor is the same as the target point")
+            {
+                REQUIRE(nearest_neighbors.size() == 1);
+                REQUIRE(pcp::common::are_vectors_equal(nearest_neighbors[0], first_nearest));
+            }
+        }
+    }
     GIVEN(
         "a kdtree with 1 point in 7 octants "
         "and 4 points in the other octant")

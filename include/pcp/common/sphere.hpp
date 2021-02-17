@@ -34,6 +34,26 @@ struct sphere_t
         return common::squared_distance(position, p) <= radius * radius;
     }
 };
+/**
+ * @ingroup geometric-primitives
+ * @brief
+ * Simple sphere with containment predicate.
+ * @tparam Type Type of the data
+ */
+template <class Type>
+struct sphere_a
+{
+    using point3d = std::array<Type, 3>;
+    point3d position;
+    Type radius;
+
+    point3d center() const { return position; }
+
+    bool contains(point3d const& p) const
+    {
+        return common::squared_distance(position, p) <= radius * radius;
+    }
+};
 
 } // namespace pcp
 

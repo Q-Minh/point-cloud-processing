@@ -105,6 +105,32 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
     return dx * dx + dy * dy + dz * dz;
 }
 
+/**
+ * @ingroup common-vector3
+ * @brief
+ * The l2-norm is defined as sqrt(x*x + y*y + z*z), but we don't always need
+ * the sqrt computation for distance comparisons:
+ *
+ * Having points p1 and p2, we have that:
+ * sqrt((p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2) < sqrt((p2.x-p.x)^2 + (p2.y-p.y)^2 +
+ * (p2.z-p.z)^2) is equivalent to (p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2 < (p2.x-p.x)^2
+ * + (p2.y-p.y)^2 + (p2.z-p.z)^2
+ *
+ * since we are squaring both sides of the equation.
+ * @tparam Type
+ * @param p1
+ * @param p2
+ * @return
+ */
+template <class Type>
+inline typename Type squared_distance(std::array<Type, 3> const& p1, std::array<Type, 3> const& p2)
+{
+    auto const dx = p2[0] - p1[0];
+    auto const dy = p2[1] - p1[1];
+    auto const dz = p2[2] - p1[2];
+    return dx * dx + dy * dy + dz * dz;
+}
+
 } // namespace common
 } // namespace pcp
 

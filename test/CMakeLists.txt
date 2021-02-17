@@ -20,6 +20,7 @@ PRIVATE
   "io/ply.cpp"
   "kdtree/iterator.cpp"
   "kdtree/kdtree_insertion.cpp"
+  "kdtree/kdtree_range_search.cpp"
   "kdtree/knn.cpp"
   "octree/octree_deletion.cpp"
   "octree/octree_find.cpp"
@@ -27,8 +28,7 @@ PRIVATE
   "octree/octree_iterator.cpp"
   "octree/octree_knn.cpp"
   "octree/octree_range_search.cpp"
-  "type/property_map.cpp"
-)
+  "type/property_map.cpp")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     option(PCP_COVERAGE "Enable code coverage reports for gcc/clang" FALSE)
