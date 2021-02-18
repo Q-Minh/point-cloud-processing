@@ -16,9 +16,6 @@
 #include <algorithm>
 #include <cmath>
 #include <queue>
-#include <range/v3/range/conversion.hpp>
-#include <range/v3/view/transform.hpp>
-#include <range/v3/view/zip.hpp>
 #include <stack>
 
 namespace pcp {
@@ -39,17 +36,20 @@ struct construction_params_t
 /**
  * @ingroup linked-kdtree
  * @brief
- * An kdtree is a tree data structure for K-dimensional quantities that is
- * very similar to a binary search tree but for k dimensions instead of 1 dimension,
- * the left child of a always smaller than the node itself and the right child is always
- * greater than the node itself. To compare, we simply alternate the dimension every
- * time we increase the depth. ex (k=2) : depth 0 => compare on the 1st dimension,
- * depth 1 => compare on the 2nd dimension, depth 2 => compare on the 1st dimension again
+ * A kdtree is a tree data structure for K-dimensional quantities that is
+ * very similar to a binary search tree but for k dimensions instead of 1 dimension.
+ * the left child of the current node is always smaller than the current node on 1 dimension and
+ * the right child of the current node is always greater than the current node on 1 dimension
+ * To compare, we simply alternate the dimension every
+ * time we increase the depth. ex (k=2) :
+ * depth 0 => compare on the 1st dimension,
+ * depth 1 => compare on the 2nd dimension,
+ * depth 2 => compare on the 1st dimension again
  *
- * Our Kdtree implmentation uses a flat storage that contains all the index of the elements
- * and the nodes are simply pointers to the flat storage, the depth of the tree
- * is adjustable and in our implementation the leaf nodes might contain more
- * than one element.
+ * Our Kdtree implmentation uses a flat storage of the elements
+ * and the nodes contains pointers to the storage, the depth of the tree
+ * is adjustable only at the start  and in our implementation,
+ * the leaf nodes might contain more than one element.
  *
  * @tparam Element Type of the kdtree's elements
  * @tparam CoordinateMap The mapping between the index of an element and its coordinates
@@ -181,6 +181,7 @@ class basic_linked_kdtree_t
 
     /**
      * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space
+     * This algorithm will not return a point that is the same as the target point
      * The implementation is recursive
      * @param target the coordinates to the reference point for which we want the k nearest
      * neighbors
@@ -193,32 +194,10 @@ class basic_linked_kdtree_t
         std::size_t k,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
-        // lambda function to calculate the distance between 2 elements
-        auto const distance = [this](coordinates_type const& c1, coordinates_type const& c2) {
-            auto const difference = [](auto&& tup) {
-                auto const& c1 = std::get<0>(tup);
-                auto const& c2 = std::get<1>(tup);
-                return c2 - c1;
-            };
-
-            auto const rng = ranges::views::zip(c1, c2) | ranges::views::transform(difference);
-
-            coordinates_type c1_to_c2{};
-            std::copy(rng.begin(), rng.end(), c1_to_c2.begin());
-
-            auto const distance = std::inner_product(
-                c1_to_c2.begin(),
-                c1_to_c2.end(),
-                c1_to_c2.begin(),
-                coordinate_type{0});
-
-            return distance;
-        };
-
         auto const less_than_coordinates =
-            [eps, target, distance](coordinates_type const& c1, coordinates_type const& c2) {
-                auto const distance1 = distance(target, c1);
-                auto const distance2 = distance(target, c2);
+            [eps, target](coordinates_type const& c1, coordinates_type const& c2) {
+                auto const distance1 = common::squared_distance(target, c1);
+                auto const distance2 = common::squared_distance(target, c2);
                 return distance1 < distance2;
             };
 
@@ -243,7 +222,6 @@ class basic_linked_kdtree_t
             less_than_coordinates,
             less_than_elements,
             max_heap,
-            distance,
             eps);
 
         std::vector<element_type> knearest_neighbours{};
@@ -259,6 +237,7 @@ class basic_linked_kdtree_t
 
     /**
      * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space
+     * This algorithm will not return a point that is the same as the target point
      * The implementation is recursive
      * @param element_target The reference point for which we want the k nearest neighbors
      * @param k The number of neighbors to return that are nearest to the specified point
@@ -284,17 +263,18 @@ class basic_linked_kdtree_t
     {
         std::vector<element_type> elements_in_range{};
         node_type const* current_node = root_.get();
-        range_search_rec(range, aabb_, current_node, elements_in_range);
+        range_search_recursive(range, aabb_, current_node, elements_in_range, 0);
         return elements_in_range;
     }
 
   private:
     template <class Range>
-    void range_search_rec(
+    void range_search_recursive(
         Range const& range,
         aabb_type const& current_aabb,
         node_type const* current_node,
-        std::vector<element_type>& elements_in_range)
+        std::vector<element_type>& elements_in_range,
+        std::size_t current_depth)
     {
         // verify if the point is in the range
         auto const node_elements = current_node->points();
@@ -304,21 +284,21 @@ class basic_linked_kdtree_t
             if (range.contains(element_coordinates))
                 elements_in_range.push_back(*element);
         }
+        auto const dimension      = current_depth % K;
+        auto const& median        = current_node->points().front();
+        auto const& median_point  = coordinate_map_(*median);
+        aabb_type left_aabb       = current_aabb;
+        left_aabb.max[dimension]  = median_point[dimension];
+        aabb_type right_aabb      = current_aabb;
+        right_aabb.min[dimension] = median_point[dimension];
+        auto left_child           = current_node->left().get();
+        auto right_child          = current_node->right().get();
 
-        auto const& median       = current_node->points().front();
-        auto const& median_point = coordinate_map_(*median);
-
-        aabb_type left_aabb  = current_aabb;
-        left_aabb.max        = median_point;
-        aabb_type right_aabb = current_aabb;
-        right_aabb.min       = median_point;
-
-        node_type const* left_child  = current_node->left().get();
-        node_type const* right_child = current_node->right().get();
+        ++current_depth;
         if (left_child != nullptr && intersections::intersects(left_aabb, range))
-            range_search_rec(range, left_aabb, left_child, elements_in_range);
+            range_search_recursive(range, left_aabb, left_child, elements_in_range, current_depth);
         if (right_child != nullptr && intersections::intersects(right_aabb, range))
-            range_search_rec(range, right_aabb, right_child, elements_in_range);
+            range_search_recursive(range, right_aabb, right_child, elements_in_range, current_depth);
     }
     /**
      * @brief comparator for elements on a certain dimension
@@ -438,7 +418,7 @@ class basic_linked_kdtree_t
     {
     }
 
-    template <class CoordinatesLessThanType, class ElementLessThanType, class DistanceFunctionType>
+    template <class CoordinatesLessThanType, class ElementLessThanType>
     void recurse_knn(
         coordinates_type const& target,
         std::size_t k,
@@ -449,7 +429,6 @@ class basic_linked_kdtree_t
         ElementLessThanType const& element_less_than,
         std::priority_queue<element_type*, std::vector<element_type*>, ElementLessThanType>&
             max_heap,
-        DistanceFunctionType const& distance,
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
         /**
@@ -535,7 +514,6 @@ class basic_linked_kdtree_t
                         coordinates_less_than,
                         element_less_than,
                         max_heap,
-                        distance,
                         eps);
                 }
             }
@@ -545,7 +523,8 @@ class basic_linked_kdtree_t
          * Visit the child subtree closest to the target point first, and then
          * visit the other child.
          */
-        if (distance(left_nearest_aabb_point, target) < distance(right_nearest_aabb_point, target))
+        if (common::squared_distance(left_nearest_aabb_point, target) <
+            common::squared_distance(right_nearest_aabb_point, target))
         {
             visit(left_child, left_aabb, left_nearest_aabb_point);
             visit(right_child, right_aabb, right_nearest_aabb_point);

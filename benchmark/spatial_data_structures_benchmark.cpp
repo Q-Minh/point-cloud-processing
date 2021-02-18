@@ -59,6 +59,26 @@ static pcp::axis_aligned_bounding_box_t<pcp::point_t> get_range(float const min,
         pcp::point_t{min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z},
         pcp::point_t{max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z}};
 }
+static pcp::kd_axis_aligned_bounding_box_t<float, 3>
+get_range_kdtree(float const min, float const max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::uniform_real_distribution<float> coordinate_distribution(min + 1.f, max - 1.f);
+    std::uniform_real_distribution<float> min_bound(-1.f, 0.f);
+    std::uniform_real_distribution<float> max_bound(0.f, 1.f);
+
+    auto const x = coordinate_distribution(gen);
+    auto const y = coordinate_distribution(gen);
+    auto const z = coordinate_distribution(gen);
+
+    pcp::kd_axis_aligned_bounding_box_t<float, 3u> aabb;
+    aabb.min = {min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z};
+    aabb.max = {max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z};
+
+    return aabb;
+}
 
 static pcp::point_t get_reference_point(float const min, float const max)
 {
@@ -164,6 +184,30 @@ static void bm_linked_octree_range_search(benchmark::State& state)
     {
         pcp::axis_aligned_bounding_box_t range = get_range(min, max);
         std::vector<pcp::point_t> found_points = octree.range_search(range, default_point_map);
+        benchmark::DoNotOptimize(found_points.data());
+    }
+}
+static void bm_linked_kdtree_range_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+
+    for (auto _ : state)
+    {
+        pcp::kd_axis_aligned_bounding_box_t range = get_range_kdtree(min, max);
+        std::vector<pcp::point_t> found_points    = kdtree.range_search(range);
         benchmark::DoNotOptimize(found_points.data());
     }
 }
@@ -380,6 +424,16 @@ BENCHMARK(bm_linked_octree_range_search)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_range_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 11u})
+    ->Args({1 << 16, 11u})
+    ->Args({1 << 20, 11u})
+    ->Args({1 << 24, 11u})
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 BENCHMARK(bm_vector_knn_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 10u})

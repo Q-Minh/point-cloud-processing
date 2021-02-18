@@ -20,7 +20,7 @@ template <class Point>
 struct sphere_t
 {
     Point position{0.f, 0.f, 0.f};
-    float radius = 0.f;
+    typename Point::coordinate_type radius = static_cast<Point::coordinate_type>(0.);
 
     Point center() const { return position; }
 
@@ -51,7 +51,8 @@ struct sphere_a
 
     bool contains(point3d const& p) const
     {
-        return common::squared_distance(position, p) <= radius * radius;
+        Type distance = common::squared_distance(position, p);
+        return distance <= radius * radius;
     }
 };
 

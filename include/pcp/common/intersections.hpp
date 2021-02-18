@@ -47,7 +47,7 @@ inline bool intersects(
 {
     for (size_t i = 0; i < K; ++i)
     {
-        if (!(b1.max.at(i) >= b2.min.at(i) && b1.min.at(i) <= b2.max.at(i)))
+        if (!(b1.max[i] >= b2.min[i] && b1.min[i] <= b2.max[i]))
             return false;
     }
     return true;

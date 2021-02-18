@@ -16,6 +16,7 @@
 #include <mutex>
 #include <numeric>
 #include <range/v3/view/zip.hpp>
+#include <shared_mutex>
 #include <tuple>
 
 namespace pcp {
@@ -25,6 +26,7 @@ namespace pcp {
  * @brief
  * https://en.wikipedia.org/wiki/Bounding_volume
  * @tparam CoordinateType
+ * @tparam K The dimensions
  */
 template <class CoordinateType, std::size_t K>
 struct kd_axis_aligned_bounding_box_t
@@ -33,6 +35,7 @@ struct kd_axis_aligned_bounding_box_t
     using point_type  = std::array<scalar_type, K>;
 
     point_type min{}, max{};
+
     /**
      * @brief
      * Containment predicate.
@@ -148,8 +151,9 @@ struct axis_aligned_bounding_box_t
 /**
  * @ingroup common
  * @brief
- * Computes the axis aligned bounding box from a group of points
+ * Computes the the k dimensional axis aligned bounding box from a group of points
  * @tparam CoordinateType
+ * @tparam K
  * @tparam CoordinateMap
  * @tparam ForwardIter
  * @param begin
@@ -171,30 +175,30 @@ kd_bounding_box(ForwardIter begin, ForwardIter end, CoordinateMap const& coordin
         aabb.min[i] = std::numeric_limits<scalar_type>::max();
         aabb.max[i] = std::numeric_limits<scalar_type>::lowest();
     }
-
-    std::array<std::mutex, K> min_mutex;
-    std::array<std::mutex, K> max_mutex;
-
+    std::array<std::shared_mutex, K> max_mutex;
+    std::array<std::shared_mutex, K> min_mutex;
     // TODO: Expose sequential overload?
     std::for_each(std::execution::par, begin, end, [&](auto const& element) {
+        auto const& p = coordinate_map(element);
         for (auto i = 0u; i < aabb.min.size(); ++i)
         {
-            auto const& p = coordinate_map(element);
-            if (p[i] < aabb.min[i])
+            if (std::shared_lock lock_min_read(min_mutex[i]); p[i] < aabb.min[i])
             {
-                std::lock_guard<std::mutex> lock{min_mutex[i]};
-                aabb.min[i] = p[i];
+                lock_min_read.unlock();
+                if (std::unique_lock lock_min_write(min_mutex[i]); p[i] < aabb.min[i])
+                    aabb.min[i] = p[i];
             }
-            if (p[i] > aabb.max[i])
+
+            if (std::shared_lock lock_max_read(max_mutex[i]); p[i] > aabb.max[i])
             {
-                std::lock_guard<std::mutex> lock{max_mutex[i]};
-                aabb.max[i] = p[i];
+                lock_max_read.unlock();
+                if (std::unique_lock lock_max_write(max_mutex[i]); p[i] > aabb.max[i])
+                    aabb.max[i] = p[i];
             }
         }
     });
-
     return aabb;
-};
+}
 
 /**
  * @ingroup common

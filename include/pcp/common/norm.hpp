@@ -9,7 +9,12 @@
 #include "pcp/traits/point_traits.hpp"
 #include "pcp/traits/vector3d_traits.hpp"
 
-#include <cmath>
+#include <functional>
+#include <numeric>
+#include <range/v3/range/conversion.hpp>
+#include <range/v3/view/transform.hpp>
+#include <range/v3/view/zip.hpp>
+#include <vector>
 
 namespace pcp {
 namespace common {
@@ -108,27 +113,30 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
 /**
  * @ingroup common-vector3
  * @brief
- * The l2-norm is defined as sqrt(x*x + y*y + z*z), but we don't always need
- * the sqrt computation for distance comparisons:
- *
- * Having points p1 and p2, we have that:
- * sqrt((p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2) < sqrt((p2.x-p.x)^2 + (p2.y-p.y)^2 +
- * (p2.z-p.z)^2) is equivalent to (p1.x-p.x)^2 + (p1.y-p.y)^2 + (p1.z-p.z)^2 < (p2.x-p.x)^2
- * + (p2.y-p.y)^2 + (p2.z-p.z)^2
- *
- * since we are squaring both sides of the equation.
- * @tparam Type
- * @param p1
- * @param p2
- * @return
+ * Given K dimensional vector u and v, computes <u-v,u-v>
+ * @tparam Type Scalar type for the vector components
+ * @param p1 the first vector
+ * @param p2 the second vector
+ * @return the squared euclidean distance between p1 and p2
  */
-template <class Type>
-inline typename Type squared_distance(std::array<Type, 3> const& p1, std::array<Type, 3> const& p2)
+template <class Type, size_t K>
+inline typename Type squared_distance(std::array<Type, K> const& p1, std::array<Type, K> const& p2)
 {
-    auto const dx = p2[0] - p1[0];
-    auto const dy = p2[1] - p1[1];
-    auto const dz = p2[2] - p1[2];
-    return dx * dx + dy * dy + dz * dz;
+    auto const difference = [](auto&& tup) {
+        auto const c1 = std::get<0>(tup);
+        auto const c2 = std::get<1>(tup);
+        return c2 - c1;
+    };
+
+    auto const rng = ranges::views::zip(p1, p2) | ranges::views::transform(difference);
+
+    std::array<Type, K> c1_to_c2{};
+    std::copy(rng.begin(), rng.end(), c1_to_c2.begin());
+
+    Type const distance =
+        std::inner_product(c1_to_c2.begin(), c1_to_c2.end(), c1_to_c2.begin(), Type{0});
+
+    return distance;
 }
 
 } // namespace common
