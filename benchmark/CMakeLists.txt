@@ -53,6 +53,7 @@ PRIVATE
     -Wold-style-cast
     -Woverloaded-virtual
     -Wzero-as-null-pointer-constant
+    -Wno-unused-local-typedef
   >
   $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
     -Wall
@@ -89,6 +90,7 @@ PRIVATE
     -Wsuggest-final-types
     -Wsuggest-final-methods
     -Wsuggest-override
+    -Wno-unused-local-typedef
   >
   $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:
     /permissive-
