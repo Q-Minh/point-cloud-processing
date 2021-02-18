@@ -195,19 +195,19 @@ class basic_linked_kdtree_t
         coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
     {
         auto const less_than_coordinates =
-            [eps, target](coordinates_type const& c1, coordinates_type const& c2) {
+            [target](coordinates_type const& c1, coordinates_type const& c2) {
                 auto const distance1 = common::squared_distance(target, c1);
                 auto const distance2 = common::squared_distance(target, c2);
                 return distance1 < distance2;
             };
 
-        auto const less_than_elements =
-            [target, less_than_coordinates, this](element_type const* e1, element_type const* e2) {
-                auto const& coordinates1 = coordinate_map_(*e1);
-                auto const& coordinates2 = coordinate_map_(*e2);
+        auto const less_than_elements = [less_than_coordinates,
+                                         this](element_type const* e1, element_type const* e2) {
+            auto const& coordinates1 = coordinate_map_(*e1);
+            auto const& coordinates2 = coordinate_map_(*e2);
 
-                return less_than_coordinates(coordinates1, coordinates2);
-            };
+            return less_than_coordinates(coordinates1, coordinates2);
+        };
 
         node_type const* current_node = root_.get();
         std::priority_queue<element_type*, std::vector<element_type*>, decltype(less_than_elements)>
@@ -298,7 +298,12 @@ class basic_linked_kdtree_t
         if (left_child != nullptr && intersections::intersects(left_aabb, range))
             range_search_recursive(range, left_aabb, left_child, elements_in_range, current_depth);
         if (right_child != nullptr && intersections::intersects(right_aabb, range))
-            range_search_recursive(range, right_aabb, right_child, elements_in_range, current_depth);
+            range_search_recursive(
+                range,
+                right_aabb,
+                right_child,
+                elements_in_range,
+                current_depth);
     }
     /**
      * @brief comparator for elements on a certain dimension
@@ -357,8 +362,8 @@ class basic_linked_kdtree_t
         if (current_depth == max_depth_ - 1u)
         {
             points.resize(size);
-            auto begin     = storage_.begin() + first;
-            auto end       = storage_.begin() + last + 1u;
+            auto begin     = storage_.begin() + static_cast<difference_type>(first);
+            auto end       = storage_.begin() + static_cast<difference_type>(last + 1u);
             auto out_begin = points.begin();
 
             std::transform(begin, end, out_begin, [](element_type& e) {
@@ -379,14 +384,15 @@ class basic_linked_kdtree_t
         auto const dimension = current_depth % K;
         less_than_t const less_than{dimension, coordinate_map_};
 
-        auto begin = storage_.begin() + first;
-        auto end   = storage_.begin() + last + 1u;
+        auto begin = storage_.begin() + static_cast<difference_type>(first);
+        auto end   = storage_.begin() + static_cast<difference_type>(last + 1u);
 
         bool const parallelize = size >= min_element_count_for_parallel_exec;
+        auto mid               = begin + static_cast<difference_type>(size / 2u);
         if (parallelize)
-            std::nth_element(std::execution::par, begin, begin + size / 2u, end, less_than);
+            std::nth_element(std::execution::par, begin, mid, end, less_than);
         else
-            std::nth_element(std::execution::seq, begin, begin + size / 2u, end, less_than);
+            std::nth_element(std::execution::seq, begin, mid, end, less_than);
 
         auto median = first + size / 2u;
         points.push_back(std::addressof(storage_[median]));
@@ -413,10 +419,10 @@ class basic_linked_kdtree_t
      */
     void construct_presort() {}
 
-    std::unique_ptr<node_type>
-    construct_presort_recursive(std::size_t first, std::size_t last, std::size_t current_depth)
-    {
-    }
+    // std::unique_ptr<node_type>
+    // construct_presort_recursive(std::size_t first, std::size_t last, std::size_t current_depth)
+    //{
+    //}
 
     template <class CoordinatesLessThanType, class ElementLessThanType>
     void recurse_knn(

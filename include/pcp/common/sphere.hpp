@@ -20,7 +20,7 @@ template <class Point>
 struct sphere_t
 {
     Point position{0.f, 0.f, 0.f};
-    typename Point::coordinate_type radius = static_cast<Point::coordinate_type>(0.);
+    typename Point::coordinate_type radius = static_cast<typename Point::coordinate_type>(0.);
 
     Point center() const { return position; }
 

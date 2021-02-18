@@ -9,6 +9,7 @@
 #include "pcp/traits/point_traits.hpp"
 #include "pcp/traits/vector3d_traits.hpp"
 
+#include <cmath>
 #include <functional>
 #include <numeric>
 #include <range/v3/range/conversion.hpp>
@@ -120,7 +121,7 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
  * @return the squared euclidean distance between p1 and p2
  */
 template <class Type, size_t K>
-inline typename Type squared_distance(std::array<Type, K> const& p1, std::array<Type, K> const& p2)
+inline Type squared_distance(std::array<Type, K> const& p1, std::array<Type, K> const& p2)
 {
     auto const difference = [](auto&& tup) {
         auto const c1 = std::get<0>(tup);

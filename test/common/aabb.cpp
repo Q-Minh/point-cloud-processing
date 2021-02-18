@@ -1,3 +1,5 @@
+#include "pcp/common/vector3d_queries.hpp"
+
 #include <catch2/catch.hpp>
 #include <pcp/common/axis_aligned_bounding_box.hpp>
 #include <pcp/common/points/point.hpp>
@@ -39,7 +41,9 @@ SCENARIO("axis aligned bounding boxes", "[aabb]")
             using aabb_point_type        = typename decltype(aabb)::point_type;
             auto const are_points_equals = [](aabb_point_type const& p1,
                                               aabb_point_type const& p2) {
-                return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+                return pcp::common::floating_point_equals(p1[0], p2[0]) &&
+                       pcp::common::floating_point_equals(p1[1], p2[1]) &&
+                       pcp::common::floating_point_equals(p1[2], p2[2]);
             };
             THEN("nearest point from queries are valid")
             {
@@ -81,7 +85,9 @@ SCENARIO("axis aligned bounding boxes", "[aabb]")
             using aabb_point_type        = typename decltype(aabb)::point_type;
             auto const are_points_equals = [](aabb_point_type const& p1,
                                               aabb_point_type const& p2) {
-                return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+                return pcp::common::floating_point_equals(p1[0], p2[0]) &&
+                       pcp::common::floating_point_equals(p1[1], p2[1]) &&
+                       pcp::common::floating_point_equals(p1[2], p2[2]);
             };
             THEN("nearest point from queries are valid")
             {
@@ -165,7 +171,9 @@ SCENARIO("axis aligned bounding boxes", "[aabb]")
             using aabb_point_type        = typename decltype(aabb)::point_type;
             auto const are_points_equals = [](aabb_point_type const& p1,
                                               aabb_point_type const& p2) {
-                return p1[0] == p2[0] && p1[1] == p2[1] && p1[2] == p2[2];
+                return pcp::common::floating_point_equals(p1[0], p2[0]) &&
+                       pcp::common::floating_point_equals(p1[1], p2[1]) &&
+                       pcp::common::floating_point_equals(p1[2], p2[2]);
             };
 
             THEN("nearest point from queries are valid")

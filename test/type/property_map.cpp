@@ -170,7 +170,6 @@ TEMPLATE_TEST_CASE("property maps", "[type][property-maps]", int, float, dummy_t
     std::function<float(dummy_type)> signed_distance_map_f           = signed_distance_map;
     std::function<char const*(dummy_type)> bad_signed_distance_map_f = bad_signed_distance_map;
 
-    using coordinate_type     = std::array<float, 3u>;
     auto const coordinate_map = [](dummy_type dummy) {
         return coordinate_type{};
     };
