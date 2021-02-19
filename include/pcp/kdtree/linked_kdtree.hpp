@@ -33,25 +33,32 @@ struct construction_params_t
 };
 
 } // namespace kdtree
+
 /**
- * @ingroup linked-kdtree
+ * @ingroup linked-kd-tree
  * @brief
  * A kdtree is a tree data structure for K-dimensional quantities that is
  * very similar to a binary search tree but for k dimensions instead of 1 dimension.
- * the left child of the current node is always smaller than the current node on 1 dimension and
- * the right child of the current node is always greater than the current node on 1 dimension
+ * The left child of the current node is always smaller than the current node on 1 dimension and
+ * the right child of the current node is always greater than the current node on 1 dimension.
  * To compare, we simply alternate the dimension every
- * time we increase the depth. ex (k=2) :
- * depth 0 => compare on the 1st dimension,
- * depth 1 => compare on the 2nd dimension,
+ * time we increase the depth. 
+ * 
+ * ex (k=2):
+ * 
+ * depth 0 => compare on the 1st dimension
+ * 
+ * depth 1 => compare on the 2nd dimension
+ * 
  * depth 2 => compare on the 1st dimension again
  *
- * Our Kdtree implmentation uses a flat storage of the elements
- * and the nodes contains pointers to the storage, the depth of the tree
- * is adjustable only at the start  and in our implementation,
- * the leaf nodes might contain more than one element.
+ * Our Kdtree implementation uses a flat storage of the elements
+ * and the nodes contain pointers to the storage. The depth of the tree
+ * is adjustable only on construction and in our implementation,
+ * the leaf nodes contain one or more than elements.
  *
  * @tparam Element Type of the kdtree's elements
+ * @tparam K Dimensionality of the stored elements
  * @tparam CoordinateMap The mapping between the index of an element and its coordinates
  */
 template <class Element, std::size_t K, class CoordinateMap>
@@ -180,9 +187,10 @@ class basic_linked_kdtree_t
     aabb_type const& aabb() const { return aabb_; }
 
     /**
-     * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space
-     * This algorithm will not return a point that is the same as the target point
-     * The implementation is recursive
+     * @brief 
+     * Returns the k-nearest-neighbours in K dimensions Euclidean space.
+     * This algorithm will not return a point that is the same as the target point.
+     * The implementation is recursive.
      * @param target the coordinates to the reference point for which we want the k nearest
      * neighbors
      * @param k The number of neighbors to return that are nearest to the specified point
@@ -236,9 +244,10 @@ class basic_linked_kdtree_t
     }
 
     /**
-     * @brief Returns the k-nearest-neighbours in K dimensions Euclidean space
-     * This algorithm will not return a point that is the same as the target point
-     * The implementation is recursive
+     * @brief 
+     * Returns the k-nearest-neighbours in K dimensions Euclidean space.
+     * This algorithm will not return a point that is the same as the target point.
+     * The implementation is recursive.
      * @param element_target The reference point for which we want the k nearest neighbors
      * @param k The number of neighbors to return that are nearest to the specified point
      * @param eps eps The error tolerance for floating point equality
