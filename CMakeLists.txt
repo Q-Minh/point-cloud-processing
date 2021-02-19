@@ -44,6 +44,9 @@ target_link_libraries(pcp INTERFACE Eigen3::Eigen range-v3::range-v3)
 get_target_property(eigen_include_dirs eigen INTERFACE_INCLUDE_DIRECTORIES)
 include_directories(SYSTEM ${eigen_include_dirs})
 
+get_target_property(range_include_dirs range-v3 INTERFACE_INCLUDE_DIRECTORIES)
+include_directories(SYSTEM ${range_include_dirs})
+
 target_sources(pcp
 INTERFACE
     $<BUILD_INTERFACE:
@@ -85,7 +88,6 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/minimum_spanning_tree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/search.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/knn_adjacency_list.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/vertex.hpp
 
         # io
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/io.hpp
@@ -93,6 +95,11 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/obj.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/ply.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/io/tokenize.hpp
+
+        # kdtree
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/kdtree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/linked_kdtree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/kdtree/linked_kdtree_node.hpp
         
         # octree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp
@@ -101,21 +108,20 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_node.hpp
 
         # traits
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/function_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/iterable_traits.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_search_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/plane_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/property_map_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/range_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/triangle_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/vector3d_traits.hpp
 
         # traits (property maps)
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/coordinate_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/identity_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/index_map.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/knn_map.hpp

@@ -10,7 +10,9 @@
 #include "pcp/common/intersections.hpp"
 #include "pcp/common/norm.hpp"
 #include "pcp/common/vector3d_queries.hpp"
+#include "pcp/traits/point_map.hpp"
 #include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/property_map_traits.hpp"
 
 #include <algorithm>
 #include <cassert>
@@ -29,15 +31,15 @@ namespace pcp {
 template <class Point>
 struct octree_parameters_t
 {
-    using aabb_type  = axis_aligned_bounding_box_t<Point>;
-    using point_type = Point;
+    using point_type = Point;                              ///< type of point used by the aabb
+    using aabb_type  = axis_aligned_bounding_box_t<Point>; ///< type of aabb used
 
-    std::uint32_t node_capacity = 32u;
-    std::uint8_t max_depth      = 21u;
-    aabb_type voxel_grid{};
+    std::uint32_t node_capacity = 32u; ///< Maximum number of elements in an octree node
+    std::uint8_t max_depth      = 21u; ///< Maximum depth of the octree
+    aabb_type voxel_grid{};            ///< The octree's bounding box
 };
 
-template <class PointView, class ParamsType>
+template <class Element, class ParamsType>
 class linked_octree_iterator_t;
 
 /**
@@ -46,38 +48,44 @@ class linked_octree_iterator_t;
  * An octree node at any level of the octree. Contains a list of points
  * up to its configured capacity and then delegates further points to its
  * child octree nodes (octants).
- * @tparam PointView Type satisfying PointView concept
+ * @tparam Element The element type
  * @tparam ParamsType Type containing the octree node's parameters
  */
-template <class PointView, class ParamsType>
+template <class Element, class ParamsType>
 class basic_linked_octree_node_t
 {
-    static_assert(traits::is_point_view_v<PointView>, "PointView must satisfy PointView concept");
-
   public:
-    friend class linked_octree_iterator_t<PointView, ParamsType>;
+    friend class linked_octree_iterator_t<Element, ParamsType>;
 
-    using self_type       = basic_linked_octree_node_t<PointView, ParamsType>;
-    using point_view_type = PointView;
-    using coordinate_type = typename point_view_type::coordinate_type;
-    using params_type     = ParamsType;
-    using aabb_type       = typename ParamsType::aabb_type;
-    using aabb_point_type = typename aabb_type::point_type;
-    using iterator        = linked_octree_iterator_t<point_view_type, ParamsType>;
-    using const_iterator  = iterator const;
-    using value_type      = point_view_type;
-    using reference       = value_type&;
-    using const_reference = value_type const&;
-    using pointer         = value_type*;
-    using const_pointer   = value_type const*;
+    using self_type    = basic_linked_octree_node_t<Element, ParamsType>; ///< Type of this octree
+    using element_type = Element; ///< Type of element stored by this octree
+    using elements_type =
+        std::vector<element_type>; ///< Type of container used to store the elements in this node
+    using octants_type = std::array<std::unique_ptr<self_type>, 8>; ///< Type of container used to
+                                                                    ///< store this node's children
+    using params_type = ParamsType; ///< Type of configuration object used by this node
+    using aabb_type   = typename params_type::aabb_type; ///< Type of aabb used by this node
+    using aabb_point_type =
+        typename aabb_type::point_type; ///< Type of point used by this node's aabb
+    using iterator =
+        linked_octree_iterator_t<element_type, params_type>; ///< Type of iterator to this node's
+                                                             ///< tree's elements
+    using const_iterator = iterator const;
+    using value_type     = typename std::iterator_traits<iterator>::value_type;
+    using reference      = typename std::iterator_traits<iterator>::reference;
+    using pointer        = typename std::iterator_traits<iterator>::pointer;
 
+    /**
+     * @brief
+     * Constructs this node using configuration params
+     */
     basic_linked_octree_node_t() noexcept = default;
     explicit basic_linked_octree_node_t(params_type const& params)
         : capacity_(params.node_capacity),
           max_depth_(params.max_depth),
           voxel_grid_(params.voxel_grid),
           octants_(),
-          points_()
+          elements_()
     {
         assert(capacity_ > 0u);
         assert(max_depth_ > 0u);
@@ -85,42 +93,81 @@ class basic_linked_octree_node_t
             (voxel_grid_.min.x() < voxel_grid_.max.x()) &&
             (voxel_grid_.min.y() < voxel_grid_.max.y()) &&
             (voxel_grid_.min.z() < voxel_grid_.max.z()));
-        points_.reserve(params.node_capacity);
+        elements_.reserve(params.node_capacity);
     }
 
-    template <class ForwardIter>
+    /**
+     * @brief
+     * Constructs this node from a range of elements
+     * @tparam ForwardIter Type of iterator to the elements
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param begin Iterator to start of range of elements
+     * @param end End iterator of range of elements
+     * @param point_view The point view property map
+     * @param params The node's configuration
+     */
+    template <class ForwardIter, class PointViewMap>
     explicit basic_linked_octree_node_t(
         ForwardIter begin,
         ForwardIter end,
+        PointViewMap point_view,
         params_type const& params)
         : basic_linked_octree_node_t(params)
     {
-        insert(begin, end);
+        insert(begin, end, point_view);
     }
 
+    /**
+     * @brief This node's voxel
+     * @return This node's voxel
+     */
     aabb_type const& voxel_grid() const { return voxel_grid_; }
 
+    /**
+     * @brief Remove all elements from this node subtree
+     */
     void clear()
     {
-        points_.clear();
+        elements_.clear();
         for (auto& octant : octants_)
             octant.reset();
     }
 
-    template <class ForwardIter>
-    std::size_t insert(ForwardIter begin, ForwardIter end)
+    /**
+     * @brief
+     * Inserts range of elements in this node subtree
+     * @tparam ForwardIter Type of iterator to the elements
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param begin Iterator to start of range of elements
+     * @param end End iterator to range of elements
+     * @param point_view The point view property map
+     * @return Number of elements inserted
+     */
+    template <class ForwardIter, class PointViewMap>
+    std::size_t insert(ForwardIter begin, ForwardIter end, PointViewMap const& point_view)
     {
         return std::accumulate(
             begin,
             end,
             static_cast<std::size_t>(0u),
-            [this](std::size_t const count, point_view_type const& p) {
-                return this->insert(p) ? count + 1 : count;
+            [this, &point_view](std::size_t const count, auto const& e) {
+                return this->insert(e, point_view) ? count + 1 : count;
             });
     }
 
-    bool insert(point_view_type const& p)
+    /**
+     * @brief
+     * Insert one element in this node subtree
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param element Element to insert
+     * @param point_view The point view property map
+     * @return True if element was inserted
+     */
+    template <class PointViewMap>
+    bool insert(element_type const& element, PointViewMap const& point_view)
     {
+        auto p = point_view(element);
+
         /*
          * If the point does not reside in the voxel grid
          * that this octree deals with, we don't insert it.
@@ -139,7 +186,7 @@ class basic_linked_octree_node_t
          */
         if (max_depth_ == 1u)
         {
-            points_.push_back(p);
+            elements_.push_back(element);
             return true;
         }
 
@@ -147,10 +194,10 @@ class basic_linked_octree_node_t
          * If this octree node still has space to hold more
          * points, just append it to our list of points.
          */
-        auto const num_points = points_.size();
-        if (num_points < capacity_)
+        auto const num_elements = elements_.size();
+        if (num_elements < capacity_)
         {
-            points_.push_back(p);
+            elements_.push_back(element);
             return true;
         }
 
@@ -235,7 +282,7 @@ class basic_linked_octree_node_t
          * is the beauty of recursion and divide-and-conquer.
          */
         if (octant)
-            return octant->insert(p);
+            return octant->insert(element, point_view);
 
         /*
          * If the child octree node for this octant does not exist
@@ -283,11 +330,22 @@ class basic_linked_octree_node_t
         params.voxel_grid.max.z(octants_bitmask & 0b001 ? voxel_grid_.max.z() : center.z());
 
         octant = std::make_unique<self_type>(params);
-        return octant->insert(p);
+        return octant->insert(element, point_view);
     }
 
-    const_iterator find(point_view_type const& p) const
+    /**
+     * @brief
+     * Find element in the octree having a specific position
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param element Element to find
+     * @param point_view The point view property map
+     * @return Iterator to the found element
+     */
+    template <class PointViewMap>
+    const_iterator find(element_type const& element, PointViewMap const& point_view) const
     {
+        auto p = point_view(element);
+
         /**
          * Pretty much the same implementation as an insert, except we return the found point
          * if it exists, instead of inserting.
@@ -296,9 +354,16 @@ class basic_linked_octree_node_t
             return const_iterator{};
 
         iterator it{};
-        return this->do_find(p, it);
+        return this->do_find(element, it, point_view);
     }
 
+    /**
+     * @brief
+     * Remove element referenced by it
+     * @param it Iterator to the element to erase
+     * @return Iterator to the element next to the erased element or end iterator if no element was
+     * removed
+     */
     const_iterator erase(const_iterator it)
     {
         iterator next = it;
@@ -314,8 +379,8 @@ class basic_linked_octree_node_t
          * we erase it and set the iterator's point to
          * the next point in the sequence.
          */
-        if (next.it_ != octree_node->points_.cend())
-            const_cast<decltype(next.it_)&>(next.it_) = octree_node->points_.erase(it.it_);
+        if (next.it_ != octree_node->elements_.cend())
+            const_cast<decltype(next.it_)&>(next.it_) = octree_node->elements_.erase(it.it_);
 
         /*
          * If after erasing the point, we still have other
@@ -324,7 +389,7 @@ class basic_linked_octree_node_t
          * node and which already points to the next point in
          * the sequence.
          */
-        if (!octree_node->points_.empty())
+        if (!octree_node->elements_.empty())
             return next;
 
         /*
@@ -333,7 +398,7 @@ class basic_linked_octree_node_t
          */
         if (octree_node->take_point_from_first_nonempty_octant() != octree_node->octants_.cend())
         {
-            next.it_ = octree_node->points_.begin();
+            next.it_ = octree_node->elements_.begin();
             return next;
         }
 
@@ -377,20 +442,36 @@ class basic_linked_octree_node_t
         return next;
     }
 
-    template <class TPointView>
-    std::vector<point_view_type> nearest_neighbours(
+    /**
+     * @brief
+     * KNN search
+     * @tparam TPointView Type satisfying PointView concept
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param target Position around which we want to find the k nearest neighbours
+     * @param k Number of nearest neighbours to query
+     * @param point_view The point view property map
+     * @param eps The error tolerance for floating point equality
+     * @return The k nearest neighbours
+     */
+    template <class TPointView, class PointViewMap>
+    std::vector<element_type> nearest_neighbours(
         TPointView const& target,
         std::size_t k,
-        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
+        PointViewMap const& point_view,
+        double const eps = 1e-5) const
     {
+        using point_view_type =
+            typename traits::property_map_traits<PointViewMap, Element>::value_type;
+        using coordinate_type = typename point_view_type::coordinate_type;
+
         if (k <= 0u)
             return {};
 
         struct min_heap_node_t
         {
-            point_view_type const* p = nullptr;
-            self_type const* o       = nullptr;
-            bool is_point            = false;
+            element_type const* e = nullptr;
+            self_type const* o    = nullptr;
+            bool is_point         = false;
         };
 
         /*
@@ -398,12 +479,11 @@ class basic_linked_octree_node_t
          * is to say that the priority queue is a heap in which the top element
          * is the point/octant of this octree nearest to the reference point p.
          */
-        auto const greater =
-            [&target](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            aabb_point_type const p1 =
-                h1.is_point ? aabb_point_type(*h1.p) : h1.o->voxel_grid_.nearest_point_from(target);
-            aabb_point_type const p2 =
-                h2.is_point ? aabb_point_type(*h2.p) : h2.o->voxel_grid_.nearest_point_from(target);
+        auto const greater = [&](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
+            aabb_point_type const p1 = h1.is_point ? aabb_point_type(point_view(*h1.e)) :
+                                                     h1.o->voxel_grid_.nearest_point_from(target);
+            aabb_point_type const p2 = h2.is_point ? aabb_point_type(point_view(*h2.e)) :
+                                                     h2.o->voxel_grid_.nearest_point_from(target);
 
             auto const d1 = common::squared_distance(target, p1);
             auto const d2 = common::squared_distance(target, p2);
@@ -434,7 +514,7 @@ class basic_linked_octree_node_t
          */
         min_heap.push(min_heap_node_t{nullptr, this, false});
 
-        std::vector<point_view_type> knearest_points{};
+        std::vector<element_type> knearest_points{};
         // we only need up to k elements, so we can reserve the memory upfront
         knearest_points.reserve(k);
 
@@ -458,9 +538,10 @@ class basic_linked_octree_node_t
              */
             if (heap_node.is_point)
             {
-                auto const& p = *heap_node.p;
-                if (!common::are_vectors_equal(p, target, eps))
-                    knearest_points.push_back(p);
+                auto const& e = *heap_node.e;
+                auto p        = point_view(e);
+                if (!common::are_vectors_equal(p, target, static_cast<coordinate_type>(eps)))
+                    knearest_points.push_back(e);
                 continue;
             }
 
@@ -470,9 +551,9 @@ class basic_linked_octree_node_t
              * than any other point in any other octant of this octree.
              * We add points of this octree node to the priority queue.
              */
-            for (auto const& p : heap_node.o->points_)
+            for (auto const& e : heap_node.o->elements_)
             {
-                min_heap.push(min_heap_node_t{&p, nullptr, true});
+                min_heap.push(min_heap_node_t{&e, nullptr, true});
             }
 
             /*
@@ -491,12 +572,24 @@ class basic_linked_octree_node_t
         return knearest_points;
     }
 
-    template <class Range>
-    void range_search(Range const& range, std::vector<point_view_type>& points_in_range) const
+    /**
+     * @brief
+     * Range search
+     * @tparam Range Type satisfying Range concept
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param range The range in which we want to find points
+     * @param elements_in_range The elements found to be in the range
+     * @param point_view The point view property map
+     */
+    template <class Range, class PointViewMap>
+    void range_search(
+        Range const& range,
+        std::vector<element_type>& elements_in_range,
+        PointViewMap const& point_view) const
     {
-        for (auto const& p : points_)
-            if (range.contains(p))
-                points_in_range.push_back(p);
+        for (auto const& e : elements_)
+            if (range.contains(point_view(e)))
+                elements_in_range.push_back(e);
 
         for (auto const& octree_child_node : octants_)
         {
@@ -519,21 +612,38 @@ class basic_linked_octree_node_t
              * which. In this case, we simply delegate the job
              * of searching to this octant's octree node.
              */
-            octree_child_node->range_search(range, points_in_range);
+            octree_child_node->range_search(range, elements_in_range, point_view);
         }
     }
 
   protected:
-    const_iterator do_find(point_view_type const& p, iterator& it) const
+    /**
+     * @brief
+     * The element search implementation
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param element The element to search for
+     * @param it Current iterator before returning it
+     * @param point_view The point view property map
+     * @return Iterator to the found element or end iterator
+     */
+    template <class PointViewMap>
+    const_iterator
+    do_find(element_type const& element, iterator& it, PointViewMap const& point_view) const
     {
-        it.octree_node_        = const_cast<self_type*>(this);
-        auto& non_const_points = const_cast<decltype(points_)&>(points_);
-        auto target =
-            std::find_if(non_const_points.begin(), non_const_points.end(), [&p](auto const& p2) {
+        auto p                   = point_view(element);
+        auto& non_const_elements = const_cast<decltype(elements_)&>(elements_);
+
+        auto target = std::find_if(
+            non_const_elements.begin(),
+            non_const_elements.end(),
+            [&p, &point_view](auto const& e) {
+                auto p2 = point_view(e);
                 return common::are_vectors_equal(p, p2);
             });
-        it.it_ = target;
-        if (it.it_ != non_const_points.end())
+
+        it.octree_node_ = const_cast<self_type*>(this);
+        it.it_          = target;
+        if (it.it_ != non_const_elements.end())
             return it;
 
         auto const center             = voxel_grid_.center();
@@ -552,13 +662,15 @@ class basic_linked_octree_node_t
             return const_iterator{};
 
         it.ancestor_octree_nodes_.push(const_cast<self_type*>(this));
-        return octant->do_find(p, it);
+        return octant->do_find(p, it, point_view);
     }
 
   private:
-    using points_type  = std::vector<point_view_type>;
-    using octants_type = std::array<std::unique_ptr<self_type>, 8>;
-
+    /**
+     * @brief
+     * Adjust tree structure after an element removal
+     * @return Iterator to the point from first non empty octant
+     */
     typename octants_type::const_iterator take_point_from_first_nonempty_octant()
     {
         auto const exists = [](std::unique_ptr<self_type> const& o) {
@@ -583,14 +695,14 @@ class basic_linked_octree_node_t
         /*
          * Steal a point from this child octant.
          */
-        points_.push_back(octree_child_node->points_.back());
-        octree_child_node->points_.pop_back();
+        elements_.push_back(octree_child_node->elements_.back());
+        octree_child_node->elements_.pop_back();
 
         /*
          * If the octree's child octant still has points left,
          * we don't need to touch the octree anymore.
          */
-        if (!octree_child_node->points_.empty())
+        if (!octree_child_node->elements_.empty())
             return octree_child_node_it;
 
         /*
@@ -615,11 +727,11 @@ class basic_linked_octree_node_t
         return octree_child_node_it;
     }
 
-    std::uint32_t capacity_;
-    std::uint8_t max_depth_;
-    aabb_type voxel_grid_;
-    octants_type octants_;
-    points_type points_;
+    std::uint32_t capacity_; ///< This node's maximum number of elements
+    std::uint8_t max_depth_; ///< Bookkeeping variable on this node's current depth
+    aabb_type voxel_grid_;   ///< This node's englobing voxel
+    octants_type octants_;   ///< This node's child voxels
+    elements_type elements_; ///< The elements stored in this node
 };
 
 } // namespace pcp

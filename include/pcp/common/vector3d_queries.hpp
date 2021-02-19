@@ -7,6 +7,7 @@
  */
 
 #include "pcp/traits/vector3d_traits.hpp"
+#include "pcp/traits/point_map.hpp"
 
 #include <cmath>
 #include <iterator>
@@ -66,26 +67,34 @@ bool are_vectors_equal(
  * @ingroup common
  * @brief Returns the center of geometry of a range of 3d vectors
  * @tparam ForwardIter Type of iterator to Vector3d
- * @tparam Vector3d Type of the 3d vectors in the range
- * @param begin
- * @param end
+ * @tparam PointMap Type satisfying PointMap concept
+ * @tparam Vector3d Type of the 3d vector to return as the center of geometry
+ * @param begin Iterator to start of the sequence of elements
+ * @param end Iterator to one past the end of the sequence of elements
+ * @param point_map The point map property map
  * @return The center of geometry of the range as a Vector3d
  */
 template <
     class ForwardIter,
+    class PointMap,
     class Vector3d = typename std::iterator_traits<ForwardIter>::value_type>
-Vector3d center_of_geometry(ForwardIter begin, ForwardIter end)
+Vector3d center_of_geometry(ForwardIter begin, ForwardIter end, PointMap const& point_map)
 {
     static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
+    using key_type = decltype(*begin);
     static_assert(
-        std::is_same_v<typename ForwardIter::value_type, Vector3d>,
-        "Type of dereferenced ForwardIter must be convertible to Vector3d");
+        traits::is_point_map_v<PointMap, key_type>,
+        "point_map must satisfy PointMap concept");
 
     using component_type = typename Vector3d::component_type;
 
-    auto const n = std::distance(begin, end);
-    // Note: Can be parallelized
-    auto const sum = std::reduce(begin, end);
+    auto const reduce_op = [&](Vector3d current, key_type const& value) {
+        auto point = point_map(value);
+        return current + Vector3d{point.x(), point.y(), point.z()};
+    };
+
+    auto const n   = std::distance(begin, end);
+    auto const sum = std::accumulate(begin, end, Vector3d{}, reduce_op);
     auto const np  = static_cast<component_type>(n);
     return sum / np;
 }

@@ -7,6 +7,7 @@ PRIVATE
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/surface_nets.cpp"
+  "common/aabb.cpp"
   "common/plane3d.cpp"
   "common/tokenize.cpp"
   "common/normal_estimation.cpp"
@@ -17,14 +18,17 @@ PRIVATE
   "io/custom_point.hpp"
   "io/obj.cpp"
   "io/ply.cpp"
+  "kdtree/iterator.cpp"
+  "kdtree/kdtree_insertion.cpp"
+  "kdtree/kdtree_range_search.cpp"
+  "kdtree/knn.cpp"
   "octree/octree_deletion.cpp"
   "octree/octree_find.cpp"
   "octree/octree_insertion.cpp"
   "octree/octree_iterator.cpp"
   "octree/octree_knn.cpp"
   "octree/octree_range_search.cpp"
-  "type/property_map.cpp"
-)
+  "type/property_map.cpp")
 
 if (CMAKE_CXX_COMPILER_ID STREQUAL "GNU" OR CMAKE_CXX_COMPILER_ID MATCHES ".*Clang")
     option(PCP_COVERAGE "Enable code coverage reports for gcc/clang" FALSE)
@@ -70,6 +74,7 @@ PRIVATE
     -Wold-style-cast
     -Woverloaded-virtual
     -Wzero-as-null-pointer-constant
+    -Wno-unused-local-typedef
   >
   $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
     -Wall
@@ -106,6 +111,7 @@ PRIVATE
     -Wsuggest-final-types
     -Wsuggest-final-methods
     -Wsuggest-override
+    -Wno-unused-local-typedef
   >
   $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:
     /permissive-

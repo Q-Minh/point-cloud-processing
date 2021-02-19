@@ -83,21 +83,23 @@ using plane3d_t = pcp::common::basic_plane3d_t<pcp::point_t, pcp::normal_t>;
  * @ingroup common
  * @brief Computes an estimated tangent plane from a sequence of 3d points
  * @tparam ForwardIter Iterator to points
+ * @tparam PointMap Type satisfying PointMap concept
  * @tparam Plane Type of plan to compute
- * @param begin
- * @param end
+ * @param begin Iterator to start of the sequence of elements
+ * @param end Iterator to one past the end of the sequence of elements
+ * @param point_map The point map property map
  * @return
  */
-template <class ForwardIter, class Plane = pcp::common::plane3d_t>
-Plane tangent_plane(ForwardIter begin, ForwardIter end)
+template <class ForwardIter, class PointMap, class Plane = pcp::common::plane3d_t>
+Plane tangent_plane(ForwardIter begin, ForwardIter end, PointMap const& point_map)
 {
     static_assert(traits::is_plane_v<Plane>, "Plane must satisfy Plane concept");
 
     using normal_type = typename Plane::normal_type;
     using point_type  = typename Plane::point_type;
 
-    normal_type normal = estimate_normal(begin, end);
-    point_type point   = center_of_geometry(begin, end);
+    normal_type normal = estimate_normal<ForwardIter, PointMap, normal_type>(begin, end, point_map);
+    point_type point = center_of_geometry<ForwardIter, PointMap, point_type>(begin, end, point_map);
 
     return Plane(point, normal);
 }

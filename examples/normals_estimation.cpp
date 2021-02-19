@@ -1,16 +1,11 @@
-#include <chrono>
 #include <iostream>
-#include <pcp/algorithm/common.hpp>
 #include <pcp/algorithm/estimate_normals.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
-#include <pcp/common/points/vertex.hpp>
-#include <pcp/common/timer.hpp>
 #include <pcp/io/ply.hpp>
-#include <pcp/octree/octree.hpp>
-#include <range/v3/all.hpp>
+#include <pcp/kdtree/kdtree.hpp>
 #include <range/v3/range/conversion.hpp>
-#include <range/v3/view/enumerate.hpp>
+#include <range/v3/view/iota.hpp>
 #include <range/v3/view/transform.hpp>
 #include <vector>
 
@@ -28,110 +23,87 @@ int main(int argc, char** argv)
     bool const parallel                   = argc >= 5 ? std::string(argv[4]) == "parallel" : false;
     std::filesystem::path ply_point_cloud = argv[1];
 
+    using index_type  = std::uint64_t;
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
-    using vertex_type = pcp::vertex_t;
 
-    pcp::common::basic_timer_t timer;
+    auto [p, n] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
 
-    timer.register_op("parse ply point cloud");
-    timer.start();
-    auto [points, normals] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
-    timer.stop();
+    std::vector<point_type> points = std::move(p);
+    std::vector<normal_type> normals(points.size());
+    std::vector<index_type> indices = ranges::views::iota(
+                                          static_cast<std::uint64_t>(0u),
+                                          static_cast<std::uint64_t>(points.size())) |
+                                      ranges::to<std::vector>();
 
-    timer.register_op("setup octree");
-    timer.start();
-    std::vector<vertex_type> vertices = ranges::views::enumerate(points) |
-                                        ranges::views::transform([](auto&& tup) {
-                                            auto const idx = std::get<0>(tup);
-                                            auto& point    = std::get<1>(tup);
-                                            return vertex_type{&point, idx};
-                                        }) |
-                                        ranges::to<std::vector>();
+    auto const index_map = [](index_type const& i) {
+        return i;
+    };
+    auto const point_map = [&](index_type const& i) {
+        return points[i];
+    };
+    auto const normal_map = [&](index_type const& i) {
+        return normals[i];
+    };
+    auto const coordinate_map = [&](index_type const& i) {
+        return std::array<float, 3u>{points[i].x(), points[i].y(), points[i].z()};
+    };
 
-    normals.resize(points.size());
+    pcp::kdtree::construction_params_t params;
+    params.compute_max_depth = true;
 
-    using iterator_type = typename decltype(points)::const_iterator;
-    auto const bounding_box =
-        pcp::bounding_box<iterator_type, pcp::point_t>(std::cbegin(points), std::cend(points));
-
-    pcp::octree_parameters_t<pcp::point_t> params;
-    params.voxel_grid = bounding_box;
-
-    pcp::basic_linked_octree_t<vertex_type, decltype(params)> octree{
-        std::cbegin(vertices),
-        std::cend(vertices),
+    pcp::basic_linked_kdtree_t<index_type, 3u, decltype(coordinate_map)> kdtree{
+        indices.begin(),
+        indices.end(),
+        coordinate_map,
         params};
 
-    timer.stop();
-
-    auto const knn = [=, &octree, &vertices](vertex_type const& v) {
-        return octree.nearest_neighbours(vertices[v.id()], k);
-    };
-    auto const get_point = [&vertices](vertex_type const& v) {
-        return pcp::point_t{vertices[v.id()]};
-    };
-    auto const get_normal = [normals_ptr = &normals](vertex_type const& v) {
-        auto const& normals = *normals_ptr;
-        return normals[v.id()];
-    };
-    auto const transform_op = [normals_ptr =
-                                   &normals](vertex_type const& v, pcp::normal_t const& n) {
-        auto& normals   = *normals_ptr;
-        normals[v.id()] = n;
+    auto const knn = [&](index_type const& i) {
+         return kdtree.nearest_neighbours(i, k);
     };
 
-    timer.register_op("estimate normals");
-    timer.start();
+    auto const transform_op = [&](index_type const& i, pcp::normal_t const& n) {
+        normals[i] = n;
+        return i;
+    };
+
     if (parallel)
     {
         pcp::algorithm::estimate_normals(
             std::execution::par,
-            vertices.begin(),
-            vertices.end(),
-            normals.begin(),
+            indices.begin(),
+            indices.end(),
+            indices.begin(),
+            point_map,
             knn,
-            pcp::algorithm::default_normal_transform<vertex_type, normal_type>);
+            transform_op);
     }
     else
     {
         pcp::algorithm::estimate_normals(
             std::execution::seq,
-            vertices.begin(),
-            vertices.end(),
-            normals.begin(),
+            indices.begin(),
+            indices.end(),
+            indices.begin(),
+            point_map,
             knn,
-            pcp::algorithm::default_normal_transform<vertex_type, normal_type>);
+            transform_op);
     }
-    timer.stop();
 
-    timer.register_op("propagate normal orientations");
-    timer.start();
     pcp::algorithm::propagate_normal_orientations(
-        vertices.begin(),
-        vertices.end(),
+        indices.begin(),
+        indices.end(),
+        index_map,
         knn,
-        get_point,
-        get_normal,
+        point_map,
+        normal_map,
         transform_op);
-    timer.stop();
 
-    timer.register_op("write ply point cloud with estimated normals");
-    timer.start();
     pcp::io::write_ply(
         std::filesystem::path(argv[2]),
         points,
         normals,
         pcp::io::ply_format_t::binary_little_endian);
-    timer.stop();
-
-    for (auto const [operation, duration] : timer.ops)
-    {
-        std::cout << operation << ": "
-                  << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()
-                  << " ms"
-                  << "\n";
-    }
 
     return 0;
 }

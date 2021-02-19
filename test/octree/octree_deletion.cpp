@@ -61,7 +61,11 @@ SCENARIO("octree deletion", "[octree]")
         params.node_capacity = node_capacity;
         params.max_depth     = static_cast<std::uint8_t>(max_depth);
 
-        pcp::linked_octree_t octree(points.cbegin(), points.cend(), params);
+        auto const point_map = [](pcp::point_t const& p) {
+            return p;
+        };
+
+        pcp::linked_octree_t octree(points.cbegin(), points.cend(), point_map, params);
 
         WHEN("removing existing points one at a time")
         {
@@ -107,7 +111,7 @@ SCENARIO("octree deletion", "[octree]")
                 REQUIRE(octree.empty());
                 WHEN("adding new points")
                 {
-                    octree.insert(points.cbegin(), points.cend());
+                    octree.insert(points.cbegin(), points.cend(), point_map);
                     THEN("octree now contains the new points")
                     {
                         REQUIRE(octree.size() == points.size());
