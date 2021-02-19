@@ -1,9 +1,14 @@
 #include <benchmark/benchmark.h>
+#include <pcp/kdtree/kdtree.hpp>
 #include <pcp/octree/octree.hpp>
 #include <random>
 
 auto const default_point_map = [](pcp::point_t const& p) {
     return p;
+};
+
+auto const default_coordinate_map = [](pcp::point_t const& p) {
+    return std::array<float, 3u>{p.x(), p.y(), p.z()};
 };
 
 float constexpr get_bm_min()
@@ -54,6 +59,26 @@ static pcp::axis_aligned_bounding_box_t<pcp::point_t> get_range(float const min,
         pcp::point_t{min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z},
         pcp::point_t{max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z}};
 }
+static pcp::kd_axis_aligned_bounding_box_t<float, 3>
+get_range_kdtree(float const min, float const max)
+{
+    std::random_device rd;
+    std::mt19937 gen(rd());
+
+    std::uniform_real_distribution<float> coordinate_distribution(min + 1.f, max - 1.f);
+    std::uniform_real_distribution<float> min_bound(-1.f, 0.f);
+    std::uniform_real_distribution<float> max_bound(0.f, 1.f);
+
+    auto const x = coordinate_distribution(gen);
+    auto const y = coordinate_distribution(gen);
+    auto const z = coordinate_distribution(gen);
+
+    pcp::kd_axis_aligned_bounding_box_t<float, 3u> aabb;
+    aabb.min = {min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z};
+    aabb.max = {max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z};
+
+    return aabb;
+}
 
 static pcp::point_t get_reference_point(float const min, float const max)
 {
@@ -100,6 +125,28 @@ static void bm_linked_octree_construction(benchmark::State& state)
     }
 }
 
+static void bm_linked_kdtree_construction(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> const points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    for (auto _ : state)
+    {
+        pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+            points.begin(),
+            points.end(),
+            default_coordinate_map,
+            params};
+        benchmark::DoNotOptimize(kdtree.size());
+    }
+}
+
 static void bm_vector_range_search(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
@@ -137,6 +184,30 @@ static void bm_linked_octree_range_search(benchmark::State& state)
     {
         pcp::axis_aligned_bounding_box_t range = get_range(min, max);
         std::vector<pcp::point_t> found_points = octree.range_search(range, default_point_map);
+        benchmark::DoNotOptimize(found_points.data());
+    }
+}
+static void bm_linked_kdtree_range_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+
+    for (auto _ : state)
+    {
+        pcp::kd_axis_aligned_bounding_box_t range = get_range_kdtree(min, max);
+        std::vector<pcp::point_t> found_points    = kdtree.range_search(range);
         benchmark::DoNotOptimize(found_points.data());
     }
 }
@@ -192,6 +263,57 @@ static void bm_linked_octree_knn_search(benchmark::State& state)
     }
 }
 
+static void bm_linked_kdtree_knn_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+    std::uint64_t const k = static_cast<std::uint64_t>(state.range(2));
+    for (auto _ : state)
+    {
+        auto const reference          = get_reference_point(min, max);
+        std::vector<pcp::point_t> knn = kdtree.nearest_neighbours(reference, k);
+        benchmark::DoNotOptimize(knn.data());
+    }
+}
+
+static void bm_linked_kdtree_adaptive_depth_knn_search(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.construction          = pcp::kdtree::construction_t::nth_element;
+    params.compute_max_depth     = true;
+    params.max_elements_per_leaf = 64u;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree{
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params};
+    std::uint64_t const k = static_cast<std::uint64_t>(state.range(1));
+    for (auto _ : state)
+    {
+        auto const reference          = get_reference_point(min, max);
+        std::vector<pcp::point_t> knn = kdtree.nearest_neighbours(reference, k);
+        benchmark::DoNotOptimize(knn.data());
+    }
+}
+
 static void bm_vector_iterator_traversal(benchmark::State& state)
 {
     auto constexpr min = get_bm_min();
@@ -231,6 +353,31 @@ static void bm_linked_octree_iterator_traversal(benchmark::State& state)
     }
 }
 
+static void bm_linked_kdtree_iterator_traversal(benchmark::State& state)
+{
+    auto constexpr min = get_bm_min();
+    auto constexpr max = get_bm_max();
+    std::vector<pcp::point_t> points =
+        get_vector_of_points(static_cast<std::uint64_t>(state.range(0)), min, max);
+
+    pcp::kdtree::construction_params_t params;
+    params.max_depth    = static_cast<std::size_t>(state.range(1));
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(default_coordinate_map)> kdtree(
+        points.begin(),
+        points.end(),
+        default_coordinate_map,
+        params);
+    for (auto _ : state)
+    {
+        bool const all = std::all_of(kdtree.cbegin(), kdtree.cend(), [](auto const& p) {
+            return pcp::common::are_vectors_equal(p, p);
+        });
+        benchmark::DoNotOptimize(all);
+    }
+}
+
 BENCHMARK(bm_vector_construction)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})
@@ -251,6 +398,16 @@ BENCHMARK(bm_linked_octree_construction)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_construction)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 11u})
+    ->Args({1 << 16, 11u})
+    ->Args({1 << 20, 11u})
+    ->Args({1 << 24, 11u})
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 BENCHMARK(bm_vector_range_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})
@@ -267,6 +424,16 @@ BENCHMARK(bm_linked_octree_range_search)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_range_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 11u})
+    ->Args({1 << 16, 11u})
+    ->Args({1 << 20, 11u})
+    ->Args({1 << 24, 11u})
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 BENCHMARK(bm_vector_knn_search)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12, 10u})
@@ -283,6 +450,26 @@ BENCHMARK(bm_linked_octree_knn_search)
     ->Args({1 << 16, 512u, 21u, 10u})
     ->Args({1 << 20, 512u, 21u, 10u})
     ->Args({1 << 24, 512u, 21u, 10u});
+BENCHMARK(bm_linked_kdtree_knn_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 12u, 10u})
+    ->Args({1 << 16, 12u, 10u})
+    ->Args({1 << 20, 12u, 10u})
+    ->Args({1 << 24, 12u, 10u})
+    ->Args({1 << 12, 15u, 10u})
+    ->Args({1 << 16, 15u, 10u})
+    ->Args({1 << 20, 15u, 10u})
+    ->Args({1 << 24, 15u, 10u})
+    ->Args({1 << 12, 18u, 10u})
+    ->Args({1 << 16, 18u, 10u})
+    ->Args({1 << 20, 18u, 10u})
+    ->Args({1 << 24, 18u, 10u});
+BENCHMARK(bm_linked_kdtree_adaptive_depth_knn_search)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 10u})
+    ->Args({1 << 16, 10u})
+    ->Args({1 << 20, 10u})
+    ->Args({1 << 24, 10u});
 BENCHMARK(bm_vector_iterator_traversal)
     ->Unit(benchmark::kMillisecond)
     ->Args({1 << 12})
@@ -299,6 +486,12 @@ BENCHMARK(bm_linked_octree_iterator_traversal)
     ->Args({1 << 16, 512u, 21u})
     ->Args({1 << 20, 512u, 21u})
     ->Args({1 << 24, 512u, 21u});
+BENCHMARK(bm_linked_kdtree_iterator_traversal)
+    ->Unit(benchmark::kMillisecond)
+    ->Args({1 << 12, 21u})
+    ->Args({1 << 16, 21u})
+    ->Args({1 << 20, 21u})
+    ->Args({1 << 24, 21u});
 
 int main(int argc, char** argv)
 {

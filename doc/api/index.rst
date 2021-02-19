@@ -77,5 +77,6 @@ The API is divided into the following modules:
    common
    graph
    io
+   kdtree
    octree
    traits

@@ -94,6 +94,7 @@ int main(int argc, char** argv)
         point_views.begin(),
         point_views.end(),
         normals.begin(),
+        point_view_map,
         knn,
         pcp::algorithm::default_normal_transform<point_view_type, normal_type>);
 

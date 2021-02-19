@@ -34,6 +34,28 @@ inline bool intersects(
 /**
  * @ingroup intersection-tests
  * @brief
+ * Intersections test between AABBs
+ * @tparam CoordinateType
+ * @param b1
+ * @param b2
+ * @return
+ */
+template <class CoordinateType, std::size_t K>
+inline bool intersects(
+    kd_axis_aligned_bounding_box_t<CoordinateType, K> const& b1,
+    kd_axis_aligned_bounding_box_t<CoordinateType, K> const& b2)
+{
+    for (size_t i = 0; i < K; ++i)
+    {
+        if (!(b1.max[i] >= b2.min[i] && b1.min[i] <= b2.max[i]))
+            return false;
+    }
+    return true;
+}
+
+/**
+ * @ingroup intersection-tests
+ * @brief
  * Intersection test between spheres
  * @tparam Point
  * @param s1
@@ -77,6 +99,51 @@ inline bool intersects(axis_aligned_bounding_box_t<Point> const& b, sphere_t<Poi
 
     Point const nearest_point_on_box_from_sphere = b.nearest_point_from(center);
     return common::squared_distance(nearest_point_on_box_from_sphere, center) <= s.radius;
+}
+
+/**
+ * @ingroup intersection-tests
+ * @brief
+ * Intersection test between kd-AABB and sphere
+ * @tparam CoordinateType
+ * @param b
+ * @param s
+ * @return
+ */
+template <class CoordinateType>
+inline bool intersects(
+    kd_axis_aligned_bounding_box_t<CoordinateType, 3> const& b,
+    sphere_a<CoordinateType> const& s)
+{
+    auto const center = s.center();
+
+    bool const is_center_in_box_x = center[0] >= b.min[0] && center[0] <= b.max[0];
+    bool const is_center_in_box_y = center[1] >= b.min[1] && center[1] <= b.max[1];
+    bool const is_center_in_box_z = center[2] >= b.min[2] && center[2] <= b.max[2];
+    bool const is_center_in_box   = is_center_in_box_x && is_center_in_box_y && is_center_in_box_z;
+
+    if (is_center_in_box)
+        return true;
+
+    auto const nearest_point_on_box_from_sphere = b.nearest_point_from(center);
+    return common::squared_distance(nearest_point_on_box_from_sphere, center) <= s.radius;
+}
+
+/**
+ * @ingroup intersection-tests
+ * @brief
+ * Intersection test between kd-AABB and sphere
+ * @tparam CoordinateType
+ * @param s
+ * @param b
+ * @return
+ */
+template <class CoordinateType>
+inline bool intersects(
+    sphere_a<CoordinateType> const& s,
+    kd_axis_aligned_bounding_box_t<CoordinateType, 3> const& b)
+{
+    return intersects(b, s);
 }
 
 /**
