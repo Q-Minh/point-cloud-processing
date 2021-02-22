@@ -96,6 +96,8 @@ INTERFACE
         
         # octree
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/flat_octree.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/flat_octree_iterator.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_iterator.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/octree/linked_octree_node.hpp

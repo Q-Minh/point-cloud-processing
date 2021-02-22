@@ -13,6 +13,9 @@
  * @ingroup octree
  */
 
+#include "flat_octree_iterator.hpp"
+#include "flat_octree.hpp"
+
 #include "linked_octree_iterator.hpp"
 #include "linked_octree.hpp"
 #include "linked_octree_node.hpp"
