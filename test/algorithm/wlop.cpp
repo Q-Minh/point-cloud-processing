@@ -2,7 +2,7 @@
 #include <pcp/algorithm/average_distance_to_neighbors.hpp>
 #include <pcp/algorithm/wlop.hpp>
 
-SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][WLOP]")
+SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][wlop]")
 {
     GIVEN("a random point cloud")
     {

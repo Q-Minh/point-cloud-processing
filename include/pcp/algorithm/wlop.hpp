@@ -49,6 +49,9 @@ ScalarType compute_vj(
         auto const& c2 = p_cmap(*it);
         pcp::basic_point_t<scalar_type> pjp{c2[0], c2[1], c2[2]};
 
+        if (common::are_vectors_equal(pj, pjp))
+            continue;
+
         auto const r = common::norm(pj - pjp);
         vj += theta(r);
     }
@@ -83,6 +86,9 @@ ScalarType compute_wi(
         auto const& c2 = q_cmap(*it);
         pcp::basic_point_t<scalar_type> qip{c2[0], c2[1], c2[2]};
 
+        if (common::are_vectors_equal(qi, qip))
+            continue;
+
         auto const r = common::norm(qi - qip);
         wi += theta(r);
     }
@@ -108,36 +114,45 @@ basic_point_t<ScalarType> solve_first_energy_median(
 {
     using scalar_type = ScalarType;
 
+    auto const& c1 = q_cmap(i);
+    basic_point_t<scalar_type> const q{c1[0], c1[1], c1[2]};
+
     pcp::sphere_a<scalar_type> radial_support_region;
     radial_support_region.radius   = h;
-    radial_support_region.position = q_cmap(i);
+    radial_support_region.position = c1;
 
     auto const neighbors = kdtree.range_search(radial_support_region);
 
     // loop over j in support region
     scalar_type sum{0.0};
     basic_point_t<scalar_type> median;
-    auto begin = neighbors.begin();
-    auto end   = neighbors.end();
+    scalar_type const zero = static_cast<scalar_type>(0.);
+    auto begin             = neighbors.begin();
+    auto end               = neighbors.end();
     for (auto it = begin; it != end; ++it)
     {
-        auto const& c1 = q_cmap(i);
         auto const& c2 = p_cmap(*it);
 
-        basic_point_t<scalar_type> const q{c1[0], c1[1], c1[2]};
         basic_point_t<scalar_type> const p{c2[0], c2[1], c2[2]};
 
-        scalar_type const r = common::norm(q - p);
-        auto const alpha_ij = theta(r) / r;
+        if (common::are_vectors_equal(q, p))
+            continue;
 
-        scalar_type const vj    = vj_map(*it);
-        scalar_type const coeff = alpha_ij / vj;
+        scalar_type const r  = common::norm(q - p);
+        scalar_type const vj = vj_map(*it);
+
+        bool const alpha_zero_division = common::floating_point_equals(r, zero);
+        bool const vj_zero_division    = common::floating_point_equals(vj, zero);
+
+        auto const alpha_ij     = alpha_zero_division ? zero : theta(r) / r;
+        scalar_type const coeff = vj_zero_division ? zero : alpha_ij / vj;
         common::basic_vector3d_t<scalar_type> t{p.x(), p.y(), p.z()};
         t      = coeff * t;
         median = median + t;
         sum += coeff;
     }
-    median = median / sum;
+    bool const median_zero_division = common::floating_point_equals(sum, zero);
+    median                          = median_zero_division ? q : median / sum;
 
     return median;
 }
@@ -163,24 +178,32 @@ common::basic_vector3d_t<ScalarType> solve_second_energy_repulsion_force(
 
     common::basic_vector3d_t<scalar_type> repulsion{0., 0., 0.};
     scalar_type sum{0.};
-    auto const neighbors = kdtree.range_search(radial_support_region);
-    auto begin           = neighbors.begin();
-    auto end             = neighbors.end();
+    scalar_type const zero = static_cast<scalar_type>(0.);
+    auto const neighbors   = kdtree.range_search(radial_support_region);
+    auto begin             = neighbors.begin();
+    auto end               = neighbors.end();
     for (auto it = begin; it != end; ++it)
     {
         auto const& c2 = q_cmap(*it);
         basic_point_t<scalar_type> const qi{c2[0], c2[1], c2[2]};
 
+        if (common::are_vectors_equal(qi, qip))
+            continue;
+
         common::basic_vector3d_t<scalar_type> const d = qip - qi;
         scalar_type const r                           = common::norm(d);
         scalar_type const wi                          = wi_map(*it);
 
-        scalar_type const beta_ii = theta(r) / r; // * | d (eta(r)) / dr | = | -1 | = 1
-        scalar_type const coeff   = wi * beta_ii;
-        repulsion = repulsion + coeff * d;
+        bool const beta_zero_division = common::floating_point_equals(r, zero);
+
+        scalar_type const beta_ii =
+            beta_zero_division ? zero : theta(r) / r; // * | d (eta(r)) / dr | = | -1 | = 1
+        scalar_type const coeff = wi * beta_ii;
+        repulsion               = repulsion + coeff * d;
         sum += coeff;
     }
-    repulsion = (mu / sum) * repulsion;
+    bool const repulsion_zero_division = common::floating_point_equals(sum, zero);
+    repulsion = repulsion_zero_division ? zero * repulsion : (mu / sum) * repulsion;
 
     return repulsion;
 }
@@ -353,7 +376,6 @@ void wlop(
                 median.z() + repulsion.z()};
         });
 
-        // swap buffers
         std::copy(xp.begin(), xp.end(), x.begin());
     }
 
