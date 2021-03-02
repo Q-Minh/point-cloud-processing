@@ -40,18 +40,18 @@ struct sphere_t
  * Simple sphere with containment predicate.
  * @tparam Type Type of the data
  */
-template <class Type>
+template <class CoordinateType>
 struct sphere_a
 {
-    using point3d = std::array<Type, 3>;
-    point3d position;
-    Type radius;
+    using point_type = std::array<CoordinateType, 3>;
+    point_type position;
+    CoordinateType radius;
 
-    point3d center() const { return position; }
+    point_type center() const { return position; }
 
-    bool contains(point3d const& p) const
+    bool contains(point_type const& p) const
     {
-        Type distance = common::squared_distance(position, p);
+        CoordinateType distance = common::squared_distance(position, p);
         return distance <= radius * radius;
     }
 };
