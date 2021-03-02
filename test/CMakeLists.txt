@@ -4,9 +4,11 @@ set_target_properties(pcp-tests PROPERTIES FOLDER pcp-tests)
 target_sources(pcp-tests
 PRIVATE
   "main.cpp"
+  "algorithm/average_distance_to_neighbors.cpp"
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/surface_nets.cpp"
+  "algorithm/wlop.cpp"
   "common/aabb.cpp"
   "common/plane3d.cpp"
   "common/tokenize.cpp"

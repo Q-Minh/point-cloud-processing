@@ -133,7 +133,7 @@ basic_point_t<ScalarType> solve_first_energy_median(
         scalar_type const vj    = vj_map(*it);
         scalar_type const coeff = alpha_ij / vj;
         common::basic_vector3d_t<scalar_type> t{p.x(), p.y(), p.z()};
-        t      = t * coeff;
+        t      = coeff * t;
         median = median + t;
         sum += coeff;
     }
@@ -177,7 +177,7 @@ common::basic_vector3d_t<ScalarType> solve_second_energy_repulsion_force(
 
         scalar_type const beta_ii = theta(r) / r; // * | d (eta(r)) / dr | = | -1 | = 1
         scalar_type const coeff   = wi * beta_ii;
-        repulsion += d * coeff;
+        repulsion = repulsion + coeff * d;
         sum += coeff;
     }
     repulsion = (mu / sum) * repulsion;
@@ -231,22 +231,21 @@ struct params_t
  * @param params The WLOP algorithm's parameters
  */
 template <class RandomAccessIter, class OutputIter, class PointMap>
-void simplify(
+void wlop(
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
     PointMap point_map,
     params_t const& params)
 {
-    using input_element_type = std::iterator_traits<RandomAccessIter>::value_type;
+    using input_element_type = typename std::iterator_traits<RandomAccessIter>::value_type;
     using input_point_type   = std::invoke_result_t<PointMap, input_element_type>;
     using scalar_type        = typename input_point_type::coordinate_type;
-    using output_point_type  = std::iterator_traits<OutputIter>::value_type;
+    using output_point_type  = input_point_type;
 
     static_assert(
-        traits::is_point_v<output_point_type>,
-        "OutputIter must be dereferenceable to a type satisfying Point concept");
-    static_assert(traits::is_point_map_v<PointMap>, "point_map must satisfy PointMap concept");
+        traits::is_point_map_v<PointMap, input_element_type>,
+        "point_map must satisfy PointMap concept");
 
     std::size_t const J  = static_cast<std::size_t>(std::distance(begin, end));
     std::size_t const I  = params.I;
@@ -257,7 +256,7 @@ void simplify(
 
     assert(I > 0u && J >= I);
     assert(mu >= 0. && mu <= .5);
-    assert(k > 0u);
+    assert(K > 0u);
 
     std::vector<scalar_type> alpha(I);
     std::vector<scalar_type> beta(I);
@@ -286,7 +285,7 @@ void simplify(
         return std::array<scalar_type, 3u>{pj.x(), pj.y(), pj.z()};
     };
     auto const q_coordinate_map = [&](std::size_t const i) {
-        auto const& qi = x.begin() + i;
+        auto const& qi = x[i];
         return std::array<scalar_type, 3u>{qi.x(), qi.y(), qi.z()};
     };
     auto const vj_map = [&](std::size_t const j) {
@@ -306,17 +305,15 @@ void simplify(
     kdtree_params.construction          = kdtree::construction_t::nth_element;
     kdtree_params.max_elements_per_leaf = 64u;
 
-    {
-        basic_linked_kdtree_t<std::size_t, 3u, decltype(p_coordinate_map)> p_kdtree{
-            js.begin(),
-            js.end(),
-            p_coordinate_map,
-            kdtree_params};
+    basic_linked_kdtree_t<std::size_t, 3u, decltype(p_coordinate_map)> p_kdtree{
+        js.begin(),
+        js.end(),
+        p_coordinate_map,
+        kdtree_params};
 
-        std::transform(js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
-            return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
-        });
-    }
+    std::transform(js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
+        return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
+    });
 
     for (std::size_t k = 0u; k < K; ++k)
     {
@@ -326,13 +323,19 @@ void simplify(
             q_coordinate_map,
             kdtree_params};
 
-        std::transform(is.begin(), is.end(), wi.begin(), [&](std::size const i) {
+        std::transform(is.begin(), is.end(), wi.begin(), [&](std::size_t const i) {
             return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
         });
 
         std::transform(is.begin(), is.end(), xp.begin(), [&](std::size_t const ip) {
-            basic_point_t<scalar_type> const median =
-                detail::solve_first_energy_median(ip, h, p_kdtree, q_coordinate_map, vj_map, theta);
+            basic_point_t<scalar_type> const median = detail::solve_first_energy_median(
+                ip,
+                h,
+                p_kdtree,
+                p_coordinate_map,
+                q_coordinate_map,
+                vj_map,
+                theta);
 
             common::basic_vector3d_t<scalar_type> const repulsion =
                 detail::solve_second_energy_repulsion_force(
