@@ -15,6 +15,7 @@
 
 #include <algorithm>
 #include <cstddef>
+#include <execution>
 #include <vector>
 
 namespace pcp {
@@ -334,7 +335,7 @@ void wlop(
         p_coordinate_map,
         kdtree_params};
 
-    std::transform(js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
+    std::transform(std::execution::par, js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
         return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
     });
 
@@ -346,35 +347,45 @@ void wlop(
             q_coordinate_map,
             kdtree_params};
 
-        std::transform(is.begin(), is.end(), wi.begin(), [&](std::size_t const i) {
-            return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
-        });
+        std::transform(
+            std::execution::par,
+            is.begin(),
+            is.end(),
+            wi.begin(),
+            [&](std::size_t const i) {
+                return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
+            });
 
-        std::transform(is.begin(), is.end(), xp.begin(), [&](std::size_t const ip) {
-            basic_point_t<scalar_type> const median = detail::solve_first_energy_median(
-                ip,
-                h,
-                p_kdtree,
-                p_coordinate_map,
-                q_coordinate_map,
-                vj_map,
-                theta);
-
-            common::basic_vector3d_t<scalar_type> const repulsion =
-                detail::solve_second_energy_repulsion_force(
+        std::transform(
+            std::execution::par,
+            is.begin(),
+            is.end(),
+            xp.begin(),
+            [&](std::size_t const ip) {
+                basic_point_t<scalar_type> const median = detail::solve_first_energy_median(
                     ip,
                     h,
-                    mu,
-                    q_kdtree,
+                    p_kdtree,
+                    p_coordinate_map,
                     q_coordinate_map,
-                    wi_map,
+                    vj_map,
                     theta);
 
-            return output_point_type{
-                median.x() + repulsion.x(),
-                median.y() + repulsion.y(),
-                median.z() + repulsion.z()};
-        });
+                common::basic_vector3d_t<scalar_type> const repulsion =
+                    detail::solve_second_energy_repulsion_force(
+                        ip,
+                        h,
+                        mu,
+                        q_kdtree,
+                        q_coordinate_map,
+                        wi_map,
+                        theta);
+
+                return output_point_type{
+                    median.x() + repulsion.x(),
+                    median.y() + repulsion.y(),
+                    median.z() + repulsion.z()};
+            });
 
         std::copy(xp.begin(), xp.end(), x.begin());
     }
