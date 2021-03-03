@@ -1,4 +1,5 @@
 #include <filesystem>
+#include <future>
 #include <igl/file_dialog_open.h>
 #include <igl/file_dialog_save.h>
 #include <igl/opengl/glfw/Viewer.h>
@@ -7,6 +8,7 @@
 #include <pcp/algorithm/average_distance_to_neighbors.hpp>
 #include <pcp/algorithm/wlop.hpp>
 #include <pcp/common/normals/normal.hpp>
+#include <pcp/common/timer.hpp>
 #include <pcp/io/ply.hpp>
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points);
@@ -37,6 +39,8 @@ int main(int argc, char** argv)
     float input_mu = 0.f;
     int knn        = 15;
 
+    pcp::common::basic_timer_t timer;
+
     auto const point_map = [&](std::size_t const i) {
         return input_point_cloud[i];
     };
@@ -52,7 +56,13 @@ int main(int argc, char** argv)
             viewer.core().align_camera_center(V);
         };
 
-        if (ImGui::CollapsingHeader("IO", ImGuiTreeNodeFlags_DefaultOpen))
+        static std::future<void> wlop_handle{};
+
+        auto const is_wlop_running = [&]() {
+            return wlop_handle.valid();
+        };
+
+        if (ImGui::CollapsingHeader("IO", ImGuiTreeNodeFlags_DefaultOpen) && !is_wlop_running())
         {
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
@@ -60,7 +70,7 @@ int main(int argc, char** argv)
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [p, _]       = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+                auto [p, _] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
                 if (!p.empty())
                 {
                     input_point_cloud = std::move(p);
@@ -86,6 +96,10 @@ int main(int argc, char** argv)
             }
         }
 
+        static float input_point_cloud_variance  = 0.f;
+        static float output_point_cloud_variance = 0.f;
+        static std::string progress_str{""};
+
         if (ImGui::CollapsingHeader("WLOP", ImGuiTreeNodeFlags_DefaultOpen))
         {
             static int k    = 0;
@@ -110,51 +124,69 @@ int main(int argc, char** argv)
             ImGui::Checkbox("Require uniform", &uniform);
             ImGui::InputInt("KNN for mean computation", &knn);
 
-            static float input_point_cloud_variance  = 0.f;
-            static float output_point_cloud_variance = 0.f;
-
-            if (ImGui::Button("Downsample", ImVec2((w - p) / 2.f, 0.f)))
+            if (ImGui::Button("Downsample", ImVec2((w - p) / 2.f, 0.f)) && !is_wlop_running())
             {
-                pcp::algorithm::wlop::params_t params;
-                params.I       = static_cast<std::size_t>(I);
-                params.k       = static_cast<std::size_t>(k);
-                params.mu      = static_cast<double>(mu);
-                params.uniform = uniform;
+                progress_str = "Executing ...";
+                wlop_handle  = std::async(std::launch::async, [&]() {
+                    timer.register_op("WLOP");
+                    timer.start();
 
-                if (params.h == 0.f)
-                {
-                    float const mu = compute_average_distance_to_neighbors(
-                        indices,
+                    pcp::algorithm::wlop::params_t params;
+                    params.I       = static_cast<std::size_t>(I);
+                    params.k       = static_cast<std::size_t>(k);
+                    params.mu      = static_cast<double>(mu);
+                    params.uniform = uniform;
+
+                    if (params.h == 0.f)
+                    {
+                        float const mu = compute_average_distance_to_neighbors(
+                            indices,
+                            point_map,
+                            static_cast<std::size_t>(knn));
+                        params.h = mu * 8.f;
+                    }
+
+                    output_point_cloud.clear();
+                    output_point_cloud.reserve(params.I);
+                    pcp::algorithm::wlop::wlop(
+                        indices.begin(),
+                        indices.end(),
+                        std::back_inserter(output_point_cloud),
                         point_map,
-                        static_cast<std::size_t>(knn));
-                    params.h = mu * 8.f;
-                }
+                        params);
 
-                output_point_cloud.clear();
-                output_point_cloud.reserve(params.I);
-                pcp::algorithm::wlop::wlop(
-                    indices.begin(),
-                    indices.end(),
-                    std::back_inserter(output_point_cloud),
-                    point_map,
-                    params);
-
-                auto const [input_var, output_var] = compute_mean_distance_variance(
-                    input_point_cloud,
-                    output_point_cloud,
-                    static_cast<std::size_t>(knn));
-
-                input_point_cloud_variance  = input_var;
-                output_point_cloud_variance = output_var;
-
-                draw_point_cloud(true);
+                    timer.stop();
+                });
             }
 
             ImGui::BulletText("Input mu: %.7f", input_mu);
             ImGui::BulletText("Input variance: %.7f", input_point_cloud_variance);
             ImGui::BulletText("Output variance: %.7f", output_point_cloud_variance);
 
+            if (!progress_str.empty())
+                ImGui::BulletText(progress_str.c_str());
+
             ImGui::PopItemWidth();
+        }
+
+        if (wlop_handle.valid() &&
+            wlop_handle.wait_for(std::chrono::microseconds(0u)) == std::future_status::ready)
+        {
+            wlop_handle.get();
+            auto const [input_var, output_var] = compute_mean_distance_variance(
+                input_point_cloud,
+                output_point_cloud,
+                static_cast<std::size_t>(knn));
+
+            input_point_cloud_variance  = input_var;
+            output_point_cloud_variance = output_var;
+
+            auto const duration =
+                std::chrono::duration_cast<std::chrono::milliseconds>(timer.ops.front().second);
+            timer.ops.clear();
+            progress_str = "Execution time: " + std::to_string(duration.count()) + " ms";
+
+            draw_point_cloud(true);
         }
 
         if (ImGui::CollapsingHeader("Visualization", ImGuiTreeNodeFlags_DefaultOpen))
@@ -165,7 +197,10 @@ int main(int argc, char** argv)
             {
                 draw_point_cloud(false);
             }
-            if (ImGui::Button("Show output point cloud##Visualization", ImVec2((w - p) / 2.f, 0.f)))
+            if (ImGui::Button(
+                    "Show output point cloud##Visualization",
+                    ImVec2((w - p) / 2.f, 0.f)) &&
+                !is_wlop_running())
             {
                 draw_point_cloud(true);
             }

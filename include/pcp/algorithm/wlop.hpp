@@ -356,9 +356,17 @@ void wlop(
         p_coordinate_map,
         kdtree_params};
 
-    std::transform(std::execution::par, js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
-        return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
-    });
+    if (uniform)
+    {
+        std::transform(
+            std::execution::par,
+            js.begin(),
+            js.end(),
+            vj.begin(),
+            [&](std::size_t const j) {
+                return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
+            });
+    }
 
     for (std::size_t k = 0u; k < K; ++k)
     {
@@ -368,14 +376,17 @@ void wlop(
             q_coordinate_map,
             kdtree_params};
 
-        std::transform(
-            std::execution::par,
-            is.begin(),
-            is.end(),
-            wi.begin(),
-            [&](std::size_t const i) {
-                return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
-            });
+        if (uniform)
+        {
+            std::transform(
+                std::execution::par,
+                is.begin(),
+                is.end(),
+                wi.begin(),
+                [&](std::size_t const i) {
+                    return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
+                });
+        }
 
         std::transform(
             std::execution::par,
