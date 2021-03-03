@@ -16,6 +16,7 @@
 #include <algorithm>
 #include <cstddef>
 #include <execution>
+#include <random>
 #include <vector>
 
 namespace pcp {
@@ -127,23 +128,25 @@ basic_point_t<ScalarType> solve_first_energy_median(
     // loop over j in support region
     scalar_type sum{0.0};
     basic_point_t<scalar_type> median;
-    scalar_type const zero = static_cast<scalar_type>(0.);
-    auto begin             = neighbors.begin();
-    auto end               = neighbors.end();
+    scalar_type constexpr zero = static_cast<scalar_type>(0.);
+    scalar_type constexpr eps  = static_cast<scalar_type>(1e-9);
+
+    auto begin = neighbors.begin();
+    auto end   = neighbors.end();
     for (auto it = begin; it != end; ++it)
     {
         auto const& c2 = p_cmap(*it);
 
         basic_point_t<scalar_type> const p{c2[0], c2[1], c2[2]};
 
-        if (common::are_vectors_equal(q, p))
+        if (common::are_vectors_equal(q, p, eps))
             continue;
 
         scalar_type const r  = common::norm(q - p);
         scalar_type const vj = vj_map(*it);
 
-        bool const alpha_zero_division = common::floating_point_equals(r, zero);
-        bool const vj_zero_division    = common::floating_point_equals(vj, zero);
+        bool const alpha_zero_division = common::floating_point_equals(r, zero, eps);
+        bool const vj_zero_division    = common::floating_point_equals(vj, zero, eps);
 
         auto const alpha_ij     = alpha_zero_division ? zero : theta(r) / r;
         scalar_type const coeff = vj_zero_division ? zero : alpha_ij / vj;
@@ -152,7 +155,7 @@ basic_point_t<ScalarType> solve_first_energy_median(
         median = median + t;
         sum += coeff;
     }
-    bool const median_zero_division = common::floating_point_equals(sum, zero);
+    bool const median_zero_division = common::floating_point_equals(sum, zero, eps);
     median                          = median_zero_division ? q : median / sum;
 
     return median;
@@ -177,25 +180,29 @@ common::basic_vector3d_t<ScalarType> solve_second_energy_repulsion_force(
     radial_support_region.radius   = h;
     radial_support_region.position = c1;
 
+    auto const neighbors = kdtree.range_search(radial_support_region);
+
+    // loop over all i in support region
     common::basic_vector3d_t<scalar_type> repulsion{0., 0., 0.};
     scalar_type sum{0.};
     scalar_type const zero = static_cast<scalar_type>(0.);
-    auto const neighbors   = kdtree.range_search(radial_support_region);
-    auto begin             = neighbors.begin();
-    auto end               = neighbors.end();
+    scalar_type const eps  = static_cast<scalar_type>(1e-9);
+
+    auto begin = neighbors.begin();
+    auto end   = neighbors.end();
     for (auto it = begin; it != end; ++it)
     {
         auto const& c2 = q_cmap(*it);
         basic_point_t<scalar_type> const qi{c2[0], c2[1], c2[2]};
 
-        if (common::are_vectors_equal(qi, qip))
+        if (common::are_vectors_equal(qi, qip, eps))
             continue;
 
         common::basic_vector3d_t<scalar_type> const d = qip - qi;
         scalar_type const r                           = common::norm(d);
         scalar_type const wi                          = wi_map(*it);
 
-        bool const beta_zero_division = common::floating_point_equals(r, zero);
+        bool const beta_zero_division = common::floating_point_equals(r, zero, eps);
 
         scalar_type const beta_ii =
             beta_zero_division ? zero : theta(r) / r; // * | d (eta(r)) / dr | = | -1 | = 1
@@ -203,7 +210,7 @@ common::basic_vector3d_t<ScalarType> solve_second_energy_repulsion_force(
         repulsion               = repulsion + coeff * d;
         sum += coeff;
     }
-    bool const repulsion_zero_division = common::floating_point_equals(sum, zero);
+    bool const repulsion_zero_division = common::floating_point_equals(sum, zero, eps);
     repulsion = repulsion_zero_division ? zero * repulsion : (mu / sum) * repulsion;
 
     return repulsion;
@@ -319,10 +326,17 @@ void wlop(
         return wi[i];
     };
 
-    std::transform(begin + (J - I), end, x.begin(), [&](input_element_type const& e) {
-        auto const& p = point_map(e);
-        return output_point_type{p.x(), p.y(), p.z()};
-    });
+    {
+        std::random_device rd{};
+        std::mt19937 generator{rd()};
+        std::shuffle(js.begin(), js.end(), generator);
+
+        std::transform(js.begin() + (J - I), js.end(), x.begin(), [&](std::size_t const j) {
+            auto const e  = begin + j;
+            auto const& p = point_map(*e);
+            return output_point_type{p.x(), p.y(), p.z()};
+        });
+    }
 
     kdtree::construction_params_t kdtree_params;
     kdtree_params.compute_max_depth     = true;

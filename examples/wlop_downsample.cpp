@@ -12,7 +12,7 @@
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points);
 
 template <class PointMap>
-float compute_radial_support_region(
+float compute_average_distance_to_neighbors(
     std::vector<std::size_t> const& indices,
     PointMap const& point_map,
     std::size_t k = 15u);
@@ -34,6 +34,12 @@ int main(int argc, char** argv)
     std::vector<point_type> input_point_cloud;
     std::vector<std::size_t> indices;
     std::vector<point_type> output_point_cloud;
+    float input_mu = 0.f;
+    int knn        = 15;
+
+    auto const point_map = [&](std::size_t const i) {
+        return input_point_cloud[i];
+    };
 
     menu.callback_draw_viewer_window = [&]() {
         ImGui::Begin("Point Cloud Processing");
@@ -57,8 +63,13 @@ int main(int argc, char** argv)
                 std::filesystem::path ply_point_cloud{filename};
                 auto [p, _]       = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
                 input_point_cloud = std::move(p);
+                indices.clear();
                 indices.resize(input_point_cloud.size());
                 std::iota(indices.begin(), indices.end(), 0u);
+                input_mu = compute_average_distance_to_neighbors(
+                    indices,
+                    point_map,
+                    static_cast<std::size_t>(knn));
                 draw_point_cloud();
             }
             ImGui::SameLine();
@@ -80,7 +91,6 @@ int main(int argc, char** argv)
             static float h  = 0.f;
             static int I    = 0;
             static bool uniform{false};
-            static int knn = 15;
 
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
@@ -109,17 +119,13 @@ int main(int argc, char** argv)
                 params.mu      = static_cast<double>(mu);
                 params.uniform = uniform;
 
-                auto const point_map = [&](std::size_t const i) {
-                    return input_point_cloud[i];
-                };
-
                 if (params.h == 0.f)
                 {
-                    params.h = compute_radial_support_region(
-                                   indices,
-                                   point_map,
-                                   static_cast<std::size_t>(knn)) *
-                               8.f;
+                    float const mu = compute_average_distance_to_neighbors(
+                        indices,
+                        point_map,
+                        static_cast<std::size_t>(knn));
+                    params.h = mu * 8.f;
                 }
 
                 output_point_cloud.clear();
@@ -142,8 +148,9 @@ int main(int argc, char** argv)
                 draw_point_cloud(true);
             }
 
-            ImGui::BulletText("Input variance: %.5f", input_point_cloud_variance);
-            ImGui::BulletText("Output variance: %.5f", output_point_cloud_variance);
+            ImGui::BulletText("Input mu: %.7f", input_mu);
+            ImGui::BulletText("Input variance: %.7f", input_point_cloud_variance);
+            ImGui::BulletText("Output variance: %.7f", output_point_cloud_variance);
 
             ImGui::PopItemWidth();
         }
@@ -185,7 +192,7 @@ Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points)
 }
 
 template <class PointMap>
-float compute_radial_support_region(
+float compute_average_distance_to_neighbors(
     std::vector<std::size_t> const& indices,
     PointMap const& point_map,
     std::size_t k)
