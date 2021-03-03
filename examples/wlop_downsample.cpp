@@ -17,6 +17,11 @@ float compute_radial_support_region(
     PointMap const& point_map,
     std::size_t k = 15u);
 
+std::pair<float, float> compute_mean_distance_variance(
+    std::vector<pcp::point_t> const& input,
+    std::vector<pcp::point_t> const& output,
+    std::size_t k = 15u);
+
 int main(int argc, char** argv)
 {
     using point_type  = pcp::point_t;
@@ -93,6 +98,9 @@ int main(int argc, char** argv)
             ImGui::Checkbox("Require uniform", &uniform);
             ImGui::InputInt("KNN for mean computation", &knn);
 
+            static float input_point_cloud_variance  = 0.f;
+            static float output_point_cloud_variance = 0.f;
+
             if (ImGui::Button("Downsample", ImVec2((w - p) / 2.f, 0.f)))
             {
                 pcp::algorithm::wlop::params_t params;
@@ -123,8 +131,19 @@ int main(int argc, char** argv)
                     point_map,
                     params);
 
+                auto const [input_var, output_var] = compute_mean_distance_variance(
+                    input_point_cloud,
+                    output_point_cloud,
+                    static_cast<std::size_t>(knn));
+
+                input_point_cloud_variance  = input_var;
+                output_point_cloud_variance = output_var;
+
                 draw_point_cloud(true);
             }
+
+            ImGui::BulletText("Input variance: %.5f", input_point_cloud_variance);
+            ImGui::BulletText("Output variance: %.5f", output_point_cloud_variance);
 
             ImGui::PopItemWidth();
         }
@@ -197,4 +216,92 @@ float compute_radial_support_region(
         knn_map);
 
     return h;
+}
+
+std::pair<float, float> compute_mean_distance_variance(
+    std::vector<pcp::point_t> const& input_point_cloud,
+    std::vector<pcp::point_t> const& output_point_cloud,
+    std::size_t k)
+{
+    std::vector<std::size_t> input_indices(input_point_cloud.size());
+    std::vector<std::size_t> output_indices(output_point_cloud.size());
+    std::iota(input_indices.begin(), input_indices.end(), 0u);
+    std::iota(output_indices.begin(), output_indices.end(), 0u);
+
+    auto const input_point_map = [&](std::size_t const i) {
+        return input_point_cloud[i];
+    };
+    auto const output_point_map = [&](std::size_t const i) {
+        return output_point_cloud[i];
+    };
+    auto const input_coordinate_map = [&](std::size_t const i) {
+        pcp::point_t const& p = input_point_cloud[i];
+        return std::array<float, 3u>{p.x(), p.y(), p.z()};
+    };
+    auto const output_coordinate_map = [&](std::size_t const i) {
+        pcp::point_t const& p = output_point_cloud[i];
+        return std::array<float, 3u>{p.x(), p.y(), p.z()};
+    };
+
+    pcp::kdtree::construction_params_t kd_params;
+    kd_params.compute_max_depth = true;
+
+    pcp::basic_linked_kdtree_t<std::size_t, 3u, decltype(input_coordinate_map)> input_kdtree{
+        input_indices.begin(),
+        input_indices.end(),
+        input_coordinate_map,
+        kd_params};
+
+    pcp::basic_linked_kdtree_t<std::size_t, 3u, decltype(output_coordinate_map)> output_kdtree{
+        output_indices.begin(),
+        output_indices.end(),
+        output_coordinate_map,
+        kd_params};
+
+    auto const input_knn_map = [&](std::size_t const i) {
+        std::size_t num_neighbors = static_cast<std::size_t>(k);
+        return input_kdtree.nearest_neighbours(i, num_neighbors);
+    };
+    auto const output_knn_map = [&](std::size_t const i) {
+        std::size_t num_neighbors = static_cast<std::size_t>(k);
+        return output_kdtree.nearest_neighbours(i, num_neighbors);
+    };
+
+    std::vector<float> input_mean_distances = pcp::algorithm::average_distances_to_neighbors(
+        input_indices.begin(),
+        input_indices.end(),
+        input_point_map,
+        input_knn_map);
+
+    std::vector<float> output_mean_distances = pcp::algorithm::average_distances_to_neighbors(
+        output_indices.begin(),
+        output_indices.end(),
+        output_point_map,
+        output_knn_map);
+
+    float const input_mu = std::reduce(input_mean_distances.begin(), input_mean_distances.end()) /
+                           static_cast<float>(input_mean_distances.size());
+    float const output_mu =
+        std::reduce(output_mean_distances.begin(), output_mean_distances.end()) /
+        static_cast<float>(output_mean_distances.size());
+
+    float const input_variance = std::accumulate(
+        input_mean_distances.begin(),
+        input_mean_distances.end(),
+        0.f,
+        [&input_mu](float const sum, float const mean) {
+            float const diff = mean - input_mu;
+            return sum + diff * diff;
+        });
+
+    float const output_variance = std::accumulate(
+        output_mean_distances.begin(),
+        output_mean_distances.end(),
+        0.f,
+        [&output_mu](float const sum, float const mean) {
+            float const diff = mean - output_mu;
+            return sum + diff * diff;
+        });
+
+    return {input_variance, output_variance};
 }
