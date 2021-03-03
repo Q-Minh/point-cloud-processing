@@ -49,7 +49,6 @@ int main(int argc, char** argv)
                                                           from_point_cloud(input_point_cloud);
             viewer.data().clear();
             viewer.data().add_points(V, Eigen::RowVector3d(1.0, 1.0, 0.0));
-            viewer.data().point_size = 1.f;
             viewer.core().align_camera_center(V);
         };
 
@@ -62,15 +61,18 @@ int main(int argc, char** argv)
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
                 auto [p, _]       = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
-                input_point_cloud = std::move(p);
-                indices.clear();
-                indices.resize(input_point_cloud.size());
-                std::iota(indices.begin(), indices.end(), 0u);
-                input_mu = compute_average_distance_to_neighbors(
-                    indices,
-                    point_map,
-                    static_cast<std::size_t>(knn));
-                draw_point_cloud();
+                if (!p.empty())
+                {
+                    input_point_cloud = std::move(p);
+                    indices.clear();
+                    indices.resize(input_point_cloud.size());
+                    std::iota(indices.begin(), indices.end(), 0u);
+                    input_mu = compute_average_distance_to_neighbors(
+                        indices,
+                        point_map,
+                        static_cast<std::size_t>(knn));
+                    draw_point_cloud();
+                }
             }
             ImGui::SameLine();
             if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
@@ -167,11 +169,13 @@ int main(int argc, char** argv)
             {
                 draw_point_cloud(true);
             }
+            ImGui::SliderFloat("Point size", &viewer.data().point_size, 1.f, 50.f);
         }
 
         ImGui::End();
     };
 
+    viewer.data().point_size    = 1.f;
     viewer.core().rotation_type = igl::opengl::ViewerCore::RotationType::ROTATION_TYPE_TRACKBALL;
     viewer.launch();
 

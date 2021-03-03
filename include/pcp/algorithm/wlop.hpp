@@ -44,6 +44,8 @@ ScalarType compute_vj(
     auto const neighbors = kdtree.range_search(radial_support_region);
 
     scalar_type vj{1.0};
+    scalar_type constexpr eps = static_cast<scalar_type>(1e-9);
+
     auto begin = neighbors.begin();
     auto end   = neighbors.end();
     for (auto it = begin; it != end; ++it)
@@ -51,11 +53,11 @@ ScalarType compute_vj(
         auto const& c2 = p_cmap(*it);
         pcp::basic_point_t<scalar_type> pjp{c2[0], c2[1], c2[2]};
 
-        if (common::are_vectors_equal(pj, pjp))
+        if (common::are_vectors_equal(pj, pjp, eps))
             continue;
 
-        auto const r = common::norm(pj - pjp);
-        vj += theta(r);
+        auto const r2 = common::squared_distance(pj, pjp);
+        vj += theta(r2);
     }
 
     return vj;
@@ -80,19 +82,21 @@ ScalarType compute_wi(
 
     auto const neighbors = kdtree.range_search(radial_support_region);
 
+    scalar_type wi{1.0};
+    scalar_type constexpr eps = static_cast<scalar_type>(1e-9);
+
     auto begin = neighbors.begin();
     auto end   = neighbors.end();
-    scalar_type wi{1.0};
     for (auto it = begin; it != end; ++it)
     {
         auto const& c2 = q_cmap(*it);
         pcp::basic_point_t<scalar_type> qip{c2[0], c2[1], c2[2]};
 
-        if (common::are_vectors_equal(qi, qip))
+        if (common::are_vectors_equal(qi, qip, eps))
             continue;
 
-        auto const r = common::norm(qi - qip);
-        wi += theta(r);
+        auto const r2 = common::squared_distance(qi, qip);
+        wi += theta(r2);
     }
 
     return wi;
@@ -142,13 +146,14 @@ basic_point_t<ScalarType> solve_first_energy_median(
         if (common::are_vectors_equal(q, p, eps))
             continue;
 
-        scalar_type const r  = common::norm(q - p);
+        scalar_type const r2 = common::squared_distance(q, p);
+        scalar_type const r  = std::sqrt(r2);
         scalar_type const vj = vj_map(*it);
 
         bool const alpha_zero_division = common::floating_point_equals(r, zero, eps);
         bool const vj_zero_division    = common::floating_point_equals(vj, zero, eps);
 
-        auto const alpha_ij     = alpha_zero_division ? zero : theta(r) / r;
+        auto const alpha_ij     = alpha_zero_division ? zero : theta(r2) / r;
         scalar_type const coeff = vj_zero_division ? zero : alpha_ij / vj;
         common::basic_vector3d_t<scalar_type> t{p.x(), p.y(), p.z()};
         t      = coeff * t;
@@ -199,13 +204,14 @@ common::basic_vector3d_t<ScalarType> solve_second_energy_repulsion_force(
             continue;
 
         common::basic_vector3d_t<scalar_type> const d = qip - qi;
-        scalar_type const r                           = common::norm(d);
+        scalar_type const r2                          = common::squared_distance(qip, qi);
+        scalar_type const r                           = std::sqrt(r2);
         scalar_type const wi                          = wi_map(*it);
 
         bool const beta_zero_division = common::floating_point_equals(r, zero, eps);
 
         scalar_type const beta_ii =
-            beta_zero_division ? zero : theta(r) / r; // * | d (eta(r)) / dr | = | -1 | = 1
+            beta_zero_division ? zero : theta(r2) / r; // * | d (eta(r)) / dr | = | -1 | = 1
         scalar_type const coeff = wi * beta_ii;
         repulsion               = repulsion + coeff * d;
         sum += coeff;
@@ -287,7 +293,7 @@ void wlop(
 
     assert(I > 0u && J >= I);
     assert(mu >= 0. && mu <= .5);
-    assert(K > 0u);
+    assert(K >= 0u);
 
     std::vector<scalar_type> alpha(I);
     std::vector<scalar_type> beta(I);
@@ -306,8 +312,8 @@ void wlop(
     scalar_type const h2               = h * h;
     scalar_type const h_over_4_squared = h2 / four2;
 
-    auto const theta = [=](scalar_type const r) {
-        return std::exp(-r / h_over_4_squared);
+    auto const theta = [=](scalar_type const r2) {
+        return std::exp(-r2 / h_over_4_squared);
     };
 
     auto const p_coordinate_map = [&](std::size_t const j) {
@@ -336,6 +342,7 @@ void wlop(
             auto const& p = point_map(*e);
             return output_point_type{p.x(), p.y(), p.z()};
         });
+        std::copy(x.begin(), x.end(), xp.begin());
     }
 
     kdtree::construction_params_t kdtree_params;

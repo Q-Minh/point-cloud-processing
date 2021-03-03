@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <cmath>
 #include <pcp/algorithm/average_distance_to_neighbors.hpp>
 #include <pcp/algorithm/wlop.hpp>
 
@@ -63,10 +64,27 @@ SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][wlop]")
                 point_map,
                 params);
 
-            THEN("The downsampled point cloud has the correct size") 
+            THEN("The downsampled point cloud has the correct size")
             {
                 auto const downsampled_size = downsampled_points.size();
                 REQUIRE(downsampled_size == params.I);
+            }
+            THEN("There are no NaN of Inf coordinates in the downsampled point set")
+            {
+                bool has_any_inf{false};
+                bool has_any_nan{false};
+                for (auto const& p : downsampled_points)
+                {
+                    bool const has_inf =
+                        std::isinf(p.x()) || std::isinf(p.y()) || std::isinf(p.z());
+                    bool const has_nan =
+                        std::isnan(p.x()) || std::isnan(p.y()) || std::isnan(p.z());
+
+                    has_any_inf |= has_inf;
+                    has_any_nan |= has_nan;
+                }
+                REQUIRE(!has_any_inf);
+                REQUIRE(!has_any_nan);
             }
         }
     }
