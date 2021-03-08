@@ -53,7 +53,7 @@ SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][wlop]")
             pcp::algorithm::wlop::params_t params;
             params.k       = 2u;
             params.I       = n / 2;
-            params.h       = get_mean_distance_to_neighbors();
+            params.h       = static_cast<double>(get_mean_distance_to_neighbors());
             params.uniform = true;
 
             std::vector<pcp::point_t> downsampled_points{};

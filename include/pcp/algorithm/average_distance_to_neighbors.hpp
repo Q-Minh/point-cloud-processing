@@ -46,7 +46,7 @@ std::vector<ScalarType> average_distances_to_neighbors(
     using element_type = typename std::iterator_traits<RandomAccessIter>::value_type;
     using point_type   = std::invoke_result_t<PointMap, element_type>;
 
-    auto const n = std::distance(begin, end);
+    std::size_t const n = static_cast<std::size_t>(std::distance(begin, end));
     std::vector<scalar_type> mean_distances(n);
     std::transform(
         std::execution::par,

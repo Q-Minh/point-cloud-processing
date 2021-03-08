@@ -287,6 +287,7 @@ OutputIter wlop(
     using input_point_type   = std::invoke_result_t<PointMap, input_element_type>;
     using scalar_type        = typename input_point_type::coordinate_type;
     using output_point_type  = typename xstd::output_iterator_traits<OutputIter>::value_type;
+    using difference_type    = typename std::iterator_traits<RandomAccessIter>::difference_type;
 
     static_assert(
         traits::is_point_map_v<PointMap, input_element_type>,
@@ -325,7 +326,7 @@ OutputIter wlop(
     };
 
     auto const p_coordinate_map = [&](std::size_t const j) {
-        auto const it  = begin + j;
+        auto const it  = begin + static_cast<difference_type>(j);
         auto const& pj = point_map(*it);
         return std::array<scalar_type, 3u>{pj.x(), pj.y(), pj.z()};
     };
@@ -345,8 +346,9 @@ OutputIter wlop(
         std::mt19937 generator{rd()};
         std::shuffle(js.begin(), js.end(), generator);
 
-        std::transform(js.begin() + (J - I), js.end(), x.begin(), [&](std::size_t const j) {
-            auto const e  = begin + j;
+        auto const offset = static_cast<difference_type>(J) - static_cast<difference_type>(I);
+        std::transform(js.begin() + offset, js.end(), x.begin(), [&](std::size_t const j) {
+            auto const e  = begin + static_cast<difference_type>(j);
             auto const& p = point_map(*e);
             return output_point_type{p.x(), p.y(), p.z()};
         });

@@ -119,8 +119,8 @@ std::pair<Eigen::Matrix<ScalarType, 3, 1>, Eigen::Matrix<ScalarType, 3, 3>> eige
     using vector_type = Eigen::Matrix<ScalarType, 3, 1>;
     using matrix_type = Eigen::Matrix<ScalarType, 3, 3>;
 
-    std::array<std::size_t, 3u> indices{0u, 1u, 2u};
-    std::sort(indices.begin(), indices.end(), [&](std::size_t i, std::size_t j) {
+    std::array<int, 3u> indices{0, 1, 2};
+    std::sort(indices.begin(), indices.end(), [&](int const i, int const j) {
         return lambda(i) < lambda(j);
     });
 

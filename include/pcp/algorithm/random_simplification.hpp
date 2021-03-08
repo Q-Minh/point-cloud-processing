@@ -34,7 +34,8 @@ OutputIter random_simplification(
     std::size_t const output_size,
     bool const use_indices = true)
 {
-    std::size_t const N = static_cast<std::size_t>(std::distance(begin, end));
+    using difference_type = typename std::iterator_traits<RandomAccessIter>::difference_type;
+    std::size_t const N   = static_cast<std::size_t>(std::distance(begin, end));
     assert(output_size <= N);
 
     std::random_device rd{};
@@ -47,13 +48,13 @@ OutputIter random_simplification(
         std::shuffle(indices.begin(), indices.end(), generator);
         return std::transform(
             indices.begin(),
-            indices.begin() + output_size,
+            indices.begin() + static_cast<difference_type>(output_size),
             out_begin,
-            [&](std::size_t const i) { return *(begin + i); });
+            [&](std::size_t const i) { return *(begin + static_cast<difference_type>(i)); });
     }
 
     std::shuffle(begin, end, generator);
-    return std::copy(begin, begin + output_size, out_begin);
+    return std::copy(begin, begin + static_cast<difference_type>(output_size), out_begin);
 }
 
 } // namespace algorithm

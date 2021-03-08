@@ -106,7 +106,7 @@ OutputIter hierarchy_simplification(
         scalar_type const var =
             eigen_values(0) / (eigen_values(0) + eigen_values(1) + eigen_values(2));
 
-        if (N > params.cluster_size || var > params.var_max)
+        if (N > params.cluster_size || var > static_cast<scalar_type>(params.var_max))
         {
             auto const n     = eigen_vectors.col(2);
             auto const d     = mu.dot(n);
