@@ -22,6 +22,7 @@ template <class Element, class ParamsType>
 class flat_octree_iterator_t
 {
 	using octree_type = basic_flat_octree_t<Element, ParamsType>;
+
   public:
 	using element_type      = Element; ///< Type of element iterated over
     using value_type        = element_type;
@@ -34,17 +35,19 @@ class flat_octree_iterator_t
 
   private:
     using self_type = flat_octree_iterator_t<Element, ParamsType>;
-    using element_iterator = typename octree_type::element_type::iterator;
-    using const_element_iterator = typename octree_type::element_type::const_iterator;
-    using map_iterator = typename octree_type::map_type::iterator;
-    using const_map_iterator = typename octree_type::map_type::iterator;
+    using octree_container_type = typename octree_type::container_type;
+    using octree_map_type = typename octree_type::map_type;
+    using container_iterator = typename octree_container_type::iterator;
+    using const_container_iterator = typename octree_container_type::const_iterator;
+    using map_iterator = typename octree_map_type::iterator;
+    using const_map_iterator = typename octree_map_type::iterator;
 
   public:
     friend class basic_flat_octree_t<Element, ParamsType>;
 
     flat_octree_iterator_t() : it_(), map_it_() {}
 
-    flat_octree_iterator_t(octree_type::map_type* map) : it_(), map_it_() 
+    flat_octree_iterator_t(octree_map_type* map) : it_(), map_it_() 
     { 
         map_it_         = map.begin();
         map_end_it_     = map.cend();
@@ -105,8 +108,8 @@ class flat_octree_iterator_t
         }
     }
 
-    octree_type::container_type* current_octant_;
-    element_iterator it_;
+    octree_container_type* current_octant_;
+    container_iterator it_;
     map_iterator map_it_;
     const_map_iterator map_end_it_;
 };
