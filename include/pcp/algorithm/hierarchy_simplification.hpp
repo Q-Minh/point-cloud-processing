@@ -20,6 +20,7 @@ namespace hierarchy {
 
 /**
  * @brief Parameters for hierarchy simplification execution
+ * @ingroup point-cloud-simplification
  */
 struct params_t
 {
@@ -31,6 +32,7 @@ struct params_t
 } // namespace hierarchy
 
 /**
+ * @ingroup point-cloud-simplification
  * @brief Simplifies point cloud by recursively subdividing the points
  *
  * Hierarchy simplification recursively subdivides a point cloud in two

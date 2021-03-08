@@ -37,6 +37,7 @@
 #include "estimate_normals.hpp"
 #include "estimate_tangent_planes.hpp"
 #include "hierarchy_simplification.hpp"
+#include "random_simplification.hpp"
 #include "surface_nets.hpp"
 #include "wlop.hpp"
 

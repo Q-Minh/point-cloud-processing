@@ -35,7 +35,7 @@ SCENARIO("hierarchy simplification of point cloud", "[resampling][downsampling][
                 point_map,
                 params);
 
-            THEN("The downsampled point cloud has the correct size")
+            THEN("The downsampled point cloud's size is not inferior to the lower bound")
             {
                 /*
                  * With uniform simplification, we should get the following relation:
@@ -73,7 +73,7 @@ SCENARIO("hierarchy simplification of point cloud", "[resampling][downsampling][
                 point_map,
                 params);
 
-            THEN("The downsampled point cloud has the correct size")
+            THEN("The downsampled point cloud's size is not inferior to the lower bound")
             {
                 /*
                  * With non-uniform simplification, we should get even more

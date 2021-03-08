@@ -8,6 +8,7 @@ PRIVATE
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/hierarchy_simplification.cpp"
+  "algorithm/random_simplification.cpp"
   "algorithm/surface_nets.cpp"
   "algorithm/wlop.cpp"
   "common/aabb.cpp"
