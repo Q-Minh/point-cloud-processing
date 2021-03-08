@@ -83,7 +83,7 @@ OutputIter hierarchy_simplification(
         "out_begin must be iterator to a type satisfying Point concept");
 
     assert(params.cluster_size > 0u);
-    assert(params.var_max >= 0. && params.var_max <= (1. / 3.));
+    assert(params.var_max >= 0.);
 
     struct cluster_t
     {
@@ -135,9 +135,8 @@ OutputIter hierarchy_simplification(
                     return d1 < d2;
                 });
 
-            // std::size_t const index = static_cast<std::size_t>(std::distance(begin, min));
-            // points_to_keep.push_back(index);
-            output_element_type const point{min->x(), min->y(), min->z()};
+            auto const& min_point = point_map(*min);
+            output_element_type const point{min_point.x(), min_point.y(), min_point.z()};
             points_to_keep.push_back(point);
         }
     }

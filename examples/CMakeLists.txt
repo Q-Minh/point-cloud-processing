@@ -60,5 +60,5 @@ add_example(${_folder_name}
   pcp-example-filter-point-cloud-by-density 
   filter_point_cloud_noise_by_density.cpp)
 add_example(${_folder_name} 
-  pcp-example-wlop-downsample 
-  wlop_downsample.cpp)
+  pcp-example-downsample 
+  downsample.cpp)

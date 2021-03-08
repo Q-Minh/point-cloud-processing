@@ -6,6 +6,8 @@
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <pcp/algorithm/average_distance_to_neighbors.hpp>
+#include <pcp/algorithm/hierarchy_simplification.hpp>
+#include <pcp/algorithm/random_simplification.hpp>
 #include <pcp/algorithm/wlop.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/timer.hpp>
@@ -56,17 +58,28 @@ int main(int argc, char** argv)
             viewer.core().align_camera_center(V);
         };
 
-        static std::future<void> wlop_handle{};
+        static std::future<void> execution_handle{};
 
-        auto const is_wlop_running = [&]() {
-            return wlop_handle.valid();
+        auto const is_downsampling_running = [&]() {
+            return execution_handle.valid();
         };
 
-        if (ImGui::CollapsingHeader("IO", ImGuiTreeNodeFlags_DefaultOpen) && !is_wlop_running())
+        if (ImGui::CollapsingHeader("Info", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            std::string const input_num_points_str =
+                "Input points: " + std::to_string(input_point_cloud.size());
+            ImGui::BulletText(input_num_points_str.c_str());
+            std::string const output_num_points_str =
+                "Output points: " + std::to_string(output_point_cloud.size());
+            ImGui::BulletText(output_num_points_str.c_str());
+        }
+
+        if (ImGui::CollapsingHeader("IO", ImGuiTreeNodeFlags_DefaultOpen) &&
+            !is_downsampling_running())
         {
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
-            if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
+            if (ImGui::Button("Load##IO", ImVec2((w - p) / 2.f, 0.f)))
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
@@ -85,7 +98,7 @@ int main(int argc, char** argv)
                 }
             }
             ImGui::SameLine();
-            if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
+            if (ImGui::Button("Save##IO", ImVec2((w - p) / 2.f, 0.f)))
             {
                 std::filesystem::path ply_mesh = igl::file_dialog_save();
                 pcp::io::write_ply(
@@ -111,23 +124,20 @@ int main(int argc, char** argv)
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
 
-            std::string const num_points_str =
-                "Input points: " + std::to_string(input_point_cloud.size());
-            ImGui::BulletText(num_points_str.c_str());
-
             ImGui::PushItemWidth(w / 2);
 
-            ImGui::InputInt("Number of iterations", &k);
-            ImGui::InputFloat("mu", &mu, 0.01f, 0.1f, 2);
-            ImGui::InputFloat("Radial support radius", &h, 0.001f, 0.01f, "%.5f");
-            ImGui::InputInt("Downsampled size", &I);
-            ImGui::Checkbox("Require uniform", &uniform);
-            ImGui::InputInt("KNN for mean computation", &knn);
+            ImGui::InputInt("Number of iterations##WLOP", &k);
+            ImGui::InputFloat("mu##WLOP", &mu, 0.01f, 0.1f, 2);
+            ImGui::InputFloat("Radial support radius##WLOP", &h, 0.001f, 0.01f, "%.5f");
+            ImGui::InputInt("Downsampled size##WLOP", &I);
+            ImGui::Checkbox("Require uniform##WLOP", &uniform);
+            ImGui::InputInt("KNN for mean computation##WLOP", &knn);
 
-            if (ImGui::Button("Downsample", ImVec2((w - p) / 2.f, 0.f)) && !is_wlop_running())
+            if (ImGui::Button("Downsample##WLOP", ImVec2((w - p) / 2.f, 0.f)) &&
+                !is_downsampling_running())
             {
-                progress_str = "Executing ...";
-                wlop_handle  = std::async(std::launch::async, [&]() {
+                progress_str     = "Executing ...";
+                execution_handle = std::async(std::launch::async, [&]() {
                     timer.register_op("WLOP");
                     timer.start();
 
@@ -169,10 +179,78 @@ int main(int argc, char** argv)
             ImGui::PopItemWidth();
         }
 
-        if (wlop_handle.valid() &&
-            wlop_handle.wait_for(std::chrono::microseconds(0u)) == std::future_status::ready)
+        if (ImGui::CollapsingHeader("Hierarchy", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            wlop_handle.get();
+            static int cluster_size = 5;
+            static float var_max    = 1.f / 3.f;
+
+            float w = ImGui::GetContentRegionAvailWidth();
+            float p = ImGui::GetStyle().FramePadding.x;
+
+            ImGui::InputInt("cluster size##Hierarchy", &cluster_size);
+            ImGui::SliderFloat("max variation##Hierarchy", &var_max, 0.f, .3332f);
+
+            if (ImGui::Button("Downsample##Hierarchy", ImVec2((w - p) / 2.f, 0.f)) &&
+                !is_downsampling_running())
+            {
+                progress_str     = "Executing ...";
+                execution_handle = std::async(std::launch::async, [&]() {
+                    timer.register_op("hierarchy");
+                    timer.start();
+
+                    output_point_cloud.clear();
+                    pcp::algorithm::hierarchy::params_t params;
+                    params.cluster_size = static_cast<std::size_t>(cluster_size);
+                    params.var_max      = static_cast<double>(var_max);
+
+                    pcp::algorithm::hierarchy_simplification(
+                        indices.begin(),
+                        indices.end(),
+                        std::back_inserter(output_point_cloud),
+                        point_map,
+                        params);
+
+                    timer.stop();
+                });
+            }
+        }
+
+        if (ImGui::CollapsingHeader("Random", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            static int downsampled_size = 0;
+
+            float w = ImGui::GetContentRegionAvailWidth();
+            float p = ImGui::GetStyle().FramePadding.x;
+
+            ImGui::InputInt("downsampled size##Random", &downsampled_size);
+
+            if (ImGui::Button("Downsample##Random", ImVec2((w - p) / 2.f, 0.f)) &&
+                !is_downsampling_running())
+            {
+                progress_str     = "Executing ...";
+                execution_handle = std::async(std::launch::async, [&]() {
+                    timer.register_op("random");
+                    timer.start();
+
+                    std::size_t const output_size = static_cast<std::size_t>(downsampled_size);
+                    output_point_cloud.clear();
+                    output_point_cloud.resize(output_size);
+
+                    pcp::algorithm::random_simplification(
+                        input_point_cloud.begin(),
+                        input_point_cloud.end(),
+                        output_point_cloud.begin(),
+                        output_size);
+
+                    timer.stop();
+                });
+            }
+        }
+
+        if (execution_handle.valid() &&
+            execution_handle.wait_for(std::chrono::microseconds(0u)) == std::future_status::ready)
+        {
+            execution_handle.get();
             auto const [input_var, output_var] = compute_mean_distance_variance(
                 input_point_cloud,
                 output_point_cloud,
@@ -200,11 +278,11 @@ int main(int argc, char** argv)
             if (ImGui::Button(
                     "Show output point cloud##Visualization",
                     ImVec2((w - p) / 2.f, 0.f)) &&
-                !is_wlop_running())
+                !is_downsampling_running())
             {
                 draw_point_cloud(true);
             }
-            ImGui::SliderFloat("Point size", &viewer.data().point_size, 1.f, 50.f);
+            ImGui::SliderFloat("Point size##Visualization", &viewer.data().point_size, 1.f, 50.f);
         }
 
         ImGui::End();
