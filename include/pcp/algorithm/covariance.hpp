@@ -16,6 +16,16 @@
 namespace pcp {
 namespace algorithm {
 
+/**
+ * @ingroup algorithm
+ * @brief Computes the covariance matrix of a point set
+ * @tparam ForwardIter Iterator type of input point set
+ * @tparam PointMap Type satisfying PointMap concept
+ * @param begin Start iterator to input point set
+ * @param end End iterator to input point set
+ * @param point_map The point map property map
+ * @return A pair of the mean and covariance matrix [mu, Cov]
+ */
 template <class ForwardIter, class PointMap>
 std::pair<
     Eigen::Matrix<
@@ -93,6 +103,14 @@ covariance(ForwardIter begin, ForwardIter end, PointMap const& point_map)
     return {vector_type{mu.x(), mu.y(), mu.z()}, Cov};
 }
 
+/**
+ * @ingroup algorithm
+ * @brief Sorts eigenvalues and eigenvectors in increasing order
+ * @tparam ScalarType Coefficient type
+ * @param lambda Vector of eigen values
+ * @param v Matrix of eigen vectors
+ * @return a pair = (sorted eigen values, sorted eigen vectors)
+ */
 template <class ScalarType>
 std::pair<Eigen::Matrix<ScalarType, 3, 1>, Eigen::Matrix<ScalarType, 3, 3>> eigen_sorted(
     Eigen::Matrix<ScalarType, 3, 1> const& lambda,
@@ -115,6 +133,13 @@ std::pair<Eigen::Matrix<ScalarType, 3, 1>, Eigen::Matrix<ScalarType, 3, 3>> eige
     return {eigen_values, eigen_vectors};
 }
 
+/**
+ * @ingroup algorithm
+ * @brief Sorts eigenvalues and eigenvectors in increasing order
+ * @tparam ScalarType Coefficient type
+ * @param Cov The covariance matrix
+ * @return a pair = (sorted eigen values, sorted eigen vectors)
+ */
 template <class ScalarType>
 std::pair<Eigen::Matrix<ScalarType, 3, 1>, Eigen::Matrix<ScalarType, 3, 3>>
 eigen_sorted(Eigen::Matrix<ScalarType, 3, 3> const& Cov)
@@ -129,6 +154,16 @@ eigen_sorted(Eigen::Matrix<ScalarType, 3, 3> const& Cov)
     return eigen_sorted(lambda, v);
 }
 
+/**
+ * @ingroup algorithm
+ * @brief Returns the sorted eigen values and eigen vectors of the covariance matrix of a point set
+ * @tparam ForwardIter Iterator type of input point set
+ * @tparam PointMap Type satisfying PointMap concept
+ * @param begin Start iterator to the input point set
+ * @param end End iterator to the input point set
+ * @param point_map The point map property map
+ * @return A pair = (sorted eigen values, sorted eigen vectors)
+ */
 template <class ForwardIter, class PointMap>
 std::pair<
     Eigen::Matrix<

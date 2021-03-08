@@ -16,6 +16,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
+ * @ingroup algorithm
  * @brief
  * Computes every point's mean distance to their k neighbors in [begin, end).
  * @tparam RandomAccessIter
@@ -72,6 +73,7 @@ std::vector<ScalarType> average_distances_to_neighbors(
 }
 
 /**
+ * @ingroup algorithm
  * @brief
  * Computes the average of all mean distances to neighbors of all points.
  * @tparam PointMap Type satisfying PointMap concept

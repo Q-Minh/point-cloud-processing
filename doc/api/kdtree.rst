@@ -8,7 +8,7 @@ kd-tree module
    :undoc-members:
 
 Sparse Linked Node Kd-Tree
--------------------------
+---------------------------
 
 .. doxygengroup:: linked-kd-tree
    :members:

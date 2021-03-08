@@ -1,6 +1,11 @@
 #ifndef PCP_ALGORITHM_RANDOM_SIMPLIFICATION_HPP
 #define PCP_ALGORITHM_RANDOM_SIMPLIFICATION_HPP
 
+/**
+ * @file
+ * @ingroup algorithm
+ */
+
 #include <algorithm>
 #include <numeric>
 #include <random>
@@ -9,6 +14,7 @@ namespace pcp {
 namespace algorithm {
 
 /**
+ * @ingroup point-cloud-simplification
  * @brief Randomly conserves only a subset of the input point set
  * @tparam RandomAccessIter Iterator type of input point set
  * @tparam OutputIter Iterator type of output point set
