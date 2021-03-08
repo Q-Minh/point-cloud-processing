@@ -116,6 +116,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/output_iterator_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/plane_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/property_map_traits.hpp

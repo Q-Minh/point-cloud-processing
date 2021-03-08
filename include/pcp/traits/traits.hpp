@@ -31,6 +31,7 @@
  * @ingroup traits
  */
 
+#include "coordinate_map.hpp"
 #include "function_traits.hpp"
 #include "graph_traits.hpp"
 #include "graph_vertex_traits.hpp"
@@ -39,6 +40,7 @@
 #include "knn_map.hpp"
 #include "normal_map.hpp"
 #include "normal_traits.hpp"
+#include "output_iterator_traits.hpp"
 #include "plane_traits.hpp"
 #include "point_map.hpp"
 #include "point_traits.hpp"

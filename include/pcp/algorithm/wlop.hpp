@@ -268,7 +268,7 @@ struct params_t
  * @param params The WLOP algorithm's parameters
  */
 template <class RandomAccessIter, class OutputIter, class PointMap>
-void wlop(
+OutputIter wlop(
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -422,7 +422,7 @@ void wlop(
         std::copy(xp.begin(), xp.end(), x.begin());
     }
 
-    std::copy(xp.begin(), xp.end(), out_begin);
+    return std::copy(xp.begin(), xp.end(), out_begin);
 }
 
 } // namespace wlop
