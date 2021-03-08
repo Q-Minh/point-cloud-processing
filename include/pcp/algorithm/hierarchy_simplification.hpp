@@ -18,6 +18,9 @@ namespace pcp {
 namespace algorithm {
 namespace hierarchy {
 
+/**
+ * @brief Parameters for hierarchy simplification execution
+ */
 struct params_t
 {
     std::size_t cluster_size = 0u; ///< Maximum size of subdivided clusters
@@ -27,6 +30,34 @@ struct params_t
 
 } // namespace hierarchy
 
+/**
+ * @brief Simplifies point cloud by recursively subdividing the points
+ *
+ * Hierarchy simplification recursively subdivides a point cloud in two
+ * sets separated by the splitting plane spanned by the parent set's centroid
+ * and eigen vector of largest eigen value. The stopping conditions
+ * for the recursive subdivision is a max cluster size and a max variation.
+ * When a subdivided child point set (cluster) has less-than-or-equal points
+ * than the max cluster size, it should not subdivide further. However,
+ * if the subdivided child point set (cluster) has a variation greater
+ * than the max variation, it will subdivide deeper nonetheless until
+ * each leaf node in its recursion subtree reaches a variation less than
+ * the max variation. Hierarchy simplification aims to conserve points
+ * in regions of high variation to conserve sharp features when
+ * downsampling a point cloud.
+ *
+ * The time complexity has a lower bound of O(n log n).
+ *
+ * @tparam RandomAccessIter Iterator type of input point set
+ * @tparam OutputIter Iterator type of output point set
+ * @tparam PointMap Type satisfying PointMap concept
+ * @param begin Start iterator to input point set
+ * @param end End iterator of input point set
+ * @param out_begin Start iterator of output point set
+ * @param point_map The point map property map
+ * @param params Parameters of hierarchy simplification's execution
+ * @return End iterator of output point set
+ */
 template <class RandomAccessIter, class OutputIter, class PointMap>
 OutputIter hierarchy_simplification(
     RandomAccessIter begin,
@@ -62,7 +93,7 @@ OutputIter hierarchy_simplification(
     recursion_queue.push(cluster_t{begin, end});
     while (!recursion_queue.empty())
     {
-        cluster_t const& cluster = recursion_queue.front();
+        cluster_t const cluster = recursion_queue.front();
         recursion_queue.pop();
 
         std::size_t const N = static_cast<std::size_t>(std::distance(cluster.begin, cluster.end));
@@ -73,7 +104,7 @@ OutputIter hierarchy_simplification(
         scalar_type const var =
             eigen_values(0) / (eigen_values(0) + eigen_values(1) + eigen_values(2));
 
-        if (N > params.cluster_size /* || var > params.var_max*/)
+        if (N > params.cluster_size || var > params.var_max)
         {
             auto const n     = eigen_vectors.col(2);
             auto const d     = mu.dot(n);

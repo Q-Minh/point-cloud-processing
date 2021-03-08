@@ -11,6 +11,7 @@
 #include "pcp/common/sphere.hpp"
 #include "pcp/common/vector3d.hpp"
 #include "pcp/kdtree/linked_kdtree.hpp"
+#include "pcp/traits/output_iterator_traits.hpp"
 #include "pcp/traits/point_map.hpp"
 
 #include <algorithm>
@@ -242,6 +243,12 @@ struct params_t
 /**
  * @ingroup point-cloud-simplification
  * @brief Simplifies an input point cloud using the WLOP operator.
+ *
+ * Implements Huang, Hui, et al. "Consolidation of unorganized point clouds for surface
+ * reconstruction." ACM transactions on graphics (TOG) 28.5 (2009): 1-7. and
+ * Lipman, Yaron, et al. "Parameterization-free projection for geometry reconstruction." ACM
+ * Transactions on Graphics (TOG) 26.3 (2007): 22-es.
+ *
  * The output point cloud is a simplified (smaller) point cloud with
  * uniform distribution.
  *
@@ -266,6 +273,7 @@ struct params_t
  * @param out_begin Start iterator of output point cloud
  * @param point_map The point map property map
  * @param params The WLOP algorithm's parameters
+ * @returns End iterator of output sequence
  */
 template <class RandomAccessIter, class OutputIter, class PointMap>
 OutputIter wlop(
@@ -278,7 +286,7 @@ OutputIter wlop(
     using input_element_type = typename std::iterator_traits<RandomAccessIter>::value_type;
     using input_point_type   = std::invoke_result_t<PointMap, input_element_type>;
     using scalar_type        = typename input_point_type::coordinate_type;
-    using output_point_type  = input_point_type;
+    using output_point_type  = typename xstd::output_iterator_traits<OutputIter>::value_type;
 
     static_assert(
         traits::is_point_map_v<PointMap, input_element_type>,

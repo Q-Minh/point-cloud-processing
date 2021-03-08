@@ -1,4 +1,5 @@
 #include <catch2/catch.hpp>
+#include <cmath>
 #include <pcp/algorithm/hierarchy_simplification.hpp>
 #include <pcp/common/points/point.hpp>
 
@@ -36,12 +37,29 @@ SCENARIO("hierarchy simplification of point cloud", "[resampling][downsampling][
 
             THEN("The downsampled point cloud has the correct size")
             {
-                auto const downsampled_size          = downsampled_points.size();
-                auto const expected_downsampled_size = n / params.cluster_size;
-                REQUIRE(downsampled_size == expected_downsampled_size);
+                /*
+                 * With uniform simplification, we should get the following relation:
+                 *
+                 *   n
+                 * ----- <= cluster_size <===> n / cluster_size <= 2^x <===> log(n / cluster_size)
+                 * <= x 2^x
+                 *
+                 * For a perfect size of input point cloud, we will get only clusters of exactly
+                 * cluster_size or exactly (cluster_size - 1) depending on the implementation.
+                 * For any other input point cloud, we will get clusters of lesser size than
+                 * that, which means that we will get many more clusters. Thus, this relation
+                 * only lets us find a lower bound on the number of clusters.
+                 */
+                auto const downsampled_size = downsampled_points.size();
+                auto const power =
+                    std::log2(static_cast<double>(n) / static_cast<double>(params.cluster_size));
+                std::size_t const expected_lower_bound =
+                    static_cast<std::size_t>(std::ceil(std::pow(2., power)));
+
+                REQUIRE(downsampled_size >= expected_lower_bound);
             }
         }
-        WHEN("downsampling with non-uniform hierarchy simplification") 
+        WHEN("downsampling with non-uniform hierarchy simplification")
         {
             pcp::algorithm::hierarchy::params_t params;
             params.cluster_size = 5u;
@@ -57,13 +75,23 @@ SCENARIO("hierarchy simplification of point cloud", "[resampling][downsampling][
 
             THEN("The downsampled point cloud has the correct size")
             {
-                auto const downsampled_size          = downsampled_points.size();
-                auto const expected_downsampled_size = n / params.cluster_size;
-                // should we make this strictly greater? 
-                // given a random point cloud, there are bound to be clusters 
-                // with var > 0.1
-                REQUIRE(downsampled_size >= expected_downsampled_size);
-            }            
+                /*
+                 * With non-uniform simplification, we should get even more
+                 * clusters than in uniform simplification. This is explained
+                 * by the fact that given a randomly sampled point cloud,
+                 * there are bound to be many regions with isotropic variance.
+                 */
+                auto const downsampled_size = downsampled_points.size();
+                auto const power =
+                    std::log2(static_cast<double>(n) / static_cast<double>(params.cluster_size));
+                std::size_t const expected_lower_bound =
+                    static_cast<std::size_t>(std::ceil(std::pow(2., power)));
+
+                // should we make this strictly greater or greater-equal?
+                // given a random point cloud, there are bound to be clusters
+                // with var > var_max
+                REQUIRE(downsampled_size > expected_lower_bound);
+            }
         }
     }
 }
