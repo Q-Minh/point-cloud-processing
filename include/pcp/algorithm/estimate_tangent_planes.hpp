@@ -162,7 +162,7 @@ void estimate_tangent_planes(
             std::end(neighbor_points),
             point_map);
 
-        auto point = pcp::common::center_of_geometry<iterator_type, PointMap, point_type>(
+        auto point = pcp::common::center_of_geometry<iterator_type, PointMap>(
             std::begin(neighbor_points),
             std::end(neighbor_points),
             point_map);

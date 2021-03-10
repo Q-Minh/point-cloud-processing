@@ -1,6 +1,11 @@
 #ifndef PCP_TRAITS_COORDINATE_MAP_HPP
 #define PCP_TRAITS_COORDINATE_MAP_HPP
 
+/**
+ * @file
+ * @ingroup traits
+ */
+
 #include <array>
 #include <type_traits>
 

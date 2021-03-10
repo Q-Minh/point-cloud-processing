@@ -6,8 +6,8 @@
  * @ingroup common
  */
 
-#include "pcp/traits/vector3d_traits.hpp"
 #include "pcp/traits/point_map.hpp"
+#include "pcp/traits/vector3d_traits.hpp"
 
 #include <cmath>
 #include <iterator>
@@ -74,27 +74,26 @@ bool are_vectors_equal(
  * @param point_map The point map property map
  * @return The center of geometry of the range as a Vector3d
  */
-template <
-    class ForwardIter,
-    class PointMap,
-    class Vector3d = typename std::iterator_traits<ForwardIter>::value_type>
-Vector3d center_of_geometry(ForwardIter begin, ForwardIter end, PointMap const& point_map)
+template <class ForwardIter, class PointMap>
+std::invoke_result_t<PointMap, typename std::iterator_traits<ForwardIter>::value_type>
+center_of_geometry(ForwardIter begin, ForwardIter end, PointMap const& point_map)
 {
-    static_assert(traits::is_vector3d_v<Vector3d>, "Vector3d must satisfy Vector3d concept");
     using key_type = decltype(*begin);
     static_assert(
         traits::is_point_map_v<PointMap, key_type>,
         "point_map must satisfy PointMap concept");
 
-    using component_type = typename Vector3d::component_type;
+    using point_type =
+        std::invoke_result_t<PointMap, typename std::iterator_traits<ForwardIter>::value_type>;
+    using component_type = typename point_type::coordinate_type;
 
-    auto const reduce_op = [&](Vector3d current, key_type const& value) {
+    auto const reduce_op = [&](point_type current, key_type const& value) {
         auto point = point_map(value);
-        return current + Vector3d{point.x(), point.y(), point.z()};
+        return current + point_type{point.x(), point.y(), point.z()};
     };
 
     auto const n   = std::distance(begin, end);
-    auto const sum = std::accumulate(begin, end, Vector3d{}, reduce_op);
+    auto const sum = std::accumulate(begin, end, point_type{}, reduce_op);
     auto const np  = static_cast<component_type>(n);
     return sum / np;
 }
