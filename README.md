@@ -1,8 +1,8 @@
 # Point Cloud Processing Toolkit
 
-| MSVC | GCC | Clang |
-| --- | --- | --- |
-| [![Build status](https://ci.appveyor.com/api/projects/status/vlci0d4xfeo0p4y9/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/vto8v29cpp5v9jrt/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing-05x2j/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/hnb1af22xdu51vtv/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing-m4p2m/branch/master) |
+| MSVC | GCC | AppleClang | Clang |
+| --- | --- | --- | --- |
+| [![Build status](https://ci.appveyor.com/api/projects/status/vlci0d4xfeo0p4y9/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/vto8v29cpp5v9jrt/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing-05x2j/branch/master) | [![Build status](https://ci.appveyor.com/api/projects/status/hnb1af22xdu51vtv/branch/master?svg=true)](https://ci.appveyor.com/project/Q-Minh/point-cloud-processing-m4p2m/branch/master) | It builds, believe me. |
    
 [![codecov](https://codecov.io/gh/Q-Minh/point-cloud-processing/branch/master/graph/badge.svg?token=ICLU539TV2)](https://codecov.io/gh/Q-Minh/point-cloud-processing) 
 [![License](https://img.shields.io/badge/License-Boost%201.0-lightblue.svg)](https://www.boost.org/LICENSE_1_0.txt)
