@@ -25,9 +25,20 @@
  * @ingroup algorithm
  */
 
+/**
+ * @defgroup point-cloud-simplification "Point cloud simplification"
+ * Point cloud simplification algorithms.
+ * @ingroup algorithm
+ */
+
+#include "average_distance_to_neighbors.hpp"
 #include "common.hpp"
+#include "covariance.hpp"
 #include "estimate_normals.hpp"
 #include "estimate_tangent_planes.hpp"
+#include "hierarchy_simplification.hpp"
+#include "random_simplification.hpp"
 #include "surface_nets.hpp"
+#include "wlop.hpp"
 
 #endif // PCP_ALGORITHM_HPP

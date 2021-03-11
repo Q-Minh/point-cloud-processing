@@ -21,6 +21,13 @@ Point Cloud Tangent Planes Estimation
    :members:
    :undoc-members:
 
+Point Cloud Simplification
+-------------------------------------------
+
+.. doxygengroup:: point-cloud-simplification
+   :members:
+   :undoc-members:
+
 Isosurface Extraction Algorithms
 -------------------------------------------
 

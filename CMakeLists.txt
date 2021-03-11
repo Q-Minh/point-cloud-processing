@@ -55,10 +55,15 @@ INTERFACE
         
         # algorithm
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/algorithm.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/average_distance_to_neighbors.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/covariance.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/hierarchy_simplification.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/random_simplification.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/wlop.hpp
 
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp
@@ -112,6 +117,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/graph_vertex_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/normal_traits.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/output_iterator_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/plane_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/point_traits.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/traits/property_map_traits.hpp

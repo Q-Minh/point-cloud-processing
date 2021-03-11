@@ -268,7 +268,7 @@ class basic_linked_kdtree_t
      * @return the points in the range
      */
     template <class Range>
-    std::vector<element_type> range_search(Range const& range)
+    std::vector<element_type> range_search(Range const& range) const
     {
         std::vector<element_type> elements_in_range{};
         node_type const* current_node = root_.get();
@@ -283,7 +283,7 @@ class basic_linked_kdtree_t
         aabb_type const& current_aabb,
         node_type const* current_node,
         std::vector<element_type>& elements_in_range,
-        std::size_t current_depth)
+        std::size_t current_depth) const
     {
         // verify if the point is in the range
         auto const node_elements = current_node->points();

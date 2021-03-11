@@ -120,8 +120,8 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
  * @param p2 the second vector
  * @return the squared euclidean distance between p1 and p2
  */
-template <class Type, size_t K>
-inline Type squared_distance(std::array<Type, K> const& p1, std::array<Type, K> const& p2)
+template <class CoordinateType, size_t K>
+inline CoordinateType squared_distance(std::array<CoordinateType, K> const& p1, std::array<CoordinateType, K> const& p2)
 {
     auto const difference = [](auto&& tup) {
         auto const c1 = std::get<0>(tup);
@@ -131,11 +131,11 @@ inline Type squared_distance(std::array<Type, K> const& p1, std::array<Type, K> 
 
     auto const rng = ranges::views::zip(p1, p2) | ranges::views::transform(difference);
 
-    std::array<Type, K> c1_to_c2{};
+    std::array<CoordinateType, K> c1_to_c2{};
     std::copy(rng.begin(), rng.end(), c1_to_c2.begin());
 
-    Type const distance =
-        std::inner_product(c1_to_c2.begin(), c1_to_c2.end(), c1_to_c2.begin(), Type{0});
+    CoordinateType const distance =
+        std::inner_product(c1_to_c2.begin(), c1_to_c2.end(), c1_to_c2.begin(), CoordinateType{0});
 
     return distance;
 }

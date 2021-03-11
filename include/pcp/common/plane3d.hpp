@@ -99,7 +99,7 @@ Plane tangent_plane(ForwardIter begin, ForwardIter end, PointMap const& point_ma
     using point_type  = typename Plane::point_type;
 
     normal_type normal = estimate_normal<ForwardIter, PointMap, normal_type>(begin, end, point_map);
-    point_type point = center_of_geometry<ForwardIter, PointMap, point_type>(begin, end, point_map);
+    point_type point   = center_of_geometry<ForwardIter, PointMap>(begin, end, point_map);
 
     return Plane(point, normal);
 }

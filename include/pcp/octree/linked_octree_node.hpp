@@ -39,9 +39,6 @@ struct octree_parameters_t
     aabb_type voxel_grid{};            ///< The octree's bounding box
 };
 
-template <class Element, class ParamsType>
-class linked_octree_iterator_t;
-
 /**
  * @ingroup linked-octree
  * @brief
