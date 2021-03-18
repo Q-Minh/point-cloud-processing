@@ -59,6 +59,13 @@ add_example(${_folder_name}
 add_example(${_folder_name} 
   pcp-example-filter-point-cloud-by-density 
   filter_point_cloud_noise_by_density.cpp)
+<<<<<<< HEAD
 add_example(${_folder_name} 
   pcp-example-downsample 
   downsample.cpp)
+=======
+  add_example(${_folder_name} 
+  pcp-example-filters_example
+  filters_example.cpp)
+  
+>>>>>>> fixing gui
