@@ -55,25 +55,19 @@ INTERFACE
         
         # algorithm
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/algorithm.hpp
-<<<<<<< HEAD
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/average_distance_to_neighbors.hpp
-=======
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
->>>>>>> fixing gui
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/covariance.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
-<<<<<<< HEAD
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/hierarchy_simplification.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/point_density.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/random_simplification.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/wlop.hpp
-=======
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/point_density.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
+
+
         
->>>>>>> fixing gui
 
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp

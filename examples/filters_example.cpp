@@ -44,31 +44,28 @@ static std::size_t density_k   = 3u;
 static int filters_variant     = 0;
 int main(int argc, char** argv)
 {
+    static std::atomic<float> recon_progress = 0.f;
+    static std::vector<pcp::point_t> points;
+    static std::future<void> execution_handle{};
+    static std::string progress_str{""};
+    pcp::common::basic_timer_t timer;
+    auto const is_filter_running = [&]() {
+        return execution_handle.valid();
+    };
+
+    static std::string execution_report;
     igl::opengl::glfw::Viewer viewer;
     igl::opengl::glfw::imgui::ImGuiMenu menu;
     viewer.plugins.push_back(&menu);
 
     menu.callback_draw_viewer_window = [&]() {
         ImGui::Begin("Point Cloud Processing");
-
         if (ImGui::CollapsingHeader("Filters example", ImGuiTreeNodeFlags_DefaultOpen))
         {
-            static std::atomic<float> recon_progress = 0.f;
-            static std::vector<pcp::point_t> points;
-            static std::vector<pcp::point_t> vertices;
-            static std::vector<pcp::common::shared_vertex_mesh_triangle<std::uint32_t>> triangles;
-            using future_type = std::future<std::tuple<
-                std::vector<pcp::point_t>,
-                std::vector<pcp::common::shared_vertex_mesh_triangle<std::uint32_t>>,
-                pcp::common::basic_timer_t>>;
-            static future_type recon_handle;
-
-            static std::string execution_report;
             ImGui::TreePush();
             float w = ImGui::GetContentRegionAvailWidth();
             float p = ImGui::GetStyle().FramePadding.x;
-            if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0)) &&
-                !recon_handle.valid())
+            if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
@@ -82,15 +79,14 @@ int main(int argc, char** argv)
             }
 
             ImGui::SameLine();
-            if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)) &&
-                !recon_handle.valid())
+            if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
             {
-                std::filesystem::path ply_mesh = igl::file_dialog_save();
-                pcp::io::write_ply(
-                    ply_mesh,
-                    vertices,
-                    triangles,
-                    pcp::io::ply_format_t::binary_little_endian);
+                /*               std::filesystem::path ply_mesh = igl::file_dialog_save();
+                               pcp::io::write_ply(
+                                   ply_mesh,
+                                   points,
+                                   std::vector<normal_type>{},
+                                   pcp::io::ply_format_t::binary_little_endian);*/
             }
 
             static ImU64 const step = 1;
@@ -100,12 +96,6 @@ int main(int argc, char** argv)
                 std::string const points_str =
                     std::string("Points: ") + std::to_string(points.size());
                 ImGui::Text(points_str.c_str());
-                std::string const vertices_str =
-                    std::string("Vertices: ") + std::to_string(vertices.size());
-                ImGui::Text(vertices_str.c_str());
-                std::string const triangles_str =
-                    std::string("Triangles: ") + std::to_string(triangles.size());
-                ImGui::Text(triangles_str.c_str());
             }
 
             if (ImGui::CollapsingHeader("Filters", ImGuiTreeNodeFlags_DefaultOpen))
@@ -142,29 +132,47 @@ int main(int argc, char** argv)
                 ImGui::InputFloat("radius multiplier", &radius_multiplier, 0.1f, 1.0f, "%0.2f");
             }
 
-            if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
+            if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
                 points.clear();
-                vertices.clear();
-                triangles.clear();
+                progress_str = ""; 
                 viewer.data().clear();
+                recon_progress = 0.0f;
             }
-
-            if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)) && !recon_handle.valid())
+            if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
                 if (points.size() > 0)
                 {
-                    std::async(std::launch::async, [&]() { apply_filter(points, recon_progress); });
-
-                  //  apply_filter(points, recon_progress);
+                    progress_str     = "Executing ...";
+                    execution_handle = std::async(std::launch::async, [&]() {
+                        //     timer.register_op("filter3");
+                        timer.register_op("filter");
+                        timer.start();
+                        apply_filter(points, recon_progress);
+                        timer.stop();
+                    });
                 }
             }
-            ImGui::ProgressBar(recon_progress, ImVec2(0.f, 0.f));
 
-            if (!execution_report.empty())
+            if (!progress_str.empty())
+                ImGui::BulletText(progress_str.c_str());
+
+            ImGui::ProgressBar(recon_progress, ImVec2(0.f, 0.f));
+            if (execution_handle.valid() && execution_handle.wait_for(std::chrono::microseconds(
+                                                0u)) == std::future_status::ready)
             {
-                ImGui::Text(execution_report.c_str());
+                execution_handle.get();
+                viewer.data().clear();
+                auto const V = from_point_cloud(points);
+                viewer.data().add_points(V, Eigen::RowVector3d(1.0, 1.0, 0.0));
+                viewer.data().point_size = 1.f;
+                viewer.core().align_camera_center(V);
+                auto const duration =
+                    std::chrono::duration_cast<std::chrono::milliseconds>(timer.ops.front().second);
+                timer.ops.clear();
+                progress_str = "Execution time: " + std::to_string(duration.count()) + " ms";
             }
+
 
             ImGui::TreePop();
         }
@@ -184,7 +192,7 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
     };
     progress                           = 0.f;
     float constexpr num_ops            = 4.f;
-    float constexpr progress_increment = 1.f / 4.f;
+    float constexpr progress_increment = 1.f / 2.f;
     auto const progress_forward        = [&]() {
         progress = progress + progress_increment;
     };
