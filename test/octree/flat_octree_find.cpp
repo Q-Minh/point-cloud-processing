@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/octree/flat_octree.hpp>
 
-SCENARIO("flat octree find", "[flat octree]")
+SCENARIO("flat octree find", "[flat_octree]")
 {
     auto depth = GENERATE(1u, 3u, 11u, 15u, 21u);
 

@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/octree/flat_octree.hpp>
 
-SCENARIO("flat octree deletion", "[flat octree]")
+SCENARIO("flat octree deletion", "[flat_octree]")
 {
     auto depth     = GENERATE(1u, 2u, 10u, 21u);
 
@@ -57,7 +57,7 @@ SCENARIO("flat octree deletion", "[flat octree]")
         pcp::flat_octree_parameters_t<pcp::point_t> params;
         params.voxel_grid =
             pcp::axis_aligned_bounding_box_t<pcp::point_t>{{-1.f, -1.f, -1.f}, {1.f, 1.f, 1.f}};
-        params.depth     = static_cast<std::uint8_t>(depth);
+        params.depth      = static_cast<std::uint8_t>(depth);
 
         auto const point_map = [](pcp::point_t const& p) {
             return p;

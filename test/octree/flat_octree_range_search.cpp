@@ -1,7 +1,7 @@
 #include <catch2/catch.hpp>
 #include <pcp/octree/flat_octree.hpp>
 
-SCENARIO("range searches on the flat octree", "[flat octree]")
+SCENARIO("range searches on the flat octree", "[flat_octree]")
 {
     auto depth = GENERATE(1u, 3u, 11u, 21u);
 
@@ -12,7 +12,7 @@ SCENARIO("range searches on the flat octree", "[flat octree]")
     GIVEN("a flat octree with 1 point in each octant")
     {
         pcp::flat_octree_parameters_t<pcp::point_t> params;
-        params.depth     = static_cast<std::uint8_t>(depth);
+        params.depth         = static_cast<std::uint8_t>(depth);
         params.voxel_grid    = pcp::axis_aligned_bounding_box_t<pcp::point_t>{
             pcp::point_t{-1.f, -1.f, -1.f},
             pcp::point_t{1.f, 1.f, 1.f}};
