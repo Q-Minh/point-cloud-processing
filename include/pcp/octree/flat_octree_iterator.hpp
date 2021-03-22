@@ -98,7 +98,8 @@ class flat_octree_iterator_t
     void make_end_iterator() { map_it_ = map_end_it_; }
 
   private:
-    void refresh() {
+    void refresh()
+    {
         if (map_it_ == map_end_it_)
             return;
 

@@ -80,8 +80,18 @@ class basic_flat_octree_t
     using map_type       = std::unordered_map<key_type, container_type>;
 
   public:
+
+    /**
+     * @brief Default move constructor
+     * @param other Copied-from octree
+     */
     basic_flat_octree_t(self_type&& other) = default;
 
+     /**
+     * @brief
+     * Constructs this octree with configuration specified by params
+     * @param params The configuration for this octree
+     */
     explicit basic_flat_octree_t(params_type const& params)
         : depth_(params.depth), size_(0u), voxel_grid_(params.voxel_grid)
     {
@@ -93,6 +103,16 @@ class basic_flat_octree_t
         calc_factor();
     }
 
+    /**
+     * @brief
+     * Constructs this octree from a range of elements
+     * @tparam ForwardIter Type of iterator to the elements
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param begin Begin iterator to the elements
+     * @param end End iterator to the elements
+     * @param point_view The point view property map
+     * @param params The configuration for this octree
+     */
     template <class ForwardIter, class PointViewMap>
     explicit basic_flat_octree_t(
         ForwardIter begin,
@@ -104,6 +124,16 @@ class basic_flat_octree_t
         insert(begin, end, point_view);
     }
 
+    /**
+     * @brief
+     * Constructs this octree from a range of elements.
+     * Computes the octree's configuration automatically.
+     * @tparam ForwardIter Type of iterator to the elements
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param begin Begin iterator to the elements
+     * @param end The point view property map
+     * @param point_view The point view property map
+     */
     template <class ForwardIter, class PointViewMap>
     explicit basic_flat_octree_t(ForwardIter begin, ForwardIter end, PointViewMap const& point_view)
         : depth_{}, size_{}, voxel_grid_{}
@@ -122,8 +152,16 @@ class basic_flat_octree_t
         size_ = insert(begin, end, point_view);
     }
 
+    /**
+     * @brief Iterator to the first element of this octree
+     * @return Iterator to the first element of this octree
+     */
     iterator begin() { return iterator(&map_); }
 
+    /**
+     * @brief End iterator to this octree's elements
+     * @return End iterator to this octree's elements
+     */
     iterator end()
     {
         auto it = iterator(&map_);
@@ -132,8 +170,16 @@ class basic_flat_octree_t
         return it;
     }
 
+    /**
+     * @brief Const iterator to the first element of this octree
+     * @return Const iterator to the first element of this octree
+     */
     const_iterator begin() const { return const_iterator(const_cast<map_type*>(&map_)); }
 
+    /**
+     * @brief End const iterator to this octree's elements
+     * @return End const iterator to this octree's elements
+     */
     const_iterator end() const
     {
         map_type* map = const_cast<map_type*>(&map_);
@@ -143,10 +189,27 @@ class basic_flat_octree_t
         return it;
     }
 
+    /**
+     * @brief Const iterator to the first element of this octree
+     * @return Const iterator to the first element of this octree
+     */
     const_iterator cbegin() const { return const_iterator(const_cast<map_type*>(&map_)); }
 
+    /**
+     * @brief End const iterator to this octree's elements
+     * @return End const iterator to this octree's elements
+     */
     const_iterator cend() const { return end(); }
 
+    /**
+     * @brief Insert range of elements in the octree
+     * @tparam ForwardIter Type of the range's iterators
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param begin Iterator to the first element of the range
+     * @param end End iterator of the range
+     * @param point_view The point view property map
+     * @return The number of inserted elements
+     */
     template <class ForwardIter, class PointViewMap>
     std::size_t insert(ForwardIter begin, ForwardIter end, PointViewMap const& point_view)
     {
@@ -161,6 +224,13 @@ class basic_flat_octree_t
         return inserted;
     }
 
+    /**
+     * @brief Insert one element in the octree
+     * @tparam PointViewMap Type satisfying PointViewMap concept
+     * @param e The element to insert
+     * @param point_view The point view property map
+     * @return true if insert was successful
+     */
     template <class PointViewMap>
     bool insert(element_type const& element, PointViewMap const& point_view)
     {
@@ -177,9 +247,7 @@ class basic_flat_octree_t
     }
 
     /*
-     * @brief
-     * Find element in the octree having a specific position
-     *
+     * @brief Returns an iterator to the element in the octree if it exists
      * @tparam PointViewMap Type satisfying PointViewMap concept
      * @param element Element to find
      * @param point_view The point view property map
@@ -221,6 +289,11 @@ class basic_flat_octree_t
         return it;
     }
 
+    /*
+     * @brief Removes the element pointed-to by iterator pos.
+     * @param pos Iterator to the element to remove. Must be in the range [cbegin(), cend()).
+     * @return Iterator to the next element or cend()
+     */
     const_iterator erase(const_iterator it)
     {
         iterator next = it;
@@ -244,8 +317,7 @@ class basic_flat_octree_t
     }
 
     /**
-     * @brief
-     * KNN search
+     * @brief KNN search
      * @tparam TPointView Type satisfying PointView concept
      * @tparam PointViewMap Type satisfying PointViewMap concept
      * @param target Position around which we want to find the k nearest neighbours
@@ -264,32 +336,18 @@ class basic_flat_octree_t
         if (k <= 0u)
             return {};
 
-        // Calculer le morton index du point
-        key_type morton = compute_key(target);
-
         // Calculer la réprensation en float du point dans morton
         TPointView rep = get_float_rep_morton(target);
-
-        // Calculer distance minimale avec le plus proche border du octant d'origine
-        auto const dist_calc = [](coordinate_type c) -> coordinate_type {
-            return std::abs(std::round(c) - c);
-        };
-
-        auto dist = std::min(std::min(dist_calc(rep.x()), dist_calc(rep.y())), dist_calc(rep.z()));
 
         struct min_heap_node_t
         {
             container_type const* elements = nullptr;
-            aabb_type const* voxel         = nullptr;
             coordinate_type distance       = 0.f;
         };
 
         auto const greater = [rep](min_heap_node_t const& h1, min_heap_node_t const& h2) -> bool {
-            aabb_point_type const p1 = h1.voxel->nearest_point_from(rep);
-            aabb_point_type const p2 = h2.voxel->nearest_point_from(rep);
-
-            auto const d1 = common::squared_distance(rep, p1);
-            auto const d2 = common::squared_distance(rep, p2);
+            auto const d1 = h1.distance;
+            auto const d2 = h2.distance;
 
             return d1 > d2;
         };
@@ -333,98 +391,63 @@ class basic_flat_octree_t
                     max_heap.push(*it);
                 else
                 {
-                    it++;
                     break; // We can stop searching and add all the rest to the heap
                 }
             }
-            while (it != end())
+            while (++it != end())
             {
                 max_heap.push(*it);
-                ++it;
             }
         }
         else
         {
-            auto length = std::pow(2.f, static_cast<std::float_t>(depth_));
-            std::int_fast32_t const max_level_neighbor = static_cast<std::int_fast32_t>(std::max(
-                {rep.x(), rep.y(), rep.z(), length - rep.x(), length - rep.y(), length - rep.z()}));
-
             min_heap_t min_heap(greater);
 
-            if (is_non_empty_octant(morton))
+            map_type& map = const_cast<map_type&>(map_);
+
+            for (auto it = map.begin(); it != map.end(); ++it)
             {
-                auto points = &map_.at(morton);
-                auto voxel  = get_voxel_from_morton(morton);
-                auto node   = min_heap_node_t{points, &voxel, 0.f};
+                auto index               = it->first;
+                auto points              = &it->second;
+                auto voxel               = get_voxel_from_morton(index);
+                auto const closest_point = voxel.nearest_point_from(rep);
+                auto distance            = common::squared_distance(rep, closest_point);
+
+                auto node = min_heap_node_t{points, distance};
                 min_heap.push(node);
             }
 
-            std::int_fast32_t neighbor_level = 0;
-            bool stop_search                 = false;
-
-            while (neighbor_level <= max_level_neighbor)
+            while (!min_heap.empty())
             {
-                while (!min_heap.empty())
+                min_heap_node_t node = min_heap.top();
+                min_heap.pop();
+
+                for (auto it = node.elements->begin(); it != node.elements->end(); ++it)
                 {
-                    min_heap_node_t node = min_heap.top();
-                    min_heap.pop();
+                    auto p = point_view(*it);
+                    if (!common::are_vectors_equal(p, target, static_cast<coordinate_type>(eps)))
+                        max_heap.push(*it);
+                }
 
-                    for (auto it = node.elements->begin(); it != node.elements->end(); ++it)
+                while (max_heap.size() > k)
+                {
+                    max_heap.pop();
+                }
+
+                if (max_heap.size() == k)
+                {
+                    auto p  = point_view(max_heap.top());
+                    auto dp = common::squared_distance(get_float_rep_morton(p), rep);
+
+                    if (!min_heap.empty())
                     {
-                        auto p = point_view(*it);
-                        if (!common::are_vectors_equal(
-                                p,
-                                target,
-                                static_cast<coordinate_type>(eps)))
-                            max_heap.push(*it);
-                    }
+                        min_heap_node_t next_node = min_heap.top();
 
-                    while (max_heap.size() > k)
-                    {
-                        max_heap.pop();
-                    }
-
-                    if (max_heap.size() == k)
-                    {
-                        auto p  = point_view(max_heap.top());
-                        auto dp = common::squared_distance(get_float_rep_morton(p), rep);
-
-                        if (!min_heap.empty())
+                        if (dp < next_node.distance)
                         {
-                            min_heap_node_t next_node = min_heap.top();
-
-                            if (dp < next_node.distance)
-                            {
-                                stop_search = true;
-                                break;
-                            }
-                        }
-                        else if (dp < dist)
-                        {
-                            stop_search = true;
                             break;
                         }
                     }
-                }
-                if (stop_search)
-                    break;
-
-                // If we get here, then we need to search deeper into the neighbors by 1
-
-                dist += 1.f;
-                neighbor_level += 1;
-
-                auto next_neighbors = get_neighbors(morton, neighbor_level);
-
-                for (auto it = next_neighbors.begin(); it != next_neighbors.end(); ++it)
-                {
-                    auto points = &map_.at(*it);
-                    auto voxel       = get_voxel_from_morton(*it);
-
-                    auto const p = voxel.nearest_point_from(rep);
-
-                    coordinate_type distance = common::squared_distance(rep, p);
-                    min_heap.push(min_heap_node_t{points, &voxel, distance});
                 }
             }
         }
@@ -439,10 +462,9 @@ class basic_flat_octree_t
         std::reverse(knearest_neighbours.begin(), knearest_neighbours.end());
         return knearest_neighbours;
     }
+
     /**
-     * @brief
-     * Returns all points that reside in the given range.
-     *
+     * @brief Returns all points that reside in the given range.
      * @tparam Range Type satisfying Range concept
      * @tparam PointViewMap Type satisfying PointViewMap concept
      * @param range The range in which we went to find points
@@ -456,7 +478,7 @@ class basic_flat_octree_t
 
         for (auto it_m = map_.begin(); it_m != map_.end(); ++it_m)
         {
-            aabb_type voxel = get_voxel_from_morton(it_m->first);
+            aabb_type voxel = get_real_voxel_from_morton(it_m->first);
             if (intersections::intersects(range, voxel))
             {
                 auto octant = it_m->second;
@@ -472,6 +494,9 @@ class basic_flat_octree_t
         return elements_in_range;
     }
 
+    /**
+     * @brief Remove all elements from this octree
+     */
     void clear()
     {
         for (auto const& [key, val] : map_)
@@ -484,12 +509,32 @@ class basic_flat_octree_t
         size_ = 0u;
     }
 
+    /**
+     * @brief Gets the top-level voxel from this octree (the bounding box)
+     * @return This octree's voxel
+     */
     aabb_type const& voxel_grid() const { return voxel_grid_; }
 
+    /**
+     * @brief Number of elements in the octree
+     * @return Number of elements in the octree
+     */
     std::size_t size() const { return size_; }
+    
+    /**
+     * @brief Checks if octree is empty
+     * @return True if octree is empty
+     */
     bool empty() const { return size() == 0u; }
 
   private:
+
+    /**
+     * @brief Compute the key of the given point as morton index
+     * @tparam TPointView Type satisfying PointView concept
+     * @param p The point compute key
+     * @returns The morton index
+     */
     template <class TPointView>
     key_type compute_key(TPointView const& p) const
     {
@@ -501,6 +546,12 @@ class basic_flat_octree_t
             static_cast<int_type>(a.z()));
     }
 
+    /**
+     * @brief Calculate the float reprentation of the point in morton scale
+     * @tparam TPointView Type satisfying PointView concept
+     * @param p The point to scale
+     * @returns The point scaled to morton 
+     */
     template <class TPointView>
     TPointView get_float_rep_morton(TPointView const& p) const
     {
@@ -512,6 +563,13 @@ class basic_flat_octree_t
         return TPointView{x, y, z};
     }
 
+    /**
+     * @brief Gives the morton index of a given point
+     * @param x The x value of the point
+     * @param y The y value of the point
+     * @param z The z value of the point
+     * @return Morton index of the given point
+     */
     inline key_type encode_morton(int_type x, int_type y, int_type z) const
     {
         auto xx = split_by_3(x);
@@ -523,6 +581,11 @@ class basic_flat_octree_t
         return ret;
     }
 
+    /**
+     * @brief Split a morton index of an axis with 0s
+     * @param a The integer representation of the morton index of an axis to split
+     * @return Integer representation of a splitted morton index of an axis splitted
+     */
     inline key_type split_by_3(int_type a) const
     {
         key_type x = a & 0x1fffff;
@@ -534,6 +597,28 @@ class basic_flat_octree_t
         return x;
     }
 
+    /**
+     * @brief Calculate the real voxel of the morton key
+     * @param key The morton key
+     * @return Voxel in real scale of the morton key
+     */
+    inline aabb_type get_real_voxel_from_morton(key_type key) const
+    {
+        auto morton_voxel = get_voxel_from_morton(key);
+
+        auto min     = morton_voxel.min;
+        auto max     = morton_voxel.max;
+        auto new_min = aabb_point_type{min.x() / factor_.x(), min.y() / factor_.y(), min.z() / factor_.z()} + voxel_grid_.min;
+        auto new_max = aabb_point_type{max.x() / factor_.x(), max.y() / factor_.y(), max.z() / factor_.z()} + voxel_grid_.min;
+
+        return aabb_type{new_min, new_max};
+    }
+
+    /**
+     * @brief Calculate the voxel of the morton key
+     * @param key The morton key
+     * @return Voxel in morton scale of the morton key
+     */
     inline aabb_type get_voxel_from_morton(key_type key) const
     {
         auto x = static_cast<coordinate_type>(group_from_3(key));
@@ -543,6 +628,11 @@ class basic_flat_octree_t
         return aabb_type{{x, y, z}, {x + 1, y + 1, z + 1}};
     }
 
+    /**
+     * @brief Regroup 3d morton indexes
+     * @param a The integer representation of the morton index of an axis splitted
+     * @return Integer reprensation of the morton index on an axis grouped
+     */
     inline int_type group_from_3(key_type a) const
     {
         key_type x = a & 0x1249249249249249;
@@ -555,6 +645,10 @@ class basic_flat_octree_t
         return static_cast<int_type>(x);
     }
 
+
+    /**
+     * @brief Calculate the factor to scale points to morton indexes
+     */
     void calc_factor()
     {
         coordinate_type base = 2;
@@ -564,56 +658,6 @@ class basic_flat_octree_t
             pow / (voxel_grid_.max.y() - voxel_grid_.min.y()),
             pow / (voxel_grid_.max.z() - voxel_grid_.min.z())};
         factor_ = factor;
-    }
-
-    bool is_non_empty_octant(key_type morton) const { return map_.find(morton) != map_.end(); }
-
-    std::vector<key_type> get_neighbors(key_type index, std::int_fast32_t level) const
-    {
-        std::vector<key_type> mortons{};
-
-        if (level > 0)
-        {
-            auto const add_if_valid = [&, this](key_type const& morton) -> void {
-                if (map_.find(morton) != map_.end())
-                    mortons.push_back(morton);
-            };
-
-            auto k = std::pow((2 * level) + 1, 2);
-            auto j = std::pow((2 * level) - 1, 2);
-
-            mortons.reserve(
-                static_cast<key_type>(k) -
-                static_cast<key_type>(j)); // k - j is the maximum of neighbors of level d;
-
-            auto px = group_from_3(index);
-            auto py = group_from_3(index >> 1);
-            auto pz = group_from_3(index >> 2);
-
-            for (std::int_fast32_t x = -level; x <= level; x++)
-            {
-                for (std::int_fast32_t y = -level; y <= level; y++)
-                {
-                    add_if_valid(encode_morton(px + x, py + y, pz + level));
-                    add_if_valid(encode_morton(px + x, py + y, pz - level));
-                }
-                for (std::int_fast32_t z = -(level - 1); z <= (level - 1); z++)
-                {
-                    add_if_valid(encode_morton(px + x, py + level, pz + z));
-                    add_if_valid(encode_morton(px + x, py - level, pz + z));
-                }
-            }
-
-            for (std::int_fast32_t y = -(level - 1); y <= (level - 1); y++)
-            {
-                for (std::int_fast32_t z = -(level - 1); z <= (level - 1); z++)
-                {
-                    add_if_valid(encode_morton(px + level, py + y, pz + z));
-                    add_if_valid(encode_morton(px - level, py + y, pz + z));
-                }
-            }
-        }
-        return mortons;
     }
 
     aabb_point_type factor_;
