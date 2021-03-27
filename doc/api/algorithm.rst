@@ -28,6 +28,13 @@ Point Cloud Simplification
    :members:
    :undoc-members:
 
+Point Cloud Smoothing of Points and Normals
+-------------------------------------------
+
+.. doxygengroup:: smoothing-algorithm
+   :members:
+   :undoc-members:
+
 Isosurface Extraction Algorithms
 -------------------------------------------
 
