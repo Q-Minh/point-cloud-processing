@@ -252,9 +252,16 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
     normal_type const pcp_ns = normal_map(i);
     column_vector_3d_type const ns{pcp_ns.nx(), pcp_ns.ny(), pcp_ns.nz()};
 
+    /**
+    * In the original normal improvement paper, they use the inverse transpose 
+    * of the jacobian. In our case, we directly use the jacobian 
+    * of the filter F(s), because it is in line with the intuition 
+    * of using the local spatial deformation of the field F(s) to 
+    * adjust normals.
+    */
     // ns' = J^(-T) * ns
-    matrix_3d_type const adj       = J.adjoint();
-    column_vector_3d_type ns_prime = adj.transpose() * ns;
+    // matrix_3d_type const adj       = J.adjoint();
+    column_vector_3d_type ns_prime = J * ns;
     ns_prime.normalize();
     return normal_type{ns_prime.x(), ns_prime.y(), ns_prime.z()};
 }
@@ -414,18 +421,32 @@ OutputIter bilateral_filter_points(
 }
 
 /**
+ * @ingroup smoothing-algorithm
  * @brief
- * @tparam RandomAccessIter
- * @tparam OutputIter
- * @tparam PointMap
- * @tparam NormalMap
- * @param begin
- * @param end
- * @param out_begin
- * @param point_map
- * @param normal_map
- * @param params
- * @return
+ * Deforms the normal field of an input point cloud using the local deformation field of the
+ * 3d bilateral filter (in other words, its Jacobian at a point p).
+ * 
+ * The bilateral filter is defined in the same way as in
+ * 'Jones, Thouis R., Fredo Durand, and Matthias Zwicker. "Normal improvement for point rendering."
+ * IEEE Computer Graphics and Applications 24.4 (2004): 53-56.'
+ * 
+ * This method should be used only for point rendering. It does not smooth input normals as one would 
+ * expect for surface reconstruction. For normal smoothing, one should rather look at techniques 
+ * such as EAR (edge aware resampling):
+ * 
+ * 'Huang, Hui, et al. "Edge-aware point set resampling." ACM transactions on graphics (TOG) 32.1 (2013): 1-12.'
+ * 
+ * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
+ * @tparam OutputIter Iterator type dereferenceable to a type satisfying Normal concept
+ * @tparam PointMap Type satisfying PointMap concept
+ * @tparam NormalMap Type satisfying NormalMap concept
+ * @param begin Start iterator of input point cloud
+ * @param end End iterator of input point cloud
+ * @param out_begin Start iterator of output points
+ * @param point_map The point map property map
+ * @param normal_map The normal map property map
+ * @param params The bilateral filter algorithm's parameters
+ * @return End iterator of output sequence
  */
 template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
 OutputIter bilateral_filter_normals(
