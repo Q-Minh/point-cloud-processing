@@ -12,6 +12,7 @@
 #include "pcp/traits/output_iterator_traits.hpp"
 #include "pcp/traits/point_map.hpp"
 
+#include <Eigen/Core>
 #include <algorithm>
 #include <array>
 #include <execution>
@@ -72,7 +73,7 @@ std::invoke_result_t<PointMap, std::size_t> compute_pi(
     auto const neighbors = kdtree.range_search(support_region);
 
     scalar_type k = zero;
-    point_type sp{zero, zero, zero};
+    point_type sprime{zero, zero, zero};
     for (auto it = neighbors.begin(); it != neighbors.end(); ++it)
     {
         point_type const p           = point_map(*it);
@@ -91,11 +92,171 @@ std::invoke_result_t<PointMap, std::size_t> compute_pi(
             w * s_projected.x(),
             w * s_projected.y(),
             w * s_projected.z()};
-        sp = sp + translation;
+        sprime = sprime + translation;
     }
-    sp = sp / k;
+    sprime = sprime / k;
 
-    return sp;
+    return sprime;
+}
+
+template <
+    class KdTree,
+    class CoordinateMap,
+    class PointMap,
+    class NormalMap,
+    class SpatialWeightFunction,
+    class SpatialWeightFunctionDerivative,
+    class InfluenceWeightFunction,
+    class InfluenceWeightFunctionDerivative,
+    class ProjectionFunction,
+    class ScalarType>
+std::invoke_result_t<NormalMap, std::size_t> compute_ni(
+    std::size_t const i,
+    ScalarType const sigmaf,
+    ScalarType const sigmag,
+    KdTree const& kdtree,
+    CoordinateMap const& coordinate_map,
+    PointMap const& point_map,
+    NormalMap const& normal_map,
+    SpatialWeightFunction const& f,
+    SpatialWeightFunctionDerivative const& df,
+    InfluenceWeightFunction const& g,
+    InfluenceWeightFunctionDerivative const& dg,
+    ProjectionFunction const& projection)
+{
+    using scalar_type           = ScalarType;
+    using point_type            = std::invoke_result_t<PointMap, std::size_t>;
+    using normal_type           = std::invoke_result_t<NormalMap, std::size_t>;
+    using matrix_3d_type        = Eigen::Matrix<scalar_type, 3, 3>;
+    using column_vector_3d_type = Eigen::Matrix<scalar_type, 3, 1>;
+    using row_vector_3d_type    = Eigen::Matrix<scalar_type, 1, 3>;
+
+    scalar_type constexpr two  = scalar_type{2.};
+    scalar_type constexpr zero = scalar_type{0.};
+
+    point_type const pcp_s = point_map(i);
+    column_vector_3d_type const s{pcp_s.x(), pcp_s.y(), pcp_s.z()};
+    auto const ci = coordinate_map(i);
+
+    sphere_a<scalar_type> support_region{};
+    support_region.position = ci;
+    support_region.radius   = two * sigmaf;
+
+    auto const neighbors = kdtree.range_search(support_region);
+
+    /**
+     * Jacobian of sum of:
+     *
+     * projection(s) * f(||s - p||) * g(||projection(s) - s||)
+     */
+    matrix_3d_type J_pi_f_g;
+    J_pi_f_g.setZero();
+    /**
+     * sum of:
+     *
+     * projection(s) * f(||s - p||) * g(||projection(s) - s||)
+     */
+    column_vector_3d_type pi_f_g;
+    pi_f_g.setZero();
+    /**
+     * Gradient of k(s)
+     */
+    row_vector_3d_type grad_k;
+    grad_k.setZero();
+    /**
+     * k(s)
+     */
+    scalar_type k = zero;
+
+    for (auto it = neighbors.begin(); it != neighbors.end(); ++it)
+    {
+        point_type const pcp_p           = point_map(*it);
+        normal_type const pcp_np         = normal_map(*it);
+        point_type const pcp_s_projected = projection(pcp_p, pcp_np, pcp_s);
+
+        column_vector_3d_type const p{pcp_p.x(), pcp_p.y(), pcp_p.z()};
+        column_vector_3d_type const np{pcp_np.nx(), pcp_np.ny(), pcp_np.nz()};
+        column_vector_3d_type const s_projected{
+            pcp_s_projected.x(),
+            pcp_s_projected.y(),
+            pcp_s_projected.z()};
+
+        column_vector_3d_type const sp  = s - p;
+        column_vector_3d_type const sps = s_projected - s;
+        scalar_type const rf            = sp.norm();
+        scalar_type const rg            = sps.norm();
+
+        // f(||s - p||)
+        scalar_type const wf = f(sigmaf, rf);
+        // g(||projection(s) - s||)
+        scalar_type const wg = g(sigmag, rg);
+
+        scalar_type const w = wf * wg;
+
+        // k(s) = sum f(||s - p||) * g(||projection(s) - s||)
+        k += w;
+
+        // projection(s) * f(||s - p||) * g(||projection(s) - s||)
+        column_vector_3d_type translation{
+            w * pcp_s_projected.x(),
+            w * pcp_s_projected.y(),
+            w * pcp_s_projected.z()};
+        pi_f_g += translation;
+
+        // derivative df/dr | r=||s-p||
+        scalar_type const wdf            = df(sigmaf, rf);
+        row_vector_3d_type const sp_unit = sp.normalized().transpose();
+        // grad(f) = (s - p) / ||s - p|| * (df/dr | r=||s-p||)
+        row_vector_3d_type const grad_f = sp_unit * wdf;
+
+        // Jacobian of projection(s)
+        matrix_3d_type Jpi;
+        Jpi(0, 0) = 1 - (np.x() * np.x());
+        Jpi(1, 1) = 1 - (np.y() * np.y());
+        Jpi(2, 2) = 1 - (np.z() * np.z());
+        Jpi(0, 1) = np.x() * np.y();
+        Jpi(0, 2) = np.x() * np.z();
+        Jpi(1, 2) = np.y() * np.z();
+        Jpi(1, 0) = Jpi(0, 1);
+        Jpi(2, 0) = Jpi(0, 2);
+        Jpi(2, 1) = Jpi(1, 2);
+
+        // derivative dg/dr | r = ||projection(s) - s||
+        scalar_type const wdg             = dg(sigmag, rg);
+        row_vector_3d_type const sps_unit = sps.normalized().transpose();
+        /**
+         * Let sps_unit = (projection(s) - s) / ||projection(s) - s||
+         *
+         * grad(g) =
+         * (sps_unit * Jacobian(projection(s)) - sps_unit) *
+         * (dg/dr | r = ||projection(s) - s||)
+         */
+        row_vector_3d_type const grad_g = (sps_unit * Jpi - sps_unit) * wdg;
+
+        /**
+         * Product rule grad(f(||s - p||) * g(||projection(s) - s||))
+         */
+        grad_k += (grad_f * wg) + (wf * grad_g);
+        /**
+         * Product rule grad(projection(s) * f(||s - p||) * g(||projection(s) - s||))
+         */
+        J_pi_f_g += (Jpi * wf * wg) + (sps * grad_f * wg) + (sps * wf * grad_g);
+    }
+
+    /**
+     * Quotient rule grad(u/v) = (1/v^2) * (grad(u)*v - u*grad(v))
+     */
+    scalar_type const ks2_inv = scalar_type{1.} / (k * k);
+    matrix_3d_type const J    = ks2_inv * (J_pi_f_g * k - pi_f_g * grad_k);
+
+    normal_type const pcp_ns = normal_map(i);
+    column_vector_3d_type const ns{pcp_ns.nx(), pcp_ns.ny(), pcp_ns.nz()};
+
+    // ns' = J^(-T) * ns
+    matrix_3d_type const adj       = J.adjoint();
+    column_vector_3d_type ns_prime = adj.transpose() * ns;
+    ns_prime.normalize();
+    return normal_type{ns_prime.x(), ns_prime.y(), ns_prime.z()};
 }
 
 } // namespace detail
@@ -250,6 +411,145 @@ OutputIter bilateral_filter_points(
     }
 
     return std::copy(points.begin(), points.end(), out_begin);
+}
+
+/**
+ * @brief
+ * @tparam RandomAccessIter
+ * @tparam OutputIter
+ * @tparam PointMap
+ * @tparam NormalMap
+ * @param begin
+ * @param end
+ * @param out_begin
+ * @param point_map
+ * @param normal_map
+ * @param params
+ * @return
+ */
+template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+OutputIter bilateral_filter_normals(
+    RandomAccessIter begin,
+    RandomAccessIter end,
+    OutputIter out_begin,
+    PointMap const& point_map,
+    NormalMap const& normal_map,
+    bilateral::params_t const& params)
+{
+    using input_element_type = typename std::iterator_traits<RandomAccessIter>::value_type;
+    using input_point_type   = std::invoke_result_t<PointMap, input_element_type>;
+    using input_normal_type  = std::invoke_result_t<NormalMap, input_element_type>;
+    using scalar_type        = typename input_point_type::coordinate_type;
+    using output_normal_type = typename xstd::output_iterator_traits<OutputIter>::value_type;
+    using difference_type    = typename std::iterator_traits<RandomAccessIter>::difference_type;
+
+    static_assert(
+        traits::is_point_map_v<PointMap, input_element_type>,
+        "point_map must satisfy PointMap concept");
+
+    std::size_t const N        = static_cast<std::size_t>(std::distance(begin, end));
+    scalar_type const sigmaf   = static_cast<scalar_type>(params.sigmaf);
+    scalar_type const sigmag   = static_cast<scalar_type>(params.sigmag);
+    std::size_t const K        = params.K;
+    constexpr scalar_type pi   = scalar_type{3.14159265358979323846};
+    scalar_type constexpr zero = scalar_type{0.};
+
+    assert(K > 0u);
+    assert(N > 0u);
+    assert(sigmaf > zero);
+    assert(sigmag > zero);
+
+    std::vector<std::size_t> indices(N);
+    std::iota(indices.begin(), indices.end(), 0u);
+
+    std::vector<input_normal_type> normals(N);
+    std::transform(begin, end, normals.begin(), [&](input_element_type const& e) {
+        return normal_map(e);
+    });
+
+    std::vector<input_normal_type> temporary_normals(N);
+
+    auto const internal_point_map = [&](std::size_t const i) -> input_point_type {
+        return point_map(*std::next(begin, i));
+    };
+    auto const internal_normal_map = [&](std::size_t const i) -> input_normal_type {
+        return normals[i];
+    };
+
+    auto const gaussian = [=](scalar_type const sigma, scalar_type const r) {
+        scalar_type const s2      = sigma * sigma;
+        scalar_type const r2      = r * r;
+        scalar_type const power   = -r2 / (2 * s2);
+        scalar_type constexpr one = scalar_type{1.};
+        scalar_type constexpr two = scalar_type{2.};
+        scalar_type const coeff   = one / (sigma * std::sqrt(two * pi));
+        return coeff * std::exp(power);
+    };
+
+    auto const dgaussian = [=](scalar_type const sigma, scalar_type const r) {
+        scalar_type const s2      = sigma * sigma;
+        scalar_type const s3      = sigma * s2;
+        scalar_type const r2      = r * r;
+        scalar_type const power   = -r2 / (2 * s2);
+        scalar_type constexpr two = scalar_type{2.};
+        scalar_type const coeff   = -r / (s3 * std::sqrt(two * pi));
+        return coeff * std::exp(power);
+    };
+
+    auto const projection = [&](input_point_type const& p,
+                                input_normal_type const& np,
+                                input_point_type const& s) -> input_point_type {
+        auto const sp = p - s;
+        common::basic_vector3d_t<scalar_type> const n{np.nx(), np.ny(), np.nz()};
+        auto const d = common::inner_product(sp, n);
+        return s + d * n;
+    };
+
+    using coordinates_type = std::array<scalar_type, 3u>;
+
+    auto const coordinate_map = [&](std::size_t const i) {
+        auto const p = internal_point_map(i);
+        return coordinates_type{p.x(), p.y(), p.z()};
+    };
+
+    kdtree::construction_params_t kdtree_params;
+    kdtree_params.compute_max_depth     = true;
+    kdtree_params.construction          = kdtree::construction_t::nth_element;
+    kdtree_params.max_elements_per_leaf = 64u;
+
+    basic_linked_kdtree_t<input_element_type, 3u, decltype(coordinate_map)> kdtree{
+        indices.begin(),
+        indices.end(),
+        coordinate_map,
+        kdtree_params};
+
+    for (std::size_t k = 0u; k < K; ++k)
+    {
+        std::transform(
+            std::execution::par,
+            indices.begin(),
+            indices.end(),
+            temporary_normals.begin(),
+            [&](std::size_t const i) {
+                return bilateral::detail::compute_ni(
+                    i,
+                    sigmaf,
+                    sigmag,
+                    kdtree,
+                    coordinate_map,
+                    internal_point_map,
+                    internal_normal_map,
+                    gaussian,
+                    dgaussian,
+                    gaussian,
+                    dgaussian,
+                    projection);
+            });
+
+        std::copy(temporary_normals.begin(), temporary_normals.end(), normals.begin());
+    }
+
+    return std::copy(normals.begin(), normals.end(), out_begin);
 }
 
 } // namespace algorithm

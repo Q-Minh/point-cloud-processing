@@ -39,9 +39,9 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
          *                                      o
          *
          * ideal points:
-         * 
+         *
          *             o   o    o   o   o   o   o    o   o
-         * 
+         *
          * coordinate frame:
          *
          * z y
@@ -49,7 +49,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
          * --- x
          *
          * We would expect the bilateral filtering to compress points 2 and 6
-         * into the perceived line formed by the rest of the points as can be 
+         * into the perceived line formed by the rest of the points as can be
          * visualized in the 'ideal points' section.
          *
          */
@@ -99,7 +99,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
                 knn_map);
         };
 
-        WHEN("filtering with bilateral filter")
+        WHEN("smoothing points with bilateral filter")
         {
             pcp::algorithm::bilateral::params_t params;
             params.K      = 2u;
@@ -107,7 +107,6 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
             params.sigmag = params.sigmaf / 8.;
 
             std::vector<pcp::point_t> filtered_points{};
-            filtered_points.reserve(indices.size());
             pcp::algorithm::bilateral_filter_points(
                 indices.begin(),
                 indices.end(),
@@ -116,10 +115,34 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
                 normal_map,
                 params);
 
-            THEN("the points with noise compress towards the straight line") 
-            { 
+            THEN("the points with noise compress towards the straight line")
+            {
                 REQUIRE(points[2].z() > filtered_points[2].z());
                 REQUIRE(points[6].z() < filtered_points[6].z());
+            }
+        }
+        WHEN("smoothing normals with bilateral filter")
+        {
+            pcp::algorithm::bilateral::params_t params;
+            params.K      = 2u;
+            params.sigmaf = get_mean_distance_to_neighbors();
+            params.sigmag = params.sigmaf / 8.;
+
+            std::vector<pcp::normal_t> filtered_normals{};
+            pcp::algorithm::bilateral_filter_normals(
+                indices.begin(),
+                indices.end(),
+                std::back_inserter(filtered_normals),
+                point_map,
+                normal_map,
+                params);
+
+            THEN(
+                "the normals with noise realign towards the +z direction as other normals in the "
+                "straight line")
+            {
+                REQUIRE(normals[2].x() > filtered_normals[2].x());
+                REQUIRE(normals[6].x() < filtered_normals[6].x());
             }
         }
     }
