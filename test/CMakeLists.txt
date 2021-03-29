@@ -9,7 +9,6 @@ PRIVATE
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/hierarchy_simplification.cpp"
   "algorithm/random_simplification.cpp"
-  "algorithm/point_density"
   "algorithm/surface_nets.cpp"
   "algorithm/wlop.cpp"
   "common/aabb.cpp"

@@ -121,7 +121,8 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
  * @return the squared euclidean distance between p1 and p2
  */
 template <class CoordinateType, size_t K>
-inline CoordinateType squared_distance(std::array<CoordinateType, K> const& p1, std::array<CoordinateType, K> const& p2)
+inline CoordinateType
+squared_distance(std::array<CoordinateType, K> const& p1, std::array<CoordinateType, K> const& p2)
 {
     auto const difference = [](auto&& tup) {
         auto const c1 = std::get<0>(tup);
@@ -138,27 +139,6 @@ inline CoordinateType squared_distance(std::array<CoordinateType, K> const& p1, 
         std::inner_product(c1_to_c2.begin(), c1_to_c2.end(), c1_to_c2.begin(), CoordinateType{0});
 
     return distance;
-}
-
-template <class Type, size_t K>
-inline std::array<Type, K> difference(std::array<Type, K> const& p1, std::array<Type, K> const& p2)
-{
-    auto difference = [](auto&& tup) {
-        auto const c1 = std::get<0>(tup);
-        auto const c2 = std::get<1>(tup);
-        return c2 - c1;
-    };
-    auto rng = ranges::views::zip(p1, p2) | ranges::views::transform(difference);
-    std::array<Type, K> p1_to_p2{};
-    std::copy(rng.begin(), rng.end(), p1_to_p2.begin());
-    return p1_to_p2;
-}
-
-template <class Type, size_t K>
-inline Type norm(std::array<Type, K> const& p1)
-{
-    Type norm = std::inner_product(p1.begin(), p1.end(), p1.begin(), Type{0});
-    return sqrt(norm);
 }
 
 } // namespace common

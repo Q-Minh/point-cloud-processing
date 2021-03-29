@@ -73,7 +73,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp    
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/plane3d.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/regular_grid3d.hpp

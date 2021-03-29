@@ -28,42 +28,35 @@ struct construction_params_t
 } // namespace radius_outlier_filter
 
 /**
- * @brief Iterates through the entire input once, and for each point, retrieves the number of
- * neighbors within a certain radius. The point will be considered an outlier if it has too few
- * neighbors, as determined by min_neighbors_in_radius(). The radius can be changed with radius()
+ * @brief Iterates through the entire input once, calculates the density of the points for every
+ * point and removes points that do not pass the density threshold passed in the parameters.
  *
- * @tparam Element Element type
+ * @tparam Element Element Type
  * @tparam ParametersType type of the parameters (double,float)
- * @tparam CoordinateMap coordinate map for a point
+ * @tparam PointMap Type satisfying PointMap concept
+ * @tparam RangeSearchMap Type satisfying Range concept
  */
-template <class Element, class ParametersType, class CoordinateMap>
+
+template <class Element, class ParametersType, class PointMap, class RangeSearchMap>
 class basic_radius_outlier_filter_t
 {
   public:
     using element_type      = Element;
-    using kdtree_type       = pcp::basic_linked_kdtree_t<element_type, 3u, CoordinateMap>;
     using parameters_type   = ParametersType;
     using parameters_object = radius_outlier_filter::construction_params_t<parameters_type>;
-    using coordinate_type   = traits::coordinate_type<CoordinateMap, Element>;
     template <class ForwardIterator>
     basic_radius_outlier_filter_t(
         ForwardIterator begin,
         ForwardIterator end,
-        CoordinateMap coordinate_map,
-        kdtree_type& kdtree,
+        PointMap point_map,
+        RangeSearchMap range_search_map,
         parameters_object params)
-        : coordinate_map_(coordinate_map), kdtree_(kdtree), params_(params)
+        : point_map_(point_map), range_search_map_(range_search_map), params_(params)
     {
     }
     bool operator()(element_type const& p)
     {
-        pcp::sphere_a<coordinate_type> ball;
-        ball.position[0] = coordinate_map_(p)[0];
-        ball.position[1] = coordinate_map_(p)[1];
-        ball.position[2] = coordinate_map_(p)[2];
-        ball.radius      = params_.radius_;
-
-        auto points_in_ball = kdtree_.range_search(ball);
+        auto points_in_ball = range_search_map_(point_map_(p), params_.radius_);
         auto density        = points_in_ball.size();
         return density < params_.min_neighbors_in_radius_ + 1;
     }
@@ -93,8 +86,8 @@ class basic_radius_outlier_filter_t
     void min_neighbors_in_radius(std::size_t min) { params_.min_neighbors_in_radius_ = min; }
 
   private:
-    kdtree_type& kdtree_;
-    CoordinateMap coordinate_map_;
+    PointMap point_map_;
+    RangeSearchMap range_search_map_;
     parameters_object params_;
 };
 

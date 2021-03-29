@@ -6,8 +6,15 @@ SCENARIO("pass_through_filter", "[pass_through_filter]")
     auto const coordinate_map = [](pcp::point_t const& p) {
         return std::array<float, 3u>{p.x(), p.y(), p.z()};
     };
+    auto const point_map = [](pcp::point_t const& p) {
+        return p;
+    };
     using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
-    using filter = pcp::basic_pass_through_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
+    using filter      = pcp::basic_pass_through_filter_t<
+        pcp::point_t,
+        float,
+        decltype(point_map),
+        decltype(coordinate_map)>;
     std::vector<pcp::point_t> points{};
     points.push_back(pcp::point_t{0.1f, 0.4f, 0.1f});
     points.push_back(pcp::point_t{2.2f, 2.1f, 0.4f});
@@ -30,8 +37,8 @@ SCENARIO("pass_through_filter", "[pass_through_filter]")
         filter pass_through_filter(
             points.begin(),
             points.end(),
+            point_map,
             coordinate_map,
-            kdtree,
             filter_params);
         auto it =
             std::remove_if(std::execution::seq, points.begin(), points.end(), pass_through_filter);

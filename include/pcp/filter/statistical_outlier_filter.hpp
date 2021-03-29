@@ -22,7 +22,7 @@ struct construction_params_t
 {
     using scalar_type                         = ScalarType;
     scalar_type std_dev_multiplier_threshold_ = static_cast<float>(1);
-    std::size_t mean_k_                       = 3u;
+    std::size_t mean_k_                       = 1;
 };
 } // namespace statistical_outlier_filter
 
@@ -36,26 +36,26 @@ struct construction_params_t
  *
  * @tparam Element Element type
  * @tparam ParametersType type of the parameters (double,float)
- * @tparam CoordinateMap coordinate map for a point
+ * @tparam PointMap Type satisfying PointMap concept
+ * @tparam KnnMap Type satisfying KnnMap concept
  */
-template <class Element, class ParametersType, class CoordinateMap>
+template <class Element, class ParametersType, class PointMap, class KnnMap>
 
 class basic_statistical_outlier_filter_t
 {
   public:
     using element_type      = Element;
-    using kdtree_type       = pcp::basic_linked_kdtree_t<element_type, 3u, CoordinateMap>;
     using parameters_type   = ParametersType;
     using parameters_object = statistical_outlier_filter::construction_params_t<parameters_type>;
-
+    using point_type        = std::invoke_result_t<PointMap, element_type>;
     template <class ForwardIterator>
     basic_statistical_outlier_filter_t(
         ForwardIterator begin,
         ForwardIterator end,
-        CoordinateMap coordinate_map,
-        kdtree_type& kdtree,
+        PointMap point_map,
+        KnnMap knn_map,
         parameters_object params)
-        : coordinate_map_(coordinate_map), kdtree_(kdtree), params_(params)
+        : point_map_(point_map), knn_map_(knn_map), params_(params)
     {
         // size is the number of points in the point cloud
         auto const& size = std::distance(begin, end);
@@ -66,16 +66,15 @@ class basic_statistical_outlier_filter_t
             end,
             std::inserter(mean_distances_, mean_distances_.end()),
             [&](element_type& p) {
-                auto const& neighbours = kdtree_.nearest_neighbours(p, params_.mean_k_);
+                point_type const pi    = point_map_(p);
+                auto const& neighbours = knn_map_(p);
                 auto const sum         = std::accumulate(
                     neighbours.cbegin(),
                     neighbours.cend(),
                     0.f,
-                    [&p, this](float val, element_type const& neighbour) {
-                        std::array<float, 3> p1 = coordinate_map_(neighbour);
-                        std::array<float, 3> p2 = coordinate_map_(p);
-                        auto const& difference  = pcp::common::difference<float, 3>(p1, p2);
-                        float const& distance   = pcp::common::norm<float, 3>(difference);
+                    [&](float val, element_type const& neighbour) {
+                        point_type pj         = point_map_(neighbour);
+                        float const& distance = pcp::common::norm(pi - pj);
                         return val + distance;
                     });
 
@@ -129,8 +128,8 @@ class basic_statistical_outlier_filter_t
     bool operator()(element_type& p) { return (mean_distances_[&p] > distance_threshold_); }
 
   private:
-    kdtree_type& kdtree_;
-    CoordinateMap coordinate_map_;
+    PointMap point_map_;
+    KnnMap knn_map_;
     parameters_object params_;
     float mean_;
     float distance_threshold_ = 0;

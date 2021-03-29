@@ -4,12 +4,15 @@
 
 SCENARIO("radious_outlier_filter", "[radious_outlier_filter]")
 {
+    auto const point_map = [](pcp::point_t const& p) {
+        return p;
+    };
+
     auto const coordinate_map = [](pcp::point_t const& p) {
         return std::array<float, 3u>{p.x(), p.y(), p.z()};
     };
     using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
-    using filter =
-        pcp::basic_radius_outlier_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
+
     std::vector<pcp::point_t> points{};
     points.push_back(pcp::point_t{1.5f, 1.0f, 0.1f});
     points.push_back(pcp::point_t{2.2f, 2.1f, 0.4f});
@@ -24,17 +27,33 @@ SCENARIO("radious_outlier_filter", "[radious_outlier_filter]")
     params.construction = pcp::kdtree::construction_t::nth_element;
 
     kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
+    auto const range_search_map = [&](pcp::point_t p, float radius) {
+        pcp::sphere_a<float> ball;
+        ball.position[0] = coordinate_map(p)[0];
+        ball.position[1] = coordinate_map(p)[1];
+        ball.position[2] = coordinate_map(p)[2];
+        ball.radius      = radius;
+        return kdtree.range_search(ball);
+    };
+
     pcp::radius_outlier_filter::construction_params_t<float> filter_params{};
-    filter_params.radius_ = 1.0f;
+    filter_params.radius_                  = 2.0f;
     filter_params.min_neighbors_in_radius_ = 2;
     WHEN("calculating radius outlier filter with two noisy points")
     {
+        using filter = pcp::basic_radius_outlier_filter_t<
+            pcp::point_t,
+            float,
+            decltype(point_map),
+            decltype(range_search_map)>;
+
         filter radius_outlier_filter(
             points.begin(),
             points.end(),
-            coordinate_map,
-            kdtree,
+            point_map,
+            range_search_map,
             filter_params);
+
         auto it = std::remove_if(
             std::execution::seq,
             points.begin(),
@@ -62,11 +81,14 @@ SCENARIO("radious_outlier_filter", "[radious_outlier_filter]")
             REQUIRE(std::count_if(points.cbegin(), points.cend(), [](auto const& p) {
                         return pcp::common::are_vectors_equal(pcp::point_t{2.1f, 1.9f, 0.3f}, p);
                     }) == 1u);
-            REQUIRE(std::count_if(points.cbegin(), points.cend(), [](auto const& p) {
+            REQUIRE(
+                std::count_if(points.cbegin(), points.cend(), [](auto const& p) {
                     return pcp::common::are_vectors_equal(pcp::point_t{600.0f, 600.0f, 600.0f}, p);
-                    }) == 0u);
+                }) == 0u);
             REQUIRE(std::count_if(points.cbegin(), points.cend(), [](auto const& p) {
-                    return pcp::common::are_vectors_equal(pcp::point_t{-300.0f, -300.0f, -300.0f}, p);
+                        return pcp::common::are_vectors_equal(
+                            pcp::point_t{-300.0f, -300.0f, -300.0f},
+                            p);
                     }) == 0u);
         }
     }

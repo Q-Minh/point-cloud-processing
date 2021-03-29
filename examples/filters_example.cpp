@@ -57,7 +57,12 @@ int main(int argc, char** argv)
     igl::opengl::glfw::Viewer viewer;
     igl::opengl::glfw::imgui::ImGuiMenu menu;
     viewer.plugins.push_back(&menu);
-
+    auto const reset = [&]() {
+        points.clear();
+        progress_str = "";
+        viewer.data().clear();
+        recon_progress = 0.0f;
+    };
     menu.callback_draw_viewer_window = [&]() {
         ImGui::Begin("Point Cloud Processing");
         if (ImGui::CollapsingHeader("Filters example", ImGuiTreeNodeFlags_DefaultOpen))
@@ -67,6 +72,7 @@ int main(int argc, char** argv)
             float p = ImGui::GetStyle().FramePadding.x;
             if (ImGui::Button("Load##PointCloud", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
+                reset();
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
                 auto [p, _]  = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
@@ -81,12 +87,12 @@ int main(int argc, char** argv)
             ImGui::SameLine();
             if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
             {
-                /*               std::filesystem::path ply_mesh = igl::file_dialog_save();
-                               pcp::io::write_ply(
-                                   ply_mesh,
-                                   points,
-                                   std::vector<normal_type>{},
-                                   pcp::io::ply_format_t::binary_little_endian);*/
+                std::filesystem::path ply_mesh = igl::file_dialog_save();
+                pcp::io::write_ply(
+                    ply_mesh,
+                    points,
+                    std::vector<normal_type>{},
+                    pcp::io::ply_format_t::binary_little_endian);
             }
 
             static ImU64 const step = 1;
@@ -134,10 +140,7 @@ int main(int argc, char** argv)
 
             if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
-                points.clear();
-                progress_str = ""; 
-                viewer.data().clear();
-                recon_progress = 0.0f;
+                reset();
             }
             if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
@@ -173,7 +176,6 @@ int main(int argc, char** argv)
                 progress_str = "Execution time: " + std::to_string(duration.count()) + " ms";
             }
 
-
             ImGui::TreePop();
         }
         ImGui::End();
@@ -196,20 +198,12 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
     auto const progress_forward        = [&]() {
         progress = progress + progress_increment;
     };
-    using stats_filter =
-        pcp::basic_statistical_outlier_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
-    using pass_through_filter =
-        pcp::basic_pass_through_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
-    using radius_outlier_filter =
-        pcp::basic_radius_outlier_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
-    using density_filter =
-        pcp::basic_density_filter_t<pcp::point_t, float, decltype(coordinate_map)>;
 
     using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
     pcp::kdtree::construction_params_t params{};
     params.max_depth    = 4u;
     params.construction = pcp::kdtree::construction_t::nth_element;
-
+    s
     pcp::statistical_outlier_filter::construction_params_t<float> statistical_filter_params{};
     pcp::pass_through_filter::construction_params_t<float> pass_through_filter_params{};
     pcp::radius_outlier_filter::construction_params_t<float> radius_outlier_filter_params{};
@@ -217,6 +211,42 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
 
     kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
     progress_forward();
+    auto const knn_map = [&](pcp::point_t const& p) {
+        std::size_t num_neighbors = static_cast<std::size_t>(mean_k);
+        return kdtree.nearest_neighbours(p, num_neighbors);
+    };
+    auto const point_map = [](pcp::point_t const& p) {
+        return p;
+    };
+    auto const range_search_map = [&](pcp::point_t p, float radius) {
+        pcp::sphere_a<float> ball;
+        ball.position[0] = coordinate_map(p)[0];
+        ball.position[1] = coordinate_map(p)[1];
+        ball.position[2] = coordinate_map(p)[2];
+        ball.radius      = radius;
+        return kdtree.range_search(ball);
+    };
+    using stats_filter = pcp::basic_statistical_outlier_filter_t<
+        pcp::point_t,
+        float,
+        decltype(point_map),
+        decltype(knn_map)>;
+    using pass_through_filter = pcp::basic_pass_through_filter_t<
+        pcp::point_t,
+        float,
+        decltype(point_map),
+        decltype(coordinate_map)>;
+    using radius_outlier_filter = pcp::basic_radius_outlier_filter_t<
+        pcp::point_t,
+        float,
+        decltype(point_map),
+        decltype(range_search_map)>;
+    using density_filter = pcp::basic_density_filter_t<
+        pcp::point_t,
+        float,
+        decltype(point_map),
+        decltype(knn_map),
+        decltype(range_search_map)>;
     if (filters_variant == 0)
     {
         statistical_filter_params.std_dev_multiplier_threshold_ = std_dev_multiplier_threshold;
@@ -225,8 +255,8 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
         stats_filter statistical_filter(
             points.begin(),
             points.end(),
-            coordinate_map,
-            kdtree,
+            point_map,
+            knn_map,
             statistical_filter_params);
         auto it =
             std::remove_if(std::execution::par, points.begin(), points.end(), statistical_filter);
@@ -241,13 +271,12 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
         pass_through_filter pass_through_filter(
             points.begin(),
             points.end(),
+            point_map,
             coordinate_map,
-            kdtree,
             pass_through_filter_params);
         auto it =
             std::remove_if(std::execution::par, points.begin(), points.end(), pass_through_filter);
         points.erase(it, points.end());
-        // apply filter here
     }
     else if (filters_variant == 2)
     {
@@ -257,8 +286,8 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
         radius_outlier_filter radius_outlier_filter(
             points.begin(),
             points.end(),
-            coordinate_map,
-            kdtree,
+            point_map,
+            range_search_map,
             radius_outlier_filter_params);
         auto it = std::remove_if(
             std::execution::par,
@@ -271,13 +300,13 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
     {
         density_filter_params.density_threshold_ = density_threshold;
         density_filter_params.radius_multiplier_ = radius_multiplier;
-        density_filter_params.k_                 = density_k;
 
         density_filter density_filter(
             points.begin(),
             points.end(),
-            coordinate_map,
-            kdtree,
+            point_map,
+            knn_map,
+            range_search_map,
             density_filter_params);
         auto it = std::remove_if(std::execution::par, points.begin(), points.end(), density_filter);
         points.erase(it, points.end());
