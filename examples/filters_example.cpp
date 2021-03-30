@@ -203,7 +203,6 @@ void apply_filter(std::vector<pcp::point_t>& points, std::atomic<float>& progres
     pcp::kdtree::construction_params_t params{};
     params.max_depth    = 4u;
     params.construction = pcp::kdtree::construction_t::nth_element;
-    s
     pcp::statistical_outlier_filter::construction_params_t<float> statistical_filter_params{};
     pcp::pass_through_filter::construction_params_t<float> pass_through_filter_params{};
     pcp::radius_outlier_filter::construction_params_t<float> radius_outlier_filter_params{};
