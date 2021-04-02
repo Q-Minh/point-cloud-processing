@@ -253,12 +253,12 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
     column_vector_3d_type const ns{pcp_ns.nx(), pcp_ns.ny(), pcp_ns.nz()};
 
     /**
-    * In the original normal improvement paper, they use the inverse transpose 
-    * of the jacobian. In our case, we directly use the jacobian 
-    * of the filter F(s), because it is in line with the intuition 
-    * of using the local spatial deformation of the field F(s) to 
-    * adjust normals.
-    */
+     * In the original normal improvement paper, they use the inverse transpose
+     * of the jacobian. In our case, we directly use the jacobian
+     * of the filter F(s), because it is in line with the intuition
+     * of using the local spatial deformation of the field F(s) to
+     * adjust normals.
+     */
     // ns' = J^(-T) * ns
     // matrix_3d_type const adj       = J.adjoint();
     column_vector_3d_type ns_prime = J * ns;
@@ -326,7 +326,7 @@ OutputIter bilateral_filter_points(
     scalar_type const sigmaf   = static_cast<scalar_type>(params.sigmaf);
     scalar_type const sigmag   = static_cast<scalar_type>(params.sigmag);
     std::size_t const K        = params.K;
-    scalar_type constexpr pi   = scalar_type{3.14159265358979323846};
+    scalar_type constexpr pi   = static_cast<scalar_type>(3.14159265358979323846);
     scalar_type constexpr zero = scalar_type{0.};
 
     assert(K > 0u);
@@ -425,17 +425,18 @@ OutputIter bilateral_filter_points(
  * @brief
  * Deforms the normal field of an input point cloud using the local deformation field of the
  * 3d bilateral filter (in other words, its Jacobian at a point p).
- * 
+ *
  * The bilateral filter is defined in the same way as in
  * 'Jones, Thouis R., Fredo Durand, and Matthias Zwicker. "Normal improvement for point rendering."
  * IEEE Computer Graphics and Applications 24.4 (2004): 53-56.'
- * 
- * This method should be used only for point rendering. It does not smooth input normals as one would 
- * expect for surface reconstruction. For normal smoothing, one should rather look at techniques 
- * such as EAR (edge aware resampling):
- * 
- * 'Huang, Hui, et al. "Edge-aware point set resampling." ACM transactions on graphics (TOG) 32.1 (2013): 1-12.'
- * 
+ *
+ * This method should be used only for point rendering. It does not smooth input normals as one
+ * would expect for surface reconstruction. For normal smoothing, one should rather look at
+ * techniques such as EAR (edge aware resampling):
+ *
+ * 'Huang, Hui, et al. "Edge-aware point set resampling." ACM transactions on graphics (TOG) 32.1
+ * (2013): 1-12.'
+ *
  * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
  * @tparam OutputIter Iterator type dereferenceable to a type satisfying Normal concept
  * @tparam PointMap Type satisfying PointMap concept
@@ -472,7 +473,7 @@ OutputIter bilateral_filter_normals(
     scalar_type const sigmaf   = static_cast<scalar_type>(params.sigmaf);
     scalar_type const sigmag   = static_cast<scalar_type>(params.sigmag);
     std::size_t const K        = params.K;
-    constexpr scalar_type pi   = scalar_type{3.14159265358979323846};
+    scalar_type constexpr pi   = static_cast<scalar_type>(3.14159265358979323846);
     scalar_type constexpr zero = scalar_type{0.};
 
     assert(K > 0u);
@@ -491,7 +492,7 @@ OutputIter bilateral_filter_normals(
     std::vector<input_normal_type> temporary_normals(N);
 
     auto const internal_point_map = [&](std::size_t const i) -> input_point_type {
-        return point_map(*std::next(begin, i));
+        return point_map(*std::next(begin, static_cast<difference_type>(i)));
     };
     auto const internal_normal_map = [&](std::size_t const i) -> input_normal_type {
         return normals[i];

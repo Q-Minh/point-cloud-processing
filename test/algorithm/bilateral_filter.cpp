@@ -103,7 +103,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
         {
             pcp::algorithm::bilateral::params_t params;
             params.K      = 2u;
-            params.sigmaf = get_mean_distance_to_neighbors();
+            params.sigmaf = static_cast<double>(get_mean_distance_to_neighbors());
             params.sigmag = params.sigmaf / 8.;
 
             std::vector<pcp::point_t> filtered_points{};
@@ -125,7 +125,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
         {
             pcp::algorithm::bilateral::params_t params;
             params.K      = 2u;
-            params.sigmaf = get_mean_distance_to_neighbors();
+            params.sigmaf = static_cast<double>(get_mean_distance_to_neighbors());
             params.sigmag = params.sigmaf / 8.;
 
             std::vector<pcp::normal_t> filtered_normals{};
