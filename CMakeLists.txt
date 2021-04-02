@@ -56,6 +56,7 @@ INTERFACE
         # algorithm
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/algorithm.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/average_distance_to_neighbors.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/bilateral_filter.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/covariance.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp

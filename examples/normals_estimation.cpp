@@ -1,5 +1,5 @@
 #include <iostream>
-#include <pcp/algorithm/estimate_normals.hpp>
+#include <pcp/algorithm/algorithm.hpp>
 #include <pcp/common/normals/normal.hpp>
 #include <pcp/common/points/point.hpp>
 #include <pcp/io/ply.hpp>
@@ -15,12 +15,29 @@ int main(int argc, char** argv)
     {
         std::cerr << "Usage:\n"
                   << "normals-estimation.exe <input ply file> <output ply file> [k neighborhood "
-                     "size] [parallel | seq]\n";
+                     "size] [parallel | seq] [bilateral <k iterations> <sigmaf multiplier> <sigmag "
+                     "multiplier>]\n";
         return -1;
     }
 
-    std::uint64_t const k                 = argc >= 4 ? std::stoull(argv[3]) : 10u;
-    bool const parallel                   = argc >= 5 ? std::string(argv[4]) == "parallel" : false;
+    std::uint64_t const k = argc >= 4 ? std::stoull(argv[3]) : 10u;
+    bool const parallel   = argc >= 5 ? std::string(argv[4]) == "parallel" : false;
+    bool const bilateral  = argc >= 6 ? std::string(argv[5]) == "bilateral" : false;
+
+    if (bilateral && argc < 9)
+    {
+        std::cerr << "bilateral argument requires:\n"
+                  << "\tk iterations: the number of iterations of bilateral filtering to apply\n"
+                  << "\tsigmaf multiplier: multiplier of average point distance to neighbors "
+                     "computing sigmaf = multiplier * avg\n"
+                  << "\tsigmag multiplier: multiplier of average point distance to neighbors "
+                     "computing sigmag = multiplier * avg\n";
+        return -1;
+    }
+
+    std::size_t const bk                  = std::stoull(argv[6]);
+    double const sigmaf_multiplier        = std::stod(argv[7]);
+    double const sigmag_multiplier        = std::stod(argv[8]);
     std::filesystem::path ply_point_cloud = argv[1];
 
     using index_type  = std::uint64_t;
@@ -59,7 +76,7 @@ int main(int argc, char** argv)
         params};
 
     auto const knn = [&](index_type const& i) {
-         return kdtree.nearest_neighbours(i, k);
+        return kdtree.nearest_neighbours(i, k);
     };
 
     auto const transform_op = [&](index_type const& i, pcp::normal_t const& n) {
@@ -98,6 +115,28 @@ int main(int argc, char** argv)
         point_map,
         normal_map,
         transform_op);
+
+    if (bilateral)
+    {
+        float avg = pcp::algorithm::average_distance_to_neighbors(
+            indices.begin(),
+            indices.end(),
+            point_map,
+            knn);
+
+        pcp::algorithm::bilateral::params_t params;
+        params.K      = bk;
+        params.sigmaf = sigmaf_multiplier * static_cast<double>(avg);
+        params.sigmag = sigmag_multiplier * static_cast<double>(avg);
+
+        pcp::algorithm::bilateral_filter_normals(
+            indices.begin(),
+            indices.end(),
+            normals.begin(),
+            point_map,
+            normal_map,
+            params);
+    }
 
     pcp::io::write_ply(
         std::filesystem::path(argv[2]),
