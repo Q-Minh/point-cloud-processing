@@ -2,7 +2,7 @@
 #define PCP_ALGORITHM_HPP
 
 /**
- * @file 
+ * @file
  * @defgroup algorithm algorithm
  * The algorithm module
  */
@@ -31,7 +31,14 @@
  * @ingroup algorithm
  */
 
+/**
+ * @defgroup smoothing-algorithm
+ * Point cloud smoothing algorithms
+ * @ingroup algorithm
+ */
+
 #include "average_distance_to_neighbors.hpp"
+#include "bilateral_filter.hpp"
 #include "common.hpp"
 #include "covariance.hpp"
 #include "estimate_normals.hpp"

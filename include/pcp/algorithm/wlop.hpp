@@ -300,8 +300,10 @@ OutputIter wlop(
     std::size_t const K  = params.k;
     bool const uniform   = params.uniform;
 
+    scalar_type constexpr zero{0.};
+    scalar_type constexpr half{.5};
     assert(I > 0u && J >= I);
-    assert(mu >= 0. && mu <= .5);
+    assert(mu >= zero && mu <= half);
     assert(K >= 0u);
 
     std::vector<scalar_type> alpha(I);

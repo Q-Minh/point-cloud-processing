@@ -5,7 +5,8 @@ target_sources(pcp-tests
 PRIVATE
   "main.cpp"
   "algorithm/average_distance_to_neighbors.cpp"
-  "algorithm/estimate_normals.cpp"
+  "algorithm/bilateral_filter.cpp"
+  "algorithm/estimate_normals.cpp" 
   "algorithm/estimate_tangent_planes.cpp"
   "algorithm/hierarchy_simplification.cpp"
   "algorithm/random_simplification.cpp"
