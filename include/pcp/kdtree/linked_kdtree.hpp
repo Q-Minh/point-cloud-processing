@@ -42,14 +42,14 @@ struct construction_params_t
  * The left child of the current node is always smaller than the current node on 1 dimension and
  * the right child of the current node is always greater than the current node on 1 dimension.
  * To compare, we simply alternate the dimension every
- * time we increase the depth. 
- * 
+ * time we increase the depth.
+ *
  * ex (k=2):
- * 
+ *
  * depth 0 => compare on the 1st dimension
- * 
+ *
  * depth 1 => compare on the 2nd dimension
- * 
+ *
  * depth 2 => compare on the 1st dimension again
  *
  * Our Kdtree implementation uses a flat storage of the elements
@@ -187,7 +187,7 @@ class basic_linked_kdtree_t
     aabb_type const& aabb() const { return aabb_; }
 
     /**
-     * @brief 
+     * @brief
      * Returns the k-nearest-neighbours in K dimensions Euclidean space.
      * This algorithm will not return a point that is the same as the target point.
      * The implementation is recursive.
@@ -195,12 +195,14 @@ class basic_linked_kdtree_t
      * neighbors
      * @param k The number of neighbors to return that are nearest to the specified point
      * @param eps eps The error tolerance for floating point equality
+     * @param return_target_point whether the algorithm returns the same point
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
     std::vector<element_type> nearest_neighbours(
         coordinates_type const& target,
         std::size_t k,
-        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
+        coordinate_type eps = static_cast<coordinate_type>(1e-5),
+        bool return_target_point   = false) const
     {
         auto const less_than_coordinates =
             [target](coordinates_type const& c1, coordinates_type const& c2) {
@@ -230,7 +232,8 @@ class basic_linked_kdtree_t
             less_than_coordinates,
             less_than_elements,
             max_heap,
-            eps);
+            eps,
+            return_target_point);
 
         std::vector<element_type> knearest_neighbours{};
         knearest_neighbours.reserve(k);
@@ -244,22 +247,24 @@ class basic_linked_kdtree_t
     }
 
     /**
-     * @brief 
+     * @brief
      * Returns the k-nearest-neighbours in K dimensions Euclidean space.
      * This algorithm will not return a point that is the same as the target point.
      * The implementation is recursive.
      * @param element_target The reference point for which we want the k nearest neighbors
      * @param k The number of neighbors to return that are nearest to the specified point
      * @param eps eps The error tolerance for floating point equality
+     * @param return_target_point whether the algorithm returns the same point
      * @return A list of nearest points ordered from nearest to furthest of size s where 0 <= s <= k
      */
     std::vector<element_type> nearest_neighbours(
         element_type const& element_target,
         std::size_t k,
-        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
+        coordinate_type eps = static_cast<coordinate_type>(1e-5),
+        bool return_target_point   = false) const
     {
         coordinates_type const& target = coordinate_map_(element_target);
-        return nearest_neighbours(target, k, eps);
+        return nearest_neighbours(target, k, eps, return_target_point);
     }
 
     /**
@@ -444,7 +449,8 @@ class basic_linked_kdtree_t
         ElementLessThanType const& element_less_than,
         std::priority_queue<element_type*, std::vector<element_type*>, ElementLessThanType>&
             max_heap,
-        coordinate_type eps = static_cast<coordinate_type>(1e-5)) const
+        coordinate_type eps = static_cast<coordinate_type>(1e-5),
+        bool return_target_point   = false) const
     {
         /**
          * Add elements of the current node in our current
@@ -471,7 +477,7 @@ class basic_linked_kdtree_t
                 return are_kd_vectors_equal(target, element_coordinates);
             };
 
-            if (is_target(*element))
+            if (!return_target_point && is_target(*element))
                 continue;
 
             if (!is_heap_full)
@@ -529,7 +535,8 @@ class basic_linked_kdtree_t
                         coordinates_less_than,
                         element_less_than,
                         max_heap,
-                        eps);
+                        eps,
+                        return_target_point);
                 }
             }
         };

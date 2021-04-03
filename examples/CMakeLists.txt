@@ -65,5 +65,7 @@ add_example(${_folder_name}
   add_example(${_folder_name} 
   pcp-example-filters_example
   filters_example.cpp)
-
+  add_example(${_folder_name} 
+  pcp-example-icp_example
+  icp_example.cpp)
   
