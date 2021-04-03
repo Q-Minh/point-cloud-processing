@@ -93,7 +93,7 @@ int main(int argc, char** argv)
             //        pcp::io::ply_format_t::binary_little_endian);
             //}
 
-            //static ImU64 const step = 1;
+            // static ImU64 const step = 1;
 
             if (ImGui::CollapsingHeader("Display##PointCloud", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -149,6 +149,23 @@ int main(int argc, char** argv)
     viewer.launch();
 
     return 0;
+}
+
+void step_icp(std::vector<pcp::point_t>& points, std::atomic<float>& progress)
+{
+    auto const coordinate_map = [](pcp::point_t const& p) {
+        return std::array<float, 3u>{p.x(), p.y(), p.z()};
+    };
+    using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
+    pcp::kdtree::construction_params_t params{};
+    params.max_depth    = 4u;
+    params.construction = pcp::kdtree::construction_t::nth_element;
+    kdtree_type kdtree{points.begin(), points.end(), coordinate_map, params};
+    // progress_forward();
+    auto const knn_map = [&](pcp::point_t const& p) {
+        std::size_t num_neighbors = static_cast<std::size_t>(3);
+        return kdtree.nearest_neighbours(p, num_neighbors);
+    };
 }
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points)
