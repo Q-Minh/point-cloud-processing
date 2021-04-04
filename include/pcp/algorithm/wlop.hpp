@@ -235,7 +235,7 @@ struct params_t
     std::size_t I = 0u;   ///< Size of resampled point cloud
     double mu     = 0.45; ///< Repulsion coefficient
     double h      = 0.;   ///< Radial functions' support
-    std::size_t k = 10u;  ///< Number of solver iterations
+    std::size_t K = 10u;  ///< Number of solver iterations
     bool uniform  = true; ///< Use local densities to handle non-uniform point clouds. If uniform is
                           ///< false, LOP is performed instead.
 };
@@ -297,15 +297,13 @@ OutputIter wlop(
     std::size_t const I  = params.I;
     scalar_type const mu = static_cast<scalar_type>(params.mu);
     scalar_type const h  = static_cast<scalar_type>(params.h);
-    std::size_t const K  = params.k;
+    std::size_t const K  = params.K;
     bool const uniform   = params.uniform;
 
     assert(I > 0u && J >= I);
     assert(mu >= 0. && mu <= .5);
     assert(K >= 0u);
 
-    std::vector<scalar_type> alpha(I);
-    std::vector<scalar_type> beta(I);
     std::vector<scalar_type> vj(J, scalar_type{1.0});
     std::vector<scalar_type> wi(I, scalar_type{1.0});
     std::vector<output_point_type> x(I);

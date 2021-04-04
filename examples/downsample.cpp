@@ -6,6 +6,8 @@
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <pcp/algorithm/average_distance_to_neighbors.hpp>
+#include <pcp/algorithm/edge_aware_upsampling.hpp>
+#include <pcp/algorithm/estimate_normals.hpp>
 #include <pcp/algorithm/hierarchy_simplification.hpp>
 #include <pcp/algorithm/random_simplification.hpp>
 #include <pcp/algorithm/wlop.hpp>
@@ -36,6 +38,7 @@ int main(int argc, char** argv)
     viewer.plugins.push_back(&menu);
 
     std::vector<point_type> input_point_cloud;
+    std::vector<normal_type> input_normals;
     std::vector<std::size_t> indices;
     std::vector<point_type> output_point_cloud;
     float input_mu = 0.f;
@@ -45,6 +48,9 @@ int main(int argc, char** argv)
 
     auto const point_map = [&](std::size_t const i) {
         return input_point_cloud[i];
+    };
+    auto const normal_map = [&](std::size_t const i) {
+        return input_normals[i];
     };
 
     menu.callback_draw_viewer_window = [&]() {
@@ -83,7 +89,7 @@ int main(int argc, char** argv)
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [p, _] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+                auto [p, n] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
                 if (!p.empty())
                 {
                     input_point_cloud = std::move(p);
@@ -95,6 +101,11 @@ int main(int argc, char** argv)
                         point_map,
                         static_cast<std::size_t>(knn));
                     draw_point_cloud();
+                }
+
+                if (!n.empty())
+                {
+                    input_normals = std::move(n);
                 }
             }
             ImGui::SameLine();
@@ -143,7 +154,7 @@ int main(int argc, char** argv)
 
                     pcp::algorithm::wlop::params_t params;
                     params.I       = static_cast<std::size_t>(I);
-                    params.k       = static_cast<std::size_t>(k);
+                    params.K       = static_cast<std::size_t>(k);
                     params.mu      = static_cast<double>(mu);
                     params.uniform = uniform;
 
@@ -215,12 +226,45 @@ int main(int argc, char** argv)
             }
         }
 
+        if (ImGui::CollapsingHeader("EAR", ImGuiTreeNodeFlags_DefaultOpen))
+        {
+            float const w = ImGui::GetContentRegionAvailWidth();
+            float const p = ImGui::GetStyle().FramePadding.x;
+
+            if (ImGui::Button("Downsample##EAR", ImVec2((w - p) / 2.f, 0.f)) &&
+                !is_downsampling_running())
+            {
+                progress_str     = "Executing ...";
+                execution_handle = std::async(std::launch::async, [&]() {
+                    timer.register_op("ear");
+                    timer.start();
+
+                    std::size_t const output_size =
+                        static_cast<std::size_t>(input_point_cloud.size());
+                    output_point_cloud.clear();
+                    output_point_cloud.resize(output_size);
+
+                    pcp::algorithm::ear::params_t ear_params{};
+
+                    pcp::algorithm::edge_aware_upsampling(
+                        indices.begin(),
+                        indices.end(),
+                        output_point_cloud.begin(),
+                        point_map,
+                        normal_map,
+                        ear_params);
+
+                    timer.stop();
+                });
+            }
+        }
+
         if (ImGui::CollapsingHeader("Random", ImGuiTreeNodeFlags_DefaultOpen))
         {
             static int downsampled_size = 0;
 
-            float w = ImGui::GetContentRegionAvailWidth();
-            float p = ImGui::GetStyle().FramePadding.x;
+            float const w = ImGui::GetContentRegionAvailWidth();
+            float const p = ImGui::GetStyle().FramePadding.x;
 
             ImGui::InputInt("downsampled size##Random", &downsampled_size);
 

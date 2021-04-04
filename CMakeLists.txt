@@ -58,10 +58,12 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/average_distance_to_neighbors.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/covariance.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/edge_aware_upsampling.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/hierarchy_simplification.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/random_simplification.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/resample_away_from_edges.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/wlop.hpp
 

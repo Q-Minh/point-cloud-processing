@@ -34,10 +34,12 @@
 #include "average_distance_to_neighbors.hpp"
 #include "common.hpp"
 #include "covariance.hpp"
+#include "edge_aware_upsampling.hpp"
 #include "estimate_normals.hpp"
 #include "estimate_tangent_planes.hpp"
 #include "hierarchy_simplification.hpp"
 #include "random_simplification.hpp"
+#include "resample_away_from_edges.hpp"
 #include "surface_nets.hpp"
 #include "wlop.hpp"
 
