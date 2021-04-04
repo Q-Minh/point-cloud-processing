@@ -7,9 +7,9 @@
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
 #include <igl/writePLY.h>
 #include <iostream>
+#include <pcp/algorithm/icp.hpp>
 #include <pcp/pcp.hpp>
 #include <sstream>
-
 
 Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points);
 
@@ -25,11 +25,11 @@ ScalarType step_icp(
 auto const coordinate_map = [](pcp::point_t const& p) {
     return std::array<float, 3u>{p.x(), p.y(), p.z()};
 };
-
+using normal_type = pcp::normal_t;
 using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
 int main(int argc, char** argv)
 {
-    pcp::point_t shift                         = pcp::point_t{3.00, 0, 0};
+    pcp::point_t shift                       = pcp::point_t{3.00, 0, 0};
     static std::atomic<float> recon_progress = 0.f;
     static std::vector<pcp::point_t> points;
     static std::vector<pcp::point_t> points_B;
@@ -203,18 +203,18 @@ ScalarType step_icp(
         Eigen::Vector4f v_source_points(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
 
         auto p       = m_src_tm * m_init_tm * v_source_points;
-        auto const k = pcp::icp::nearestNeighbor(knn_map, p);
+        auto const k = pcp::algorithm::icp::nearest_neighbor(knn_map, p);
 
         m_src(i, 0) = p(0);
         m_src(i, 1) = p(1);
         m_src(i, 2) = p(2);
         A(i, 0)     = k.x();
         A(i, 1)     = k.y();
-        A(i, 2)     = k_z();
+        A(i, 2)     = k.z();
     }
-    auto const m_t = pcp::icp::best_fit_Transform(A, m_src);
+    auto const m_t = pcp::algorithm::icp::best_fit_Transform(A, m_src);
     m_src_tm       = m_t * m_src_tm;
-    return pcp::icp::error(m_ref, m_src);
+    return pcp::algorithm::icp::error(m_ref, m_src);
 }
 
 Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points)

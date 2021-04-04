@@ -22,20 +22,20 @@ ScalarType error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
     const auto a_size = A.rows();
     const auto b_size = B.rows();
     assert(a_size == b_size);
-    scalar_type somme = 0;
+    ScalarType err = 0;
     //#pragma omp parallel reduction(+ : somme)
     for (int i = 0; i < a_size; i++)
     {
         auto const diff_x = (A(i, 0)) - (B(i, 0));
         auto const diff_y = (A(i, 1)) - (B(i, 1));
         auto const diff_z = (A(i, 2)) - (B(i, 2));
-        somme += sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
+        err += sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
     }
-    return somme;
+    return err;
 }
 
 template <class ElementType, class KnnMap>
-ElementType nearestNeighbor(KnnMap knn_map, ElementType point)
+ElementType nearest_neighbor(KnnMap knn_map, ElementType point)
 {
     return knn_map(point);
 }
@@ -72,10 +72,10 @@ Eigen::Matrix4f best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf con
         bb(i, 2) = b(i, 2) - center_b(2);
     }
     Eigen::Matrix3f covariance = Eigen::Matrix3f::Zero();
-    for (int i = 0, i < a_size; i++)
+    for (int i = 0; i < a_size; i++)
     {
-        covariance +=
-            Eigen::Vector3f(aa(i,0), aa(i,1), aa(i,2) * Eigen::Vector3f(bb(i,0), bb(i,1), bb(i,2)).transpose();
+        covariance += Eigen::Vector3f(aa(i, 0), aa(i, 1), aa(i, 2)) *
+                      Eigen::Vector3f(bb(i, 0), bb(i, 1), bb(i, 2)).transpose();
     }
 
     Eigen::JacobiSVD<Eigen::Matrix3f> svd(covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
