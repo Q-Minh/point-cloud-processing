@@ -30,20 +30,20 @@ using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordi
 int main(int argc, char** argv)
 {
     pcp::point_t shift                       = pcp::point_t{3.00, 0, 0};
-    static std::atomic<float> recon_progress = 0.f;
-    static std::vector<pcp::point_t> points;
-    static std::vector<pcp::point_t> points_B;
+    std::atomic<float> recon_progress = 0.f;
+    std::vector<pcp::point_t> points;
+    std::vector<pcp::point_t> points_B;
 
-    static std::future<void> execution_handle{};
-    static std::string progress_str{""};
+    std::future<void> execution_handle{};
+    std::string progress_str{""};
     pcp::common::basic_timer_t timer;
 
-    static Eigen::MatrixXf m_ref;
-    static Eigen::MatrixXf m_src;
+    Eigen::MatrixXf m_ref;
+    Eigen::MatrixXf m_src;
     // transformation done by gui
-    static Eigen::Matrix4f m_init_tm = Eigen::MatrixXf::Identity(4, 4);
+    Eigen::Matrix4f m_init_tm = Eigen::MatrixXf::Identity(4, 4);
     // calculated via best fit transform
-    static Eigen::Matrix4f m_src_tm = Eigen::MatrixXf::Identity(4, 4);
+    Eigen::Matrix4f m_src_tm = Eigen::MatrixXf::Identity(4, 4);
 
     static pcp::kdtree::construction_params_t params{};
     params.max_depth      = 4u;
@@ -142,7 +142,7 @@ int main(int argc, char** argv)
                         auto const knn_map = [&](Eigen::Vector4f const& p) {
                             auto converted_point      = pcp::point_t{p(0), p(1), p(2)};
                             std::size_t num_neighbors = static_cast<std::size_t>(1);
-                            return kdtree.nearest_neighbours(converted_point, num_neighbors)[0];
+                            return kdtree.nearest_neighbours(converted_point, num_neighbors);
                         };
                         step_icp<float, decltype(knn_map)>(
                             m_src,
@@ -191,6 +191,8 @@ template <class ScalarType, class KnnMap>
 ScalarType step_icp(
     Eigen::MatrixXf& m_src,
     Eigen::MatrixXf& m_ref,
+    std::vector<pcp::point_t> const& points_ref,
+    std::vector<pcp::point_t> const& points_src,
     Eigen::Matrix4f& m_src_tm,
     Eigen::Matrix4f& m_init_tm,
     KnnMap knn_map,
@@ -198,22 +200,31 @@ ScalarType step_icp(
 {
     auto const n = m_src.rows();
     Eigen::MatrixXf A(n);
-    for (int i = 0; i < n; ++i)
-    {
-        Eigen::Vector4f p(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
+    // downsample largest to smallest
+    // n = smallest
 
-        p = m_src_tm * m_init_tm * p;
-        // converted_pt = = pcp::point_t{p(0), p(1), p(2)};
-        auto const k = knn_map(p);
+    std::vector<pcp::point_t> ref(n);
+    std::transform(points_src.begin(), points_src.end(), ref.begin(), [&](pcp::point_t const& p) {
+        auto const neighbors = knn_map(p);
+        return neighbors.front();
+    });
 
-        m_src(i, 0) = p(0);
-        m_src(i, 1) = p(1);
-        m_src(i, 2) = p(2);
-        A(i, 0)     = k.x();
-        A(i, 1)     = k.y();
-        A(i, 2)     = k.z();
-    }
-    auto const m_t = pcp::algorithm::icp_best_fit_Transform<float>(A, m_src);
+    //for (int i = 0; i < n; ++i)
+    //{
+    //    Eigen::Vector4f p(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
+
+    //    p = m_src_tm * m_init_tm * p;
+    //    // converted_pt = = pcp::point_t{p(0), p(1), p(2)};
+    //    auto const k = knn_map(p);
+
+    //    m_src(i, 0) = p(0);
+    //    m_src(i, 1) = p(1);
+    //    m_src(i, 2) = p(2);
+    //    A(i, 0)     = k.x();
+    //    A(i, 1)     = k.y();
+    //    A(i, 2)     = k.z();
+    //}
+    auto const m_t = pcp::algorithm::icp_best_fit_transform<float>(A, m_src);
     m_src_tm       = m_t * m_src_tm;
     return pcp::algorithm::icp_error<float>(m_ref, m_src);
 }

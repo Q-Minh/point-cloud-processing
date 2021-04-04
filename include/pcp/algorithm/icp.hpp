@@ -40,72 +40,93 @@ ElementType icp_nearest_neighbor(KnnMap knn_map, ElementType point)
     return knn_map(point);
 }
 
-template <class ScalarType>
-Eigen::Matrix4f icp_best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
+template <class ForwardIterator1, class ForwardIterator2, class PointMap1, class PointMap2>
+std::pair<
+    Eigen::Matrix<
+        typename std::invoke_result_t<
+            PointMap1,
+            typename std::iterator_traits<ForwardIterator1>::value_type>::coordinate_type,
+        3,
+        3>,
+    Eigen::Matrix<
+        typename std::invoke_result_t<
+            PointMap1,
+            typename std::iterator_traits<ForwardIterator1>::value_type>::coordinate_type,
+        3,
+        1>>
+icp_best_fit_transform(
+    ForwardIterator1 begin_a,
+    ForwardIterator1 end_a,
+    ForwardIterator1 begin_b,
+    ForwardIterator1 end_b,
+    PointMap1 const& point_map_a,
+    PointMap2 const& point_map_b)
 {
-    Eigen::Vector3f center_a, center_b;
-    const auto a_size = A.rows();
-    const auto b_size = B.rows();
+    using element_type_a = typename std::iterator_traits<ForwardIterator1>::value_type;
+    using element_type_b = typename std::iterator_traits<ForwardIterator2>::value_type;
+
+    using point_type_a = std::invoke_result_t<PointMap1, element_type_a>;
+    using point_type_b = std::invoke_result_t<PointMap2, element_type_b>;
+
+    using scalar_type = typename point_type_a::coordinate_type;
+
+    using matrix_3_type = Eigen::Matrix<scalar_type, 3, 3>;
+    using vector_3_type = Eigen::Matrix<scalar_type, 3, 1>;
+
+    auto const a_size = static_cast<std::size_t>(std::distance(begin_a, end_a));
+    auto const b_size = static_cast<std::size_t>(std::distance(begin_b, end_b));
     assert(a_size == b_size);
 
-    for (int i = 0; i < a_size; i++)
+    auto const center_a = common::center_of_geometry(begin_a, end_a, point_map_a);
+    auto const center_b = common::center_of_geometry(begin_b, end_b, point_map_b);
+
+    std::array<scalar_type, 6u> cov{0.};
+
+    for (size_t i = 0u; i < a_size; ++i)
     {
-        center_a(0) += A(i, 0);
-        center_a(1) += A(i, 1);
-        center_a(2) += A(i, 2);
-        center_b(0) += B(i, 0);
-        center_b(1) += B(i, 1);
-        center_b(2) += B(i, 2);
-    }
-    center_a /= a_size;
-    center_b /= b_size;
+        auto it_a = std::next(begin_a, i);
+        auto it_b = std::next(begin_a, i);
 
-    Eigen::MatrixXf aa, bb;
-    for (int i = 0; i < a_size; i++)
-    {
-        aa(i, 0) = A(i, 0) - center_a(0);
-        aa(i, 1) = A(i, 1) - center_a(1);
-        aa(i, 2) = A(i, 2) - center_a(2);
+        auto const a = point_map_a(*it_a);
+        auto const b = point_map_b(*it_b);
 
-        bb(i, 0) = B(i, 0) - center_b(0);
-        bb(i, 1) = B(i, 1) - center_b(1);
-        bb(i, 2) = B(i, 2) - center_b(2);
-    }
-    Eigen::Matrix3f covariance = Eigen::Matrix3f::Zero();
-    for (int i = 0; i < a_size; i++)
-    {
-        covariance += Eigen::Vector3f(aa(i, 0), aa(i, 1), aa(i, 2)) *
-                      Eigen::Vector3f(bb(i, 0), bb(i, 1), bb(i, 2)).transpose();
+        scalar_type ax, ay, az, bx, by, bz;
+        ax = a.x() - center_a.x();
+        ay = a.y() - center_a.y();
+        az = a.z() - center_a.z();
+        bx = b.x() - center_b.x();
+        by = b.y() - center_b.y();
+        bz = b.z() - center_b.z();
+
+        cov[0] += ax * bx;
+        cov[1] += ay * by;
+        cov[2] += az * bz;
+        cov[3] += ax * by;
+        cov[4] += ax * bz;
+        cov[5] += ay * bz;
     }
 
-    Eigen::JacobiSVD<Eigen::Matrix3f> svd(covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::Matrix3f U = svd.matrixU();
-    Eigen::Matrix3f V = svd.matrixV();
+    matrix_3_type Covariance;
+    Covariance(0, 0) = cov[0];
+    Covariance(1, 1) = cov[1];
+    Covariance(2, 2) = cov[2];
+    Covariance(0, 1) = cov[3];
+    Covariance(0, 2) = cov[4];
+    Covariance(1, 2) = cov[5];
+    Covariance(1, 0) = Covariance(0, 1);
+    Covariance(2, 0) = Covariance(0, 2);
+    Covariance(2, 1) = Covariance(1, 2);
 
-    Eigen::Matrix3f R_ = U * (V.transpose());
+    Eigen::JacobiSVD<matrix_3_type> SVD(Covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    matrix_3_type U = SVD.matrixU();
+    matrix_3_type V = SVD.matrixV();
+    
+    matrix_3_type R = U * (V.transpose());
 
-    Eigen::Vector3f t_ = Eigen::Vector3f(center_a(0), center_a(1), center_a(2)) -
-                         R_ * Eigen::Vector3f(center_b(0), center_b(1), center_b(2));
+    vector_3_type t = vector_3_type(center_a.x(), center_a.y(), center_a.z()) -
+                         R * vector_3_type(center_b.x(), center_b.y(), center_b.z());
 
-    Eigen::Matrix4f transformation_matrix = Eigen::MatrixXf::Identity(4, 4);
-
-
-
-    transformation_matrix(0, 0) = R_(0, 0);
-    transformation_matrix(0, 1) = R_(0, 1);
-    transformation_matrix(0, 2) = R_(0, 2);
-    transformation_matrix(1, 0) = R_(1, 0);
-    transformation_matrix(1, 1) = R_(1, 1);
-    transformation_matrix(1, 2) = R_(1, 2);
-    transformation_matrix(2, 0) = R_(2, 0);
-    transformation_matrix(2, 1) = R_(2, 1);
-    transformation_matrix(2, 2) = R_(2, 2);
-
-    transformation_matrix(3, 0) = t_(0);
-    transformation_matrix(3, 1) = t_(1);
-    transformation_matrix(3, 2) = t_(2);
-
-    return transformation_matrix;
+    return {R, t};
 }
 } // namespace algorithm
 } // namespace pcp
