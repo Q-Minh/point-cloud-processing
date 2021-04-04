@@ -17,7 +17,7 @@ namespace pcp {
 namespace algorithm {
 
 template <class ScalarType>
-ScalarType error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
+ScalarType icp_error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 {
     const auto a_size = A.rows();
     const auto b_size = B.rows();
@@ -35,13 +35,13 @@ ScalarType error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 }
 
 template <class ElementType, class KnnMap>
-ElementType nearest_neighbor(KnnMap knn_map, ElementType point)
+ElementType icp_nearest_neighbor(KnnMap knn_map, ElementType point)
 {
     return knn_map(point);
 }
 
 template <class ScalarType>
-Eigen::Matrix4f best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
+Eigen::Matrix4f icp_best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 {
     Eigen::Vector3f center_a, center_b;
     const auto a_size = A.rows();
@@ -63,13 +63,13 @@ Eigen::Matrix4f best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf con
     Eigen::MatrixXf aa, bb;
     for (int i = 0; i < a_size; i++)
     {
-        aa(i, 0) = a(i, 0) - center_a(0);
-        aa(i, 1) = a(i, 1) - center_a(1);
-        aa(i, 2) = a(i, 2) - center_a(2);
+        aa(i, 0) = A(i, 0) - center_a(0);
+        aa(i, 1) = A(i, 1) - center_a(1);
+        aa(i, 2) = A(i, 2) - center_a(2);
 
-        bb(i, 0) = b(i, 0) - center_b(0);
-        bb(i, 1) = b(i, 1) - center_b(1);
-        bb(i, 2) = b(i, 2) - center_b(2);
+        bb(i, 0) = B(i, 0) - center_b(0);
+        bb(i, 1) = B(i, 1) - center_b(1);
+        bb(i, 2) = B(i, 2) - center_b(2);
     }
     Eigen::Matrix3f covariance = Eigen::Matrix3f::Zero();
     for (int i = 0; i < a_size; i++)
@@ -88,19 +88,22 @@ Eigen::Matrix4f best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf con
                          R_ * Eigen::Vector3f(center_b(0), center_b(1), center_b(2));
 
     Eigen::Matrix4f transformation_matrix = Eigen::MatrixXf::Identity(4, 4);
-    // convert to cv::Mat
-    transformation_matrix.block<3, 3>(0, 0) =
-        (Mat_<double>(3, 3) << R_(0, 0),
-         R_(0, 1),
-         R_(0, 2),
-         R_(1, 0),
-         R_(1, 1),
-         R_(1, 2),
-         R_(2, 0),
-         R_(2, 1),
-         R_(2, 2));
 
-    transformation_matrix.block<3, 1>(0, 3) = (Mat_<double>(3, 1) << t_(0, 0), t_(1, 0), t_(2, 0));
+
+
+    transformation_matrix(0, 0) = R_(0, 0);
+    transformation_matrix(0, 1) = R_(0, 1);
+    transformation_matrix(0, 2) = R_(0, 2);
+    transformation_matrix(1, 0) = R_(1, 0);
+    transformation_matrix(1, 1) = R_(1, 1);
+    transformation_matrix(1, 2) = R_(1, 2);
+    transformation_matrix(2, 0) = R_(2, 0);
+    transformation_matrix(2, 1) = R_(2, 1);
+    transformation_matrix(2, 2) = R_(2, 2);
+
+    transformation_matrix(3, 0) = t_(0);
+    transformation_matrix(3, 1) = t_(1);
+    transformation_matrix(3, 2) = t_(2);
 
     return transformation_matrix;
 }

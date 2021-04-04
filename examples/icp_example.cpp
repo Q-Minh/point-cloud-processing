@@ -139,7 +139,7 @@ int main(int argc, char** argv)
                             points.end(),
                             coordinate_map,
                             params};
-                        pcp::point_t knn_map = [&](Eigen::Vector4f const& p) {
+                        auto const knn_map = [&](Eigen::Vector4f const& p) {
                             auto converted_point      = pcp::point_t{p(0), p(1), p(2)};
                             std::size_t num_neighbors = static_cast<std::size_t>(1);
                             return kdtree.nearest_neighbours(converted_point, num_neighbors)[0];
@@ -150,7 +150,7 @@ int main(int argc, char** argv)
                             m_src_tm,
                             m_init_tm,
                             knn_map,
-                            progress);
+                            recon_progress);
                         timer.stop();
                     });
                 }
@@ -200,10 +200,11 @@ ScalarType step_icp(
     Eigen::MatrixXf A(n);
     for (int i = 0; i < n; ++i)
     {
-        Eigen::Vector4f v_source_points(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
+        Eigen::Vector4f p(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
 
-        auto p       = m_src_tm * m_init_tm * v_source_points;
-        auto const k = pcp::algorithm::icp::nearest_neighbor(knn_map, p);
+        p = m_src_tm * m_init_tm * p;
+        // converted_pt = = pcp::point_t{p(0), p(1), p(2)};
+        auto const k = knn_map(p);
 
         m_src(i, 0) = p(0);
         m_src(i, 1) = p(1);
@@ -212,9 +213,9 @@ ScalarType step_icp(
         A(i, 1)     = k.y();
         A(i, 2)     = k.z();
     }
-    auto const m_t = pcp::algorithm::icp::best_fit_Transform(A, m_src);
+    auto const m_t = pcp::algorithm::icp_best_fit_Transform<float>(A, m_src);
     m_src_tm       = m_t * m_src_tm;
-    return pcp::algorithm::icp::error(m_ref, m_src);
+    return pcp::algorithm::icp_error<float>(m_ref, m_src);
 }
 
 Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points)
