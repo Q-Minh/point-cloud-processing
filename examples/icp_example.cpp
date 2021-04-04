@@ -229,5 +229,3 @@ Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points)
     }
     return P;
 }
-
- 
