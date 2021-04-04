@@ -16,101 +16,78 @@
 namespace pcp {
 namespace algorithm {
 
-template <class ForwardIterator, class ScalarType, class PointMap, class CoordinateMap>
-ScalarType error(
-    ForwardIterator begin_A,
-    ForwardIterator end_A,
-    ForwardIterator begin_B,
-    ForwardIterator end_B,
-    PointMap point_map,
-    CoordinateMap coordinate_map)
+template <class ScalarType>
+ScalarType error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 {
-    using scalar_type  = ScalarType;
-    using element_type = typename std::iterator_traits<ForwardIterator>::value_type;
-    using point_type   = std::invoke_result_t<PointMap, element_type>;
-
-    auto const length_a = end_A - begin_A;
-    auto const length_b = end_B - begin_A;
-    assert(length_a == length_b);
+    const auto a_size = A.rows();
+    const auto b_size = B.rows();
+    assert(a_size == b_size);
     scalar_type somme = 0;
     //#pragma omp parallel reduction(+ : somme)
-    for (; begin_A != end_A; begin_A++, begin_B++)
+    for (int i = 0; i < a_size; i++)
     {
-        auto const pt_a             = point_map(begin_A);
-        auto const pt_b             = point_map(begin_B);
-        auto const pt_a_coordinates = coordinate_map(pt_a);
-        auto const pt_b_coordinates = coordinate_map(pt_b);
-
-        assert(pt_a_coordinates.size() == pt_b_coordinates.size());
-        auto const diff_x = (pt_a_coordinates[0]) - (pt_b_coordinates[0]);
-        auto const diff_y = (pt_a_coordinates[1]) - (pt_b_coordinates[1]);
-        auto const diff_z = (pt_a_coordinates[2]) - (pt_b_coordinates[2]);
+        auto const diff_x = (A(i, 0)) - (B(i, 0));
+        auto const diff_y = (A(i, 1)) - (B(i, 1));
+        auto const diff_z = (A(i, 2)) - (B(i, 2));
         somme += sqrt(diff_x * diff_x + diff_y * diff_y + diff_z * diff_z);
     }
     return somme;
 }
 
-template <class ElementType, class PointMap, class KnnMap>
+template <class ElementType, class KnnMap>
 ElementType nearestNeighbor(KnnMap knn_map, ElementType point)
 {
     return knn_map(point);
 }
 
-template <class ForwardIterator, class ScalarType, class PointMap, class CoordinateMap>
-Eigen::Matrix4d best_fit_Transform(
-    ForwardIterator begin_A,
-    ForwardIterator end_A,
-    ForwardIterator begin_B,
-    ForwardIterator end_B,
-    PointMap point_map,
-    CoordinateMap coordinate_map)
+template <class ScalarType>
+Eigen::Matrix4f best_fit_Transform(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 {
-    using element_type = typename std::iterator_traits<ForwardIterator>::value_type;
-    using point_type   = pcp::point_t; // std::invoke_result_t<PointMap, element_type>;
-
-    point_type center_a, center_b;
-    int a_size = std::distance(begin_A, end_A);
-    int b_size = std::distance(begin_B, begin_B);
+    Eigen::Vector3f center_a, center_b;
+    const auto a_size = A.rows();
+    const auto b_size = B.rows();
     assert(a_size == b_size);
-    for (auto a = begin_A, auto b = begin_B; a != end_A; a++, b++)
+
+    for (int i = 0; i < a_size; i++)
     {
-        center_a += point_map(a);
-        center_b += point_map(b);
+        center_a(0) += A(i, 0);
+        center_a(1) += A(i, 1);
+        center_a(2) += A(i, 2);
+        center_b(0) += B(i, 0);
+        center_b(1) += B(i, 1);
+        center_b(2) += B(i, 2);
     }
     center_a /= a_size;
     center_b /= b_size;
 
-    std::vector<point_type> aa(a_size), bb(a_size);
-    for (int i = 0, auto a = begin_A, auto b = begin_B; a != end_A; a++, b++, i++)
+    Eigen::MatrixXf aa, bb;
+    for (int i = 0; i < a_size; i++)
     {
-        aa[i] = point_map(a) - center_a;
-        bb[i] = point_map(b) - center_b;
+        aa(i, 0) = a(i, 0) - center_a(0);
+        aa(i, 1) = a(i, 1) - center_a(1);
+        aa(i, 2) = a(i, 2) - center_a(2);
+
+        bb(i, 0) = b(i, 0) - center_b(0);
+        bb(i, 1) = b(i, 1) - center_b(1);
+        bb(i, 2) = b(i, 2) - center_b(2);
     }
-    Eigen::Matrix3d covariance = Eigen::Matrix3d::Zero();
+    Eigen::Matrix3f covariance = Eigen::Matrix3f::Zero();
     for (int i = 0, i < a_size; i++)
     {
-        auto const a = coordinate_map(aa[i]);
-        auto const b = coordinate_map(bb[i]);
         covariance +=
-            Eigen::Vector3d(a[0], a[1], a[2]) * Eigen::Vector3d(b[0], b[1], b[2]).transpose();
+            Eigen::Vector3f(aa(i,0), aa(i,1), aa(i,2) * Eigen::Vector3f(bb(i,0), bb(i,1), bb(i,2)).transpose();
     }
 
-    Eigen::JacobiSVD<Eigen::Matrix3d> svd(covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
-    Eigen::Matrix3d U = svd.matrixU();
-    Eigen::Matrix3d V = svd.matrixV();
+    Eigen::JacobiSVD<Eigen::Matrix3f> svd(covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
+    Eigen::Matrix3f U = svd.matrixU();
+    Eigen::Matrix3f V = svd.matrixV();
 
-    Eigen::Matrix3d R_ = U * (V.transpose());
+    Eigen::Matrix3f R_ = U * (V.transpose());
 
-    auto const coordinates_center_a = coordinate_map(center_a);
-    auto const coordinates_center_b = coordinate_map(center_b);
-    Eigen::Vector3d t_ =
-        Eigen::Vector3d(coordinates_center_a[0], coordinates_center_a[1], coordinates_center_a[2]) -
-        R_ * Eigen::Vector3d(
-                 coordinates_center_b[0],
-                 coordinates_center_b[1],
-                 coordinates_center_b[2]);
+    Eigen::Vector3f t_ = Eigen::Vector3f(center_a(0), center_a(1), center_a(2)) -
+                         R_ * Eigen::Vector3f(center_b(0), center_b(1), center_b(2));
 
-    Eigen::Matrix4d transformation_matrix = Eigen::MatrixXd::Identity(4, 4);
+    Eigen::Matrix4f transformation_matrix = Eigen::MatrixXf::Identity(4, 4);
     // convert to cv::Mat
     transformation_matrix.block<3, 3>(0, 0) =
         (Mat_<double>(3, 3) << R_(0, 0),
@@ -131,4 +108,3 @@ Eigen::Matrix4d best_fit_Transform(
 } // namespace pcp
 
 #endif // PCP_ALGORITHM_AVERAGE_DISTANCE_TO_NEIGHBORS_HPP
-
