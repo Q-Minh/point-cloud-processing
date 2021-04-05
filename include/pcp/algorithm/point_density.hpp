@@ -50,7 +50,7 @@ std::vector<ScalarType> point_density(
         pcp::algorithm::average_distances_to_neighbors(begin, end, point_map, knn_map);
     scalar_type radius =
         std::reduce(std::execution::par, mean_distances.cbegin(), mean_distances.cend(), 0.f) /
-        static_cast<float>(mean_distances.size());
+        static_cast<scalar_type>(mean_distances.size());
 
     std::vector<scalar_type> density(std::distance(begin, end), 0.f);
 

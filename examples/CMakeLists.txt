@@ -62,7 +62,7 @@ add_example(${_folder_name}
 add_example(${_folder_name} 
   pcp-example-downsample 
   downsample.cpp)
-  add_example(${_folder_name} 
+add_example(${_folder_name} 
   pcp-example-filters_example
   filters_example.cpp)
 

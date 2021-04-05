@@ -66,9 +66,6 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/wlop.hpp
 
-
-        
-
         # common
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
@@ -95,7 +92,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/density_filter.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/filter.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/statistical_outlier_filter.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/radius_outlier_filter
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/radius_outlier_filter.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/pass_through_filter.hpp
 
         # graph

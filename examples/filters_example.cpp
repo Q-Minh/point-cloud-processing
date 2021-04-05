@@ -5,15 +5,11 @@
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
-#include <igl/writePLY.h>
-#include <iostream>
 #include <pcp/filter/density_filter.hpp>
 #include <pcp/filter/pass_through_filter.hpp>
 #include <pcp/filter/radius_outlier_filter.hpp>
 #include <pcp/filter/statistical_outlier_filter.hpp>
 #include <pcp/pcp.hpp>
-#include <range/v3/view/transform.hpp>
-#include <sstream>
 
 using point_type  = pcp::point_t;
 using normal_type = pcp::normal_t;
@@ -42,9 +38,10 @@ static float density_threshold = 1.0f;
 static float radius_multiplier = 1.0f;
 static std::size_t density_k   = 3u;
 static int filters_variant     = 0;
+
 int main(int argc, char** argv)
 {
-    static std::atomic<float> recon_progress = 0.f;
+    static std::atomic<float> progress = 0.f;
     static std::vector<pcp::point_t> points;
     static std::future<void> execution_handle{};
     static std::string progress_str{""};
@@ -53,7 +50,6 @@ int main(int argc, char** argv)
         return execution_handle.valid();
     };
 
-    static std::string execution_report;
     igl::opengl::glfw::Viewer viewer;
     igl::opengl::glfw::imgui::ImGuiMenu menu;
     viewer.plugins.push_back(&menu);
@@ -61,7 +57,7 @@ int main(int argc, char** argv)
         points.clear();
         progress_str = "";
         viewer.data().clear();
-        recon_progress = 0.0f;
+        progress = 0.0f;
     };
     menu.callback_draw_viewer_window = [&]() {
         ImGui::Begin("Point Cloud Processing");
@@ -141,6 +137,7 @@ int main(int argc, char** argv)
             if (ImGui::Button("Reset", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
                 reset();
+                e
             }
             if (ImGui::Button("Execute", ImVec2((w - p) / 2.f, 0)) && !is_filter_running())
             {
@@ -151,7 +148,7 @@ int main(int argc, char** argv)
                         //     timer.register_op("filter3");
                         timer.register_op("filter");
                         timer.start();
-                        apply_filter(points, recon_progress);
+                        apply_filter(points, progress);
                         timer.stop();
                     });
                 }
@@ -160,7 +157,7 @@ int main(int argc, char** argv)
             if (!progress_str.empty())
                 ImGui::BulletText(progress_str.c_str());
 
-            ImGui::ProgressBar(recon_progress, ImVec2(0.f, 0.f));
+            ImGui::ProgressBar(progress, ImVec2(0.f, 0.f));
             if (execution_handle.valid() && execution_handle.wait_for(std::chrono::microseconds(
                                                 0u)) == std::future_status::ready)
             {
