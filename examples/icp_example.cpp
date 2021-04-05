@@ -11,25 +11,28 @@
 #include <pcp/pcp.hpp>
 #include <sstream>
 
-Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points);
-
-template <class ScalarType, class KnnMap>
-ScalarType step_icp(
-    Eigen::MatrixXf& m_src,
-    Eigen::MatrixXf& m_ref,
-    Eigen::Matrix4f& m_src_tm,
-    Eigen::Matrix4f& m_init_tm,
-    KnnMap knn_map,
-    std::atomic<float>& progress);
-
 auto const coordinate_map = [](pcp::point_t const& p) {
     return std::array<float, 3u>{p.x(), p.y(), p.z()};
 };
-using normal_type = pcp::normal_t;
-using kdtree_type = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
+
+using normal_type   = pcp::normal_t;
+using kdtree_type   = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
+using matrix_3_type = Eigen::Matrix<float, 3, 3>;
+using vector_3_type = Eigen::Matrix<float, 3, 1>;
+
+Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points);
+
+template <class ScalarType>
+ScalarType step_icp(
+    std::vector<pcp::point_t> const& points_ref,
+    std::vector<pcp::point_t> const& points_src,
+    matrix_3_type& R,
+    vector_3_type& t,
+    std::atomic<float>& progress);
+
 int main(int argc, char** argv)
 {
-    pcp::point_t shift                       = pcp::point_t{3.00, 0, 0};
+    pcp::point_t shift                = pcp::point_t{3.00, 0, 0};
     std::atomic<float> recon_progress = 0.f;
     std::vector<pcp::point_t> points;
     std::vector<pcp::point_t> points_B;
@@ -38,16 +41,11 @@ int main(int argc, char** argv)
     std::string progress_str{""};
     pcp::common::basic_timer_t timer;
 
-    Eigen::MatrixXf m_ref;
-    Eigen::MatrixXf m_src;
-    // transformation done by gui
-    Eigen::Matrix4f m_init_tm = Eigen::MatrixXf::Identity(4, 4);
-    // calculated via best fit transform
-    Eigen::Matrix4f m_src_tm = Eigen::MatrixXf::Identity(4, 4);
+    // Rotation matrix
+    matrix_3_type R = matrix_3_type::Identity();
+    // Translation vector
+    vector_3_type t;
 
-    static pcp::kdtree::construction_params_t params{};
-    params.max_depth      = 4u;
-    params.construction   = pcp::kdtree::construction_t::nth_element;
     auto const is_running = [&]() {
         return execution_handle.valid();
     };
@@ -58,8 +56,8 @@ int main(int argc, char** argv)
     viewer.plugins.push_back(&menu);
 
     auto const reset = [&]() {
-        m_init_tm = Eigen::MatrixXf::Identity(4, 4);
-        m_src_tm  = Eigen::MatrixXf::Identity(4, 4);
+        R = matrix_3_type::Identity();
+        t = vector_3_type::Zero();
         points.clear();
         points_B.clear();
         progress_str = "";
@@ -85,15 +83,16 @@ int main(int argc, char** argv)
 
                 // progress_forward();
 
-                // translate original point_cloud by shift
+                // translate original point_cloud by shift, for now our point cloud to stitch
                 for (auto i = 0; i < points.size(); ++i)
                 {
                     auto const p = (points[i]);
                     points_B[i]  = p + shift;
                 }
 
-                m_ref = from_point_cloud(points);
-                m_src = from_point_cloud(points_B);
+                auto m_ref = from_point_cloud(points);
+                auto m_src = from_point_cloud(points_B);
+
                 viewer.data().clear();
                 viewer.data().add_points(m_ref, Eigen::RowVector3f(1.0, 1.0, 0.0));
                 viewer.data().add_points(m_src, Eigen::RowVector3f(1.0, 1.0, 0.0));
@@ -134,23 +133,7 @@ int main(int argc, char** argv)
                         timer.register_op("icp");
                         timer.start();
 
-                        static kdtree_type kdtree{
-                            points.begin(),
-                            points.end(),
-                            coordinate_map,
-                            params};
-                        auto const knn_map = [&](Eigen::Vector4f const& p) {
-                            auto converted_point      = pcp::point_t{p(0), p(1), p(2)};
-                            std::size_t num_neighbors = static_cast<std::size_t>(1);
-                            return kdtree.nearest_neighbours(converted_point, num_neighbors);
-                        };
-                        step_icp<float, decltype(knn_map)>(
-                            m_src,
-                            m_ref,
-                            m_src_tm,
-                            m_init_tm,
-                            knn_map,
-                            recon_progress);
+                        step_icp<float>(points, points_B, R, t, recon_progress);
                         timer.stop();
                     });
                 }
@@ -187,46 +170,82 @@ int main(int argc, char** argv)
     return 0;
 }
 
-template <class ScalarType, class KnnMap>
+template <class ScalarType>
 ScalarType step_icp(
-    Eigen::MatrixXf& m_src,
-    Eigen::MatrixXf& m_ref,
     std::vector<pcp::point_t> const& points_ref,
     std::vector<pcp::point_t> const& points_src,
-    Eigen::Matrix4f& m_src_tm,
-    Eigen::Matrix4f& m_init_tm,
-    KnnMap knn_map,
+    matrix_3_type& R,
+    vector_3_type& T,
     std::atomic<float>& progress)
 {
-    auto const n = m_src.rows();
-    Eigen::MatrixXf A(n);
-    // downsample largest to smallest
-    // n = smallest
+    // Smallest of the two
+    auto const n = (points_ref.size() <= points_src.size()) ? points_ref.size() : points_src.size();
 
-    std::vector<pcp::point_t> ref(n);
-    std::transform(points_src.begin(), points_src.end(), ref.begin(), [&](pcp::point_t const& p) {
+    std::vector<pcp::point_t> down_ref{}, down_src{}, ref(n), src(n);
+
+    // downsample largest to smallest
+    if (points_ref.size() > n)
+    {
+        bool const use_indices = true;
+        pcp::algorithm::random_simplification(
+            points_ref.begin(),
+            points_ref.end(),
+            std::back_inserter(down_ref),
+            n,
+            use_indices);
+    }
+    else
+    {
+        down_ref = points_ref;
+    }
+
+    if (points_src.size() > n)
+    {
+        bool const use_indices = true;
+        pcp::algorithm::random_simplification(
+            points_src.begin(),
+            points_src.end(),
+            std::back_inserter(down_src),
+            n,
+            use_indices);
+    }
+    else
+    {
+        down_src = points_src;
+    }
+
+    // Kdtree construction for knn (k = 1) searches
+    pcp::kdtree::construction_params_t params{};
+    params.max_depth    = 4u;
+    params.construction = pcp::kdtree::construction_t::nth_element;
+
+    kdtree_type kdtree{down_ref.begin(), down_ref.end(), coordinate_map, params};
+
+    auto const knn_map = [&](pcp::point_t const& p) {
+        std::size_t num_neighbors = static_cast<std::size_t>(1);
+        return kdtree.nearest_neighbours(p, num_neighbors);
+    };
+
+    std::transform(down_src.begin(), down_src.end(), ref.begin(), [&](pcp::point_t const& p) {
         auto const neighbors = knn_map(p);
         return neighbors.front();
     });
 
-    //for (int i = 0; i < n; ++i)
-    //{
-    //    Eigen::Vector4f p(m_src(i, 0), m_src(i, 1), m_src(i, 2), 0);
+    std::transform(down_src.begin(), down_src.end(), src.begin(), [&](pcp::point_t const& p) {
+        auto const converted_point   = vector_3_type(p.x(), p.y(), p.z());
+        vector_3_type transformed_point = R * converted_point;
+        transformed_point += t; // translation
+        return pcp::point_t{transformed_point(0), transformed_point(1), transformed_point(2)};
+    });
 
-    //    p = m_src_tm * m_init_tm * p;
-    //    // converted_pt = = pcp::point_t{p(0), p(1), p(2)};
-    //    auto const k = knn_map(p);
+    auto const point_map = [](pcp::point_t const& p) {
+        return p;
+    };
 
-    //    m_src(i, 0) = p(0);
-    //    m_src(i, 1) = p(1);
-    //    m_src(i, 2) = p(2);
-    //    A(i, 0)     = k.x();
-    //    A(i, 1)     = k.y();
-    //    A(i, 2)     = k.z();
-    //}
-    auto const m_t = pcp::algorithm::icp_best_fit_transform<float>(A, m_src);
-    m_src_tm       = m_t * m_src_tm;
-    return pcp::algorithm::icp_error<float>(m_ref, m_src);
+    auto const [R_, t_] = pcp::algorithm::icp_best_fit_transform(ref.begin(), ref.end(), src.begin(), src.end(), point_map, point_map);
+    
+    return 0.;
+    //return pcp::algorithm::icp_error<float>(m_ref, m_src);
 }
 
 Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points)

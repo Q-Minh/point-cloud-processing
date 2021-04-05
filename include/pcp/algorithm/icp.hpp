@@ -8,6 +8,7 @@
 
 #include "Eigen/Eigen"
 #include "pcp/common/norm.hpp"
+#include "pcp/common/vector3d_queries.hpp"
 #include "pcp/traits/point_map.hpp"
 
 #include <algorithm>
@@ -57,8 +58,8 @@ std::pair<
 icp_best_fit_transform(
     ForwardIterator1 begin_a,
     ForwardIterator1 end_a,
-    ForwardIterator1 begin_b,
-    ForwardIterator1 end_b,
+    ForwardIterator2 begin_b,
+    ForwardIterator2 end_b,
     PointMap1 const& point_map_a,
     PointMap2 const& point_map_b)
 {
