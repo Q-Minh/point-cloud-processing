@@ -59,13 +59,11 @@ int main(int argc, char** argv)
         progress_str = "";
         viewer.data().clear();
     };
-    auto const refresh = [&](bool show_source) {
+    auto const refresh = [&]() {
         auto m_ref = from_point_cloud(points);
         auto m_src = from_point_cloud(points_B);
-
         viewer.data().clear();
         viewer.data().add_points(m_ref, Eigen::RowVector3d(1.0, 0.5, 0.0));
-        // if (show_source)
         viewer.data().add_points(m_src, Eigen::RowVector3d(1.0, 1.0, 1.0));
         viewer.data().point_size = 1.f;
         viewer.core().align_camera_center(m_ref);
@@ -97,7 +95,7 @@ int main(int argc, char** argv)
                     points_B[i]  = p + shift;
                 }
 
-                refresh(true);
+                refresh();
             }
 
             // ImGui::SameLine();
@@ -135,7 +133,7 @@ int main(int argc, char** argv)
 
                         step_icp(points, points_B);
                         timer.stop();
-                        refresh(true);
+                        refresh();
                     });
                 }
             }
@@ -151,7 +149,7 @@ int main(int argc, char** argv)
                         merge(points, points_B);
                         points_B.clear();
                         timer.stop();
-                        refresh(false);
+                        refresh();
                     });
                 }
             }
@@ -164,7 +162,7 @@ int main(int argc, char** argv)
                                                 0u)) == std::future_status::ready)
             {
                 execution_handle.get();
-             //   viewer.data().clear();
+                //   viewer.data().clear();
                 auto const V = from_point_cloud(points);
                 viewer.data().add_points(V, Eigen::RowVector3d(1.0, 1.0, 0.0));
                 viewer.data().point_size = 1.f;
