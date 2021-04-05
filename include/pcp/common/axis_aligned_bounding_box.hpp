@@ -7,6 +7,7 @@
  */
 
 #include "pcp/traits/point_traits.hpp"
+#include "pcp/traits/point_map.hpp"
 
 #include <algorithm>
 #include <array>
