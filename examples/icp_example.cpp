@@ -30,6 +30,13 @@ ScalarType step_icp(
     vector_3_type& t,
     std::atomic<float>& progress);
 
+void merge(
+    std::vector<pcp::point_t>& ref,
+    std::vector<pcp::point_t> const& src,
+    matrix_3_type R,
+    vector_3_type t,
+    std::atomic<float>& progress);
+
 int main(int argc, char** argv)
 {
     pcp::point_t shift                = pcp::point_t{3.00, 0, 0};
@@ -133,7 +140,21 @@ int main(int argc, char** argv)
                         timer.register_op("icp");
                         timer.start();
 
-                        //step_icp<float>(points, points_B, R, t, recon_progress);
+                        step_icp<float>(points, points_B, R, t, recon_progress);
+                        timer.stop();
+                    });
+                }
+            }
+
+            if (ImGui::Button("Merge", ImVec2((w - p) / 2.f, 0)) && !is_running())
+            {
+                if (points.size() > 0)
+                {
+                     progress_str     = "Executing ...";
+                     execution_handle = std::async(std::launch::async, [&]() {
+                        timer.register_op("icp");
+                        timer.start();
+                        merge(points, points_B, R, t, recon_progress);
                         timer.stop();
                     });
                 }
@@ -231,21 +252,38 @@ ScalarType step_icp(
         return neighbors.front();
     });
 
-    std::transform(down_src.begin(), down_src.end(), src.begin(), [&](pcp::point_t const& p) {
-        auto const converted_point   = vector_3_type(p.x(), p.y(), p.z());
-        vector_3_type transformed_point = R * converted_point;
-        transformed_point += t; // translation
-        return pcp::point_t{transformed_point(0), transformed_point(1), transformed_point(2)};
-    });
-
     auto const point_map = [](pcp::point_t const& p) {
         return p;
     };
 
-    auto const [R_, t_] = pcp::algorithm::icp_best_fit_transform(ref.begin(), ref.end(), src.begin(), src.end(), point_map, point_map);
-    
+    auto const [R_, t_] = pcp::algorithm::icp_best_fit_transform(
+        ref.begin(),
+        ref.end(),
+        src.begin(),
+        src.end(),
+        point_map,
+        point_map);
+
+    // R = R_;
+    // t = t_;
+
     return 0.;
-    //return pcp::algorithm::icp_error<float>(m_ref, m_src);
+    // return pcp::algorithm::icp_error<float>(m_ref, m_src);
+}
+
+void merge(
+    std::vector<pcp::point_t>& ref,
+    std::vector<pcp::point_t> const& src,
+    matrix_3_type R,
+    vector_3_type t,
+    std::atomic<float>& progress)
+{
+    std::transform(src.begin(), src.end(), std::back_inserter(ref), [&](pcp::point_t const& p) {
+        auto const converted_point      = vector_3_type(p.x(), p.y(), p.z());
+        vector_3_type transformed_point = R * converted_point;
+        transformed_point += t; // translation
+        return pcp::point_t{transformed_point(0), transformed_point(1), transformed_point(2)};
+    });
 }
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points)
