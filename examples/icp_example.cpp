@@ -28,7 +28,7 @@ void merge(std::vector<pcp::point_t>& ref, std::vector<pcp::point_t>& src);
 
 int main(int argc, char** argv)
 {
-    pcp::point_t shift = pcp::point_t{3.00, 0, 0};
+    pcp::point_t shift = pcp::point_t{0.10, 0, 0};
 
     std::vector<pcp::point_t> points;
     std::vector<pcp::point_t> points_B;
@@ -221,8 +221,8 @@ void step_icp(std::vector<pcp::point_t> const& points_ref, std::vector<pcp::poin
 
     // Kdtree construction for knn (k = 1) searches
     pcp::kdtree::construction_params_t params{};
-    params.max_depth    = 4u;
-    params.construction = pcp::kdtree::construction_t::nth_element;
+    params.compute_max_depth = true;
+    params.construction      = pcp::kdtree::construction_t::nth_element;
 
     kdtree_type kdtree{down_ref.begin(), down_ref.end(), coordinate_map, params};
 
