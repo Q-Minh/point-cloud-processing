@@ -69,12 +69,12 @@ class basic_vector3d_t
         return self_type{v.x() / k, v.y() / k, v.z() / k};
     }
 
-    self_type operator+(self_type const& v)
+    self_type operator+(self_type const& v) const
     {
         return self_type{x() + v.x(), y() + v.y(), z() + v.z()};
     }
 
-    self_type operator-(self_type const& v)
+    self_type operator-(self_type const& v) const
     {
         return self_type{x() - v.x(), y() - v.y(), z() - v.z()};
     }

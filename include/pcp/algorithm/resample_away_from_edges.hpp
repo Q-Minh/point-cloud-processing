@@ -1,5 +1,5 @@
-#ifndef PCP_ALGORITHM_EAR_DETAIL_EDGE_AWARE_UPSAMPLING_HPP
-#define PCP_ALGORITHM_EAR_DETAIL_EDGE_AWARE_UPSAMPLING_HPP
+#ifndef PCP_ALGORITHM_RESAMPLE_AWAY_FROM_EDGES_HPP
+#define PCP_ALGORITHM_RESAMPLE_AWAY_FROM_EDGES_HPP
 
 #include "pcp/common/norm.hpp"
 #include "pcp/kdtree/linked_kdtree.hpp"
@@ -99,7 +99,7 @@ OutputIter smooth_normals(
     using vector_3d_type = Eigen::Matrix<scalar_type, 3, 1>;
 
     scalar_type constexpr zero{0.};
-    scalar_type constexpr eps = 1e-6;
+    scalar_type constexpr eps{1e-6};
 
     auto const psi = [sigma = sigman](input_normal_type const& ni, input_normal_type const& nip) {
         scalar_type constexpr one{1.};
@@ -619,4 +619,4 @@ std::pair<PointOutputIter, NormalOutputIter> resample_away_from_edges(
 } // namespace algorithm
 } // namespace pcp
 
-#endif // PCP_ALGORITHM_EAR_DETAIL_EDGE_AWARE_UPSAMPLING_HPP
+#endif // PCP_ALGORITHM_RESAMPLE_AWAY_FROM_EDGES_HPP

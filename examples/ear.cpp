@@ -333,6 +333,22 @@ int main(int argc, char** argv)
                 ImGui::TreePop();
             }
 
+            static float ear_edge_sensitivity                      = 5.f;
+            static int ear_max_iteration_count                     = 20;
+            static float ear_neighborhood_radius                   = 0.f;
+            static int ear_output_point_count                      = 0;
+            static float ear_priority_estimation_subset_proportion = .05f;
+            static float ear_sharpness_angle                       = 0.261799f;
+
+            ImGui::InputFloat("edge sensitivity##EAR", &ear_edge_sensitivity);
+            ImGui::InputInt("max iteration count##EAR", &ear_max_iteration_count);
+            ImGui::InputFloat("neighborhood radius##EAR", &ear_neighborhood_radius);
+            ImGui::InputInt("upsampled point cloud size##EAR", &ear_output_point_count);
+            ImGui::InputFloat(
+                "Priority estimation subset proportion##EAR",
+                &ear_priority_estimation_subset_proportion);
+            ImGui::InputFloat("sharpness angle##EAR", &ear_sharpness_angle);
+
             if (ImGui::Button("Resample##EAR", ImVec2((w - p) / 2.f, 0.f)) &&
                 !is_downsampling_running())
             {
@@ -344,28 +360,32 @@ int main(int argc, char** argv)
                     resize_output_point_cloud();
                     float const avg_spacing = get_average_spacing(kneighbours);
 
-                    pcp::algorithm::ear::normal_smoothing_params_t normal_smoothing_params{};
-                    normal_smoothing_params.K = K;
-                    normal_smoothing_params.sigmap =
-                        static_cast<double>(normal_smoothing_radial_mean_multiplier) * avg_spacing;
-                    normal_smoothing_params.sigman = sigman;
+                    pcp::algorithm::ear::params_t ear_params;
+                    ear_params.edge_sensitivity = static_cast<double>(ear_edge_sensitivity);
+                    ear_params.max_iteration_count =
+                        static_cast<std::size_t>(ear_max_iteration_count);
+                    ear_params.output_point_count =
+                        static_cast<std::size_t>(ear_output_point_count);
+                    ear_params.priority_estimation_subset_proportion =
+                        static_cast<double>(ear_priority_estimation_subset_proportion);
+                    ear_params.sharpness_angle = static_cast<double>(ear_sharpness_angle);
 
-                    pcp::algorithm::ear::wlop_params_t wlop_params{};
-                    wlop_params.K  = K;
-                    wlop_params.h  = static_cast<double>(wlop_radial_mean_multiplier) * avg_spacing;
-                    wlop_params.I  = output_point_cloud.size();
-                    wlop_params.mu = mu;
-                    wlop_params.uniform = uniform;
+                    ear_params.neighborhood_radius =
+                        ear_neighborhood_radius == 0.f ?
+                            3.f * avg_spacing :
+                            static_cast<double>(ear_neighborhood_radius);
 
-                    pcp::algorithm::ear::resample_away_from_edges(
+                    output_point_cloud.resize(ear_params.output_point_count);
+                    output_normals.resize(ear_params.output_point_count);
+
+                    pcp::algorithm::edge_aware_upsampling(
                         indices.begin(),
                         indices.end(),
                         output_point_cloud.begin(),
                         output_normals.begin(),
                         input_point_map,
                         input_normal_map,
-                        normal_smoothing_params,
-                        wlop_params);
+                        ear_params);
 
                     timer.stop();
                 });

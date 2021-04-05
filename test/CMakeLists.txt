@@ -7,6 +7,7 @@ PRIVATE
   "algorithm/average_distance_to_neighbors.cpp"
   "algorithm/estimate_normals.cpp"
   "algorithm/estimate_tangent_planes.cpp"
+  "algorithm/edge_aware_upsampling.cpp"
   "algorithm/hierarchy_simplification.cpp"
   "algorithm/random_simplification.cpp"
   "algorithm/surface_nets.cpp"

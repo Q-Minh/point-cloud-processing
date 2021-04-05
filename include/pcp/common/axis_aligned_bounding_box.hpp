@@ -250,6 +250,53 @@ inline AABB bounding_box(ForwardIter begin, ForwardIter end)
     return aabb;
 }
 
+template <
+    class ForwardIter,
+    class PointMap,
+    class Point =
+        std::invoke_result_t<PointMap, typename std::iterator_traits<ForwardIter>::value_type>,
+    class AABB = axis_aligned_bounding_box_t<Point>>
+inline AABB bounding_box(ForwardIter begin, ForwardIter end, PointMap const& point_map)
+{
+    using aabb_type          = AABB;
+    using input_element_type = typename std::iterator_traits<ForwardIter>::value_type;
+    using point_type         = std::invoke_result_t<PointMap, input_element_type>;
+    using scalar_type        = typename point_type::coordinate_type;
+
+    static_assert(
+        traits::is_point_map_v<PointMap, input_element_type>,
+        "point_map must satisfy PointMap concept");
+
+    aabb_type aabb{};
+    aabb.min.x(std::numeric_limits<scalar_type>::max());
+    aabb.min.y(std::numeric_limits<scalar_type>::max());
+    aabb.min.z(std::numeric_limits<scalar_type>::max());
+    aabb.max.x(std::numeric_limits<scalar_type>::lowest());
+    aabb.max.y(std::numeric_limits<scalar_type>::lowest());
+    aabb.max.z(std::numeric_limits<scalar_type>::lowest());
+
+    aabb = std::accumulate(begin, end, aabb, [&](aabb_type& bbox, input_element_type const& e) {
+        point_type const& p = point_map(e);
+
+        if (p.x() < bbox.min.x())
+            bbox.min.x(p.x());
+        if (p.y() < bbox.min.y())
+            bbox.min.y(p.y());
+        if (p.z() < bbox.min.z())
+            bbox.min.z(p.z());
+        if (p.x() > bbox.max.x())
+            bbox.max.x(p.x());
+        if (p.y() > bbox.max.y())
+            bbox.max.y(p.y());
+        if (p.z() > bbox.max.z())
+            bbox.max.z(p.z());
+
+        return bbox;
+    });
+
+    return aabb;
+}
+
 } // namespace pcp
 
 #endif // PCP_COMMON_AXIS_ALIGNED_BOUNDING_BOX_HPP
