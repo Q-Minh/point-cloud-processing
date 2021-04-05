@@ -121,7 +121,8 @@ inline typename Point1::coordinate_type squared_distance(Point1 const& p1, Point
  * @return the squared euclidean distance between p1 and p2
  */
 template <class CoordinateType, size_t K>
-inline CoordinateType squared_distance(std::array<CoordinateType, K> const& p1, std::array<CoordinateType, K> const& p2)
+inline CoordinateType
+squared_distance(std::array<CoordinateType, K> const& p1, std::array<CoordinateType, K> const& p2)
 {
     auto const difference = [](auto&& tup) {
         auto const c1 = std::get<0>(tup);

@@ -62,6 +62,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_normals.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/estimate_tangent_planes.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/hierarchy_simplification.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/point_density.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/random_simplification.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/surface_nets.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/algorithm/wlop.hpp
@@ -70,7 +71,7 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/common.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/axis_aligned_bounding_box.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/intersections.hpp
-        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/mesh_triangle.hpp    
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/norm.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/plane3d.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/regular_grid3d.hpp
@@ -87,6 +88,13 @@ INTERFACE
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/point.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/point_view.hpp
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/common/points/vertex.hpp
+
+        # filters
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/density_filter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/filter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/statistical_outlier_filter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/radius_outlier_filter.hpp
+        ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/filter/pass_through_filter.hpp
 
         # graph
         ${CMAKE_CURRENT_SOURCE_DIR}/include/pcp/graph/graph.hpp
