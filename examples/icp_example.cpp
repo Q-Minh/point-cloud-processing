@@ -20,7 +20,7 @@ using kdtree_type   = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coor
 using matrix_3_type = Eigen::Matrix<float, 3, 3>;
 using vector_3_type = Eigen::Matrix<float, 3, 1>;
 
-Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points);
+Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points);
 
 template <class ScalarType>
 ScalarType step_icp(
@@ -94,8 +94,8 @@ int main(int argc, char** argv)
                 auto m_src = from_point_cloud(points_B);
 
                 viewer.data().clear();
-                viewer.data().add_points(m_ref, Eigen::RowVector3f(1.0, 1.0, 0.0));
-                viewer.data().add_points(m_src, Eigen::RowVector3f(1.0, 1.0, 0.0));
+                viewer.data().add_points(m_ref, Eigen::RowVector3d(1.0, 1.0, 0.0));
+                viewer.data().add_points(m_src, Eigen::RowVector3d(1.0, 1.0, 0.0));
                 viewer.data().point_size = 1.f;
                 viewer.core().align_camera_center(m_ref);
             }
@@ -133,7 +133,7 @@ int main(int argc, char** argv)
                         timer.register_op("icp");
                         timer.start();
 
-                        step_icp<float>(points, points_B, R, t, recon_progress);
+                        //step_icp<float>(points, points_B, R, t, recon_progress);
                         timer.stop();
                     });
                 }
@@ -149,7 +149,7 @@ int main(int argc, char** argv)
                 execution_handle.get();
                 viewer.data().clear();
                 auto const V = from_point_cloud(points);
-                viewer.data().add_points(V, Eigen::RowVector3f(1.0, 1.0, 0.0));
+                viewer.data().add_points(V, Eigen::RowVector3d(1.0, 1.0, 0.0));
                 viewer.data().point_size = 1.f;
                 viewer.core().align_camera_center(V);
                 auto const duration =
@@ -175,7 +175,7 @@ ScalarType step_icp(
     std::vector<pcp::point_t> const& points_ref,
     std::vector<pcp::point_t> const& points_src,
     matrix_3_type& R,
-    vector_3_type& T,
+    vector_3_type& t,
     std::atomic<float>& progress)
 {
     // Smallest of the two
@@ -248,9 +248,9 @@ ScalarType step_icp(
     //return pcp::algorithm::icp_error<float>(m_ref, m_src);
 }
 
-Eigen::MatrixXf from_point_cloud(std::vector<pcp::point_t> const& points)
+Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points)
 {
-    Eigen::MatrixXf P;
+    Eigen::MatrixXd P;
     P.resize(points.size(), 3u);
     for (std::size_t i = 0u; i < points.size(); ++i)
     {
