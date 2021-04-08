@@ -86,8 +86,6 @@ int main(int argc, char** argv)
                 points      = std::move(p);
                 points_B.resize(points.size());
 
-                // progress_forward();
-
                 // translate original point_cloud by shift, for now our point cloud to stitch
                 for (auto i = 0; i < points.size(); ++i)
                 {
@@ -97,19 +95,6 @@ int main(int argc, char** argv)
 
                 refresh();
             }
-
-            // ImGui::SameLine();
-            // if (ImGui::Button("Save##PointCloud", ImVec2((w - p) / 2.f, 0.f)))
-            //{
-            //    std::filesystem::path ply_mesh = igl::file_dialog_save();
-            //    pcp::io::write_ply(
-            //        ply_mesh,
-            //        points,
-            //        std::vector<normal_type>{},
-            //        pcp::io::ply_format_t::binary_little_endian);
-            //}
-
-            // static ImU64 const step = 1;
 
             if (ImGui::CollapsingHeader("Display##PointCloud", ImGuiTreeNodeFlags_DefaultOpen))
             {
@@ -130,10 +115,12 @@ int main(int argc, char** argv)
                     execution_handle = std::async(std::launch::async, [&]() {
                         timer.register_op("icp");
                         timer.start();
-
-                        step_icp(points, points_B);
-                        timer.stop();
-                        refresh();
+                        if (points_B.size() > 0)
+                        {
+                            step_icp(points, points_B);
+                            timer.stop();
+                            refresh();
+                        }
                     });
                 }
             }
@@ -144,7 +131,7 @@ int main(int argc, char** argv)
                 {
                     progress_str     = "Executing ...";
                     execution_handle = std::async(std::launch::async, [&]() {
-                        timer.register_op("icp");
+                        timer.register_op("merge");
                         timer.start();
                         merge(points, points_B);
                         points_B.clear();
@@ -157,16 +144,11 @@ int main(int argc, char** argv)
             if (!progress_str.empty())
                 ImGui::BulletText(progress_str.c_str());
 
-            //  ImGui::ProgressBar(recon_progress, ImVec2(0.f, 0.f));
             if (execution_handle.valid() && execution_handle.wait_for(std::chrono::microseconds(
                                                 0u)) == std::future_status::ready)
             {
                 execution_handle.get();
-                //   viewer.data().clear();
-                auto const V = from_point_cloud(points);
-                viewer.data().add_points(V, Eigen::RowVector3d(1.0, 1.0, 0.0));
-                viewer.data().point_size = 1.f;
-                viewer.core().align_camera_center(V);
+                refresh();
                 auto const duration =
                     std::chrono::duration_cast<std::chrono::milliseconds>(timer.ops.front().second);
                 timer.ops.clear();

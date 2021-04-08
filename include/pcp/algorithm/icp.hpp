@@ -17,6 +17,14 @@
 namespace pcp {
 namespace algorithm {
 
+/**
+ * @brief
+ * Calculates the RMS(root mean square) error between two matrices.
+ * @tparam ScalarType
+ * @param A Matrix A
+ * @param B Matrix B
+ * @return RMS error between A and B.
+ */
 template <class ScalarType>
 ScalarType icp_error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
 {
@@ -35,12 +43,38 @@ ScalarType icp_error(Eigen::MatrixXf const& A, Eigen::MatrixXf const& B)
     return err;
 }
 
+/**
+ * @brief
+ * Returns the nearest neighbor of a point given a knn map
+ * @tparam ElementType
+ * @tparam KnnMap Type satisfying KnnViewMap concept
+ * @param knn_map The knn map property map
+ * @param point point which we want to find its nearest neighbor
+ * @return the nearest neighbor of a point
+ */
 template <class ElementType, class KnnMap>
 ElementType icp_nearest_neighbor(KnnMap knn_map, ElementType point)
 {
     return knn_map(point);
 }
 
+/**
+ * @brief
+ * Computes the best rotation matrix (3x3)
+ * and translation vector (3x1) to align Matrix B on A, returns both
+ * the rotation matrix and the translation vector.
+ * @tparam PointMap1 PointMap Type satisfying PointMap concept for matrix A
+ * @tparam ForwardIterator1
+ * @tparam ForwardIterator2
+ * @tparam PointMap2 PointMap Type satisfying PointMap concept for matrix B
+ * @param begin_a Begin iterator to the elements of matrix A
+ * @param end_a End iterator to the elements of matrix A
+ * @param begin_b end_b Begin iterator to the elements of matrix B
+ * @param end_b End iterator to the elements of matrix B
+ * @param point_map_a The point_map property map for matrix A
+ * @param point_map_b The point_map property map for matrix B
+ * @return pair of rotation matrix(3x3) and translation vector(3x1).
+ */
 template <class ForwardIterator1, class ForwardIterator2, class PointMap1, class PointMap2>
 std::pair<
     Eigen::Matrix<
@@ -121,11 +155,21 @@ icp_best_fit_transform(
     Eigen::JacobiSVD<matrix_3_type> SVD(Covariance, Eigen::ComputeFullU | Eigen::ComputeFullV);
     matrix_3_type U = SVD.matrixU();
     matrix_3_type V = SVD.matrixV();
-    
-    matrix_3_type R = U * (V.transpose());
+
+    matrix_3_type R = V * (U.transpose());
+
+    // if it's a reflection
+    if (R.determinant() == -1)
+    {
+        // inverse the last column
+        V(0, 2) = -1 * V(0, 2);
+        V(1, 2) = -1 * V(1, 2);
+        V(2, 2) = -1 * V(2, 2);
+        R       = V * U.transpose();
+    }
 
     vector_3_type t = vector_3_type(center_a.x(), center_a.y(), center_a.z()) -
-                         R * vector_3_type(center_b.x(), center_b.y(), center_b.z());
+                      R * vector_3_type(center_b.x(), center_b.y(), center_b.z());
 
     return {R, t};
 }
