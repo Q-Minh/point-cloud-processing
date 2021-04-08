@@ -7,12 +7,10 @@
  */
 
 #include "Eigen/Eigen"
-#include "pcp/common/norm.hpp"
 #include "pcp/common/vector3d_queries.hpp"
 #include "pcp/traits/point_map.hpp"
 
 #include <algorithm>
-#include <execution>
 
 namespace pcp {
 namespace algorithm {

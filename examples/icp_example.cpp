@@ -1,15 +1,11 @@
-#include <atomic>
+
 #include <future>
 #include <igl/file_dialog_open.h>
-#include <igl/file_dialog_save.h>
 #include <igl/opengl/glfw/Viewer.h>
 #include <igl/opengl/glfw/imgui/ImGuiHelpers.h>
 #include <igl/opengl/glfw/imgui/ImGuiMenu.h>
-#include <igl/writePLY.h>
-#include <iostream>
 #include <pcp/algorithm/icp.hpp>
 #include <pcp/pcp.hpp>
-#include <sstream>
 
 auto const coordinate_map = [](pcp::point_t const& p) {
     return std::array<float, 3u>{p.x(), p.y(), p.z()};
