@@ -30,6 +30,7 @@ int main(int argc, char** argv)
 {
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
+    using color_type  = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
     igl::opengl::glfw::Viewer viewer;
     igl::opengl::glfw::imgui::ImGuiMenu menu;
@@ -83,7 +84,7 @@ int main(int argc, char** argv)
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [p, _] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+                auto [p, n, c] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
                 if (!p.empty())
                 {
                     input_point_cloud = std::move(p);
@@ -105,6 +106,7 @@ int main(int argc, char** argv)
                     ply_mesh,
                     output_point_cloud,
                     std::vector<normal_type>{},
+                    std::vector<color_type>{},
                     pcp::io::ply_format_t::binary_little_endian);
             }
         }

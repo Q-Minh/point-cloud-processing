@@ -30,7 +30,7 @@ int main(int argc, char** argv)
     pcp::common::basic_timer_t timer;
     timer.register_op("parse ply point cloud");
     timer.start();
-    auto [points, _] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(input_ply);
+    auto [points, normals, colors] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(input_ply);
     timer.stop();
 
     timer.register_op("setup octree");
@@ -93,10 +93,10 @@ int main(int argc, char** argv)
 
     timer.register_op("write filtered point cloud to ply");
     timer.start();
-    pcp::io::write_ply(output_ply, points, _, pcp::io::ply_format_t::binary_little_endian);
+    pcp::io::write_ply(output_ply, points, normals, colors, pcp::io::ply_format_t::binary_little_endian);
     timer.stop();
 
-    for (auto const & [operation, duration] : timer.ops)
+    for (auto const& [operation, duration] : timer.ops)
     {
         std::cout << operation << ": "
                   << std::chrono::duration_cast<std::chrono::milliseconds>(duration).count()

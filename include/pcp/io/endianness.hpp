@@ -59,6 +59,12 @@ T reverse_endianness(T value)
 }
 
 template <>
+std::uint8_t reverse_endianness(std::uint8_t value)
+{
+    return value;
+}
+
+template <>
 float reverse_endianness(float value)
 {
     union
