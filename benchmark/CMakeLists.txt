@@ -1,9 +1,9 @@
-add_executable(pcp-benchmarks)
+add_executable(pcp-ds-benchmarks)
 add_executable(pcp-algorithm-benchmarks)
-set_target_properties(pcp-benchmarks PROPERTIES FOLDER pcp-benchmarks)
+set_target_properties(pcp-ds-benchmarks PROPERTIES FOLDER pcp-benchmarks)
 set_target_properties(pcp-algorithm-benchmarks PROPERTIES FOLDER pcp-benchmarks)
 
-target_sources(pcp-benchmarks
+target_sources(pcp-ds-benchmarks
 PRIVATE
   spatial_data_structures_benchmark.cpp
 )
@@ -27,9 +27,9 @@ FetchContent_MakeAvailable(benchmark)
 set_target_properties(benchmark PROPERTIES FOLDER "google-benchmark")
 set_target_properties(benchmark_main PROPERTIES FOLDER "google-benchmark-main")
 
-target_link_libraries(pcp-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
+target_link_libraries(pcp-ds-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
 
-target_compile_options(pcp-benchmarks
+target_compile_options(pcp-ds-benchmarks
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
     -Wall
@@ -123,7 +123,7 @@ PRIVATE
 include(GNUInstallDirs)
 
 install(
-  TARGETS pcp-benchmarks
+  TARGETS pcp-ds-benchmarks
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}

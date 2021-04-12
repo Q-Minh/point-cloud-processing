@@ -397,7 +397,7 @@ OutputIter bilateral_filter_points(
 
     for (std::size_t k = 0u; k < K; ++k)
     {
-        basic_linked_kdtree_t<input_element_type, 3u, decltype(coordinate_map)> kdtree{
+        basic_linked_kdtree_t<std::size_t, 3u, decltype(coordinate_map)> kdtree{
             indices.begin(),
             indices.end(),
             coordinate_map,
