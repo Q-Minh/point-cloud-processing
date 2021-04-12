@@ -24,7 +24,8 @@ before_build:
 build_script:
   - cmd: |
       cmake --build build --target pcp-tests --config "%configuration%"
-      cmake --build build --target pcp-benchmarks --config "%configuration%"
+      cmake --build build --target pcp-ds-benchmarks --config "%configuration%"
+      cmake --build build --target pcp-algorithm-benchmarks --config "%configuration%"
 test_script:
   - cmd: |
       cd build/test/"%configuration%"

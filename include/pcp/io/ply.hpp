@@ -113,13 +113,13 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
  * @brief
  * Reads a ply file into a point cloud (potentially with normals).
  * The function supports ascii, binary little endian, binary big endian.
- * The ply file must have x,y,z properties and nx,ny,nz properties if
- * normals are available and ignores all other properties. The properties
- * must be floats.
+ * The ply file must have x,y,z properties, nx,ny,nz properties if
+ * normals are available, r,g,b properties if colors are available and ignores all other properties.
+ * The properties x,y,z,nx,ny,nz must be float and the properties r,g,b must be uchar.
  * @tparam Point Type of the point cloud's points to return.
  * @tparam Normal Type of the point cloud's normals to return.
  * @param path Path to the ply file to read in to memory
- * @return Returns the point cloud as a tuple of vector of points and vector of normals.
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of colors.
  */
 template <class Point, class Normal>
 inline auto read_ply(std::filesystem::path const& path) -> std::tuple<
@@ -336,6 +336,7 @@ inline auto read_ply(std::istream& is) -> std::tuple<
  * @param filepath Path to the ply file to write to
  * @param vertices The points
  * @param normals The normals
+ * @param colors The vertex colors
  * @param format The desired ply format with which to write
  */
 template <class Point, class Normal, std::enable_if_t<traits::is_normal_v<Normal>, int> = 0>
@@ -369,6 +370,7 @@ inline void write_ply(
  * @param os The output stream to write to
  * @param vertices The points in the point cloud
  * @param normals The normals in the point cloud
+ * @param colors The vertex colors
  * @param format The format in which to write the ply point cloud
  */
 template <class Point, class Normal, std::enable_if_t<traits::is_normal_v<Normal>, int> = 0>
@@ -804,7 +806,8 @@ void write_ply(
  * @tparam Normal
  * @param is The input stream from which to read
  * @param params The ply parameters extracted from the ply header
- * @return
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of
+ * colors.
  */
 template <class Point, class Normal>
 inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params) -> std::tuple<
@@ -874,7 +877,8 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params) -> 
  * @tparam Normal
  * @param is The input stream from which to read
  * @param params The ply parameters extracted from the ply header
- * @return
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of
+ * colors.
  */
 template <class Point, class Normal>
 inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params) -> std::tuple<
@@ -968,7 +972,8 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params) ->
  * @tparam Normal
  * @param is The input stream from which to read
  * @param params The ply parameters extracted from the ply header
- * @return
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of
+ * colors.
  */
 template <class Point, class Normal>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
@@ -1032,7 +1037,8 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
  * @tparam Normal
  * @param is The input stream from which to read
  * @param params The ply parameters extracted from the ply header
- * @return
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of
+ * colors.
  */
 template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)

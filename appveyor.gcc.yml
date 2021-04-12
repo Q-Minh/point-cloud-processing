@@ -36,7 +36,8 @@ before_build:
 build_script:
   - sh: |
       cmake --build build --target pcp-tests
-      cmake --build build --target pcp-benchmarks
+      cmake --build build --target pcp-ds-benchmarks
+      cmake --build build --target pcp-algorithm-benchmarks
 test_script:
   - sh: ./build/test/pcp-tests
 after_test:

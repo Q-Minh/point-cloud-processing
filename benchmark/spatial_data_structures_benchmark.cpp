@@ -59,6 +59,7 @@ static pcp::axis_aligned_bounding_box_t<pcp::point_t> get_range(float const min,
         pcp::point_t{min_bound(gen) + x, min_bound(gen) + y, min_bound(gen) + z},
         pcp::point_t{max_bound(gen) + x, max_bound(gen) + y, max_bound(gen) + z}};
 }
+
 static pcp::kd_axis_aligned_bounding_box_t<float, 3>
 get_range_kdtree(float const min, float const max)
 {

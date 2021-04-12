@@ -93,6 +93,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
                 return kdtree.nearest_neighbours(i, 2u);
             };
             return pcp::algorithm::average_distance_to_neighbors(
+                std::execution::seq,
                 indices.begin(),
                 indices.end(),
                 point_map,
@@ -108,6 +109,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
 
             std::vector<pcp::point_t> filtered_points{};
             pcp::algorithm::bilateral_filter_points(
+                std::execution::seq,
                 indices.begin(),
                 indices.end(),
                 std::back_inserter(filtered_points),
@@ -130,6 +132,7 @@ SCENARIO("bilateral filtering of point cloud points and normals", "[algorithm][f
 
             std::vector<pcp::normal_t> filtered_normals{};
             pcp::algorithm::bilateral_filter_normals(
+                std::execution::seq,
                 indices.begin(),
                 indices.end(),
                 std::back_inserter(filtered_normals),

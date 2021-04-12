@@ -119,6 +119,7 @@ int main(int argc, char** argv)
     if (bilateral)
     {
         float avg = pcp::algorithm::average_distance_to_neighbors(
+            std::execution::par,
             indices.begin(),
             indices.end(),
             point_map,
@@ -130,6 +131,7 @@ int main(int argc, char** argv)
         params.sigmag = sigmag_multiplier * static_cast<double>(avg);
 
         pcp::algorithm::bilateral_filter_normals(
+            std::execution::par,
             indices.begin(),
             indices.end(),
             normals.begin(),

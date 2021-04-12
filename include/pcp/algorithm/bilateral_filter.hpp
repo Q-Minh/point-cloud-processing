@@ -286,6 +286,7 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
  * The transformation F (the bilateral filter) over our points P is done in parallel at each
  * iteration k.
  *
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
  * @tparam OutputIter Iterator type dereferenceable to a type satisfying Point concept
  * @tparam PointMap Type satisfying PointMap concept
@@ -298,8 +299,14 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <
+    class ExecutionPolicy,
+    class RandomAccessIter,
+    class OutputIter,
+    class PointMap,
+    class NormalMap>
 OutputIter bilateral_filter_points(
+    ExecutionPolicy&& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -386,17 +393,18 @@ OutputIter bilateral_filter_points(
     kdtree_params.compute_max_depth     = true;
     kdtree_params.construction          = kdtree::construction_t::nth_element;
     kdtree_params.max_elements_per_leaf = 64u;
+    kdtree_params.min_element_count_for_parallel_exec = indices.size();
 
     for (std::size_t k = 0u; k < K; ++k)
     {
-        basic_linked_kdtree_t<input_element_type, 3u, decltype(coordinate_map)> kdtree{
+        basic_linked_kdtree_t<std::size_t, 3u, decltype(coordinate_map)> kdtree{
             indices.begin(),
             indices.end(),
             coordinate_map,
             kdtree_params};
 
         std::transform(
-            std::execution::par,
+            policy,
             indices.begin(),
             indices.end(),
             temporary_points.begin(),
@@ -437,6 +445,7 @@ OutputIter bilateral_filter_points(
  * 'Huang, Hui, et al. "Edge-aware point set resampling." ACM transactions on graphics (TOG) 32.1
  * (2013): 1-12.'
  *
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
  * @tparam OutputIter Iterator type dereferenceable to a type satisfying Normal concept
  * @tparam PointMap Type satisfying PointMap concept
@@ -449,8 +458,14 @@ OutputIter bilateral_filter_points(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <
+    class ExecutionPolicy,
+    class RandomAccessIter,
+    class OutputIter,
+    class PointMap,
+    class NormalMap>
 OutputIter bilateral_filter_normals(
+    ExecutionPolicy const& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -535,9 +550,10 @@ OutputIter bilateral_filter_normals(
     };
 
     kdtree::construction_params_t kdtree_params;
-    kdtree_params.compute_max_depth     = true;
-    kdtree_params.construction          = kdtree::construction_t::nth_element;
-    kdtree_params.max_elements_per_leaf = 64u;
+    kdtree_params.compute_max_depth                   = true;
+    kdtree_params.construction                        = kdtree::construction_t::nth_element;
+    kdtree_params.max_elements_per_leaf               = 64u;
+    kdtree_params.min_element_count_for_parallel_exec = indices.size();
 
     basic_linked_kdtree_t<input_element_type, 3u, decltype(coordinate_map)> kdtree{
         indices.begin(),
@@ -548,7 +564,7 @@ OutputIter bilateral_filter_normals(
     for (std::size_t k = 0u; k < K; ++k)
     {
         std::transform(
-            std::execution::par,
+            policy,
             indices.begin(),
             indices.end(),
             temporary_normals.begin(),

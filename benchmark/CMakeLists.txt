@@ -1,9 +1,15 @@
-add_executable(pcp-benchmarks)
-set_target_properties(pcp-benchmarks PROPERTIES FOLDER pcp-benchmarks)
+add_executable(pcp-ds-benchmarks)
+add_executable(pcp-algorithm-benchmarks)
+set_target_properties(pcp-ds-benchmarks PROPERTIES FOLDER pcp-benchmarks)
+set_target_properties(pcp-algorithm-benchmarks PROPERTIES FOLDER pcp-benchmarks)
 
-target_sources(pcp-benchmarks
+target_sources(pcp-ds-benchmarks
 PRIVATE
   spatial_data_structures_benchmark.cpp
+)
+target_sources(pcp-algorithm-benchmarks
+PRIVATE
+  algorithm_benchmark.cpp
 )
 
 # do not include google benchmark tests in our project
@@ -21,9 +27,9 @@ FetchContent_MakeAvailable(benchmark)
 set_target_properties(benchmark PROPERTIES FOLDER "google-benchmark")
 set_target_properties(benchmark_main PROPERTIES FOLDER "google-benchmark-main")
 
-target_link_libraries(pcp-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
+target_link_libraries(pcp-ds-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
 
-target_compile_options(pcp-benchmarks
+target_compile_options(pcp-ds-benchmarks
 PRIVATE
   $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
     -Wall
@@ -117,7 +123,107 @@ PRIVATE
 include(GNUInstallDirs)
 
 install(
-  TARGETS pcp-benchmarks
+  TARGETS pcp-ds-benchmarks
+  LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
+  RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
+)
+
+target_link_libraries(pcp-algorithm-benchmarks PRIVATE pcp::pcp benchmark::benchmark benchmark::benchmark_main)
+
+target_compile_options(pcp-algorithm-benchmarks
+PRIVATE
+  $<$<COMPILE_LANG_AND_ID:CXX,Clang,AppleClang>:
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wdouble-promotion
+    -Wnull-dereference
+    -Wimplicit-fallthrough
+    -Wswitch-default
+    -Wswitch-enum
+    -Wunused-const-variable
+    -Wuninitialized
+    -Wduplicate-decl-specifier
+    -Wduplicate-enum
+    -Wduplicate-method-arg
+    -Wduplicate-method-match
+    -Wfloat-equal
+    -Wshadow-all
+    -Wcast-qual
+    -Wcast-align
+    -Wconversion
+    -Wdangling-else
+    -Wsign-conversion
+    -Wfloat-conversion
+    -fstrict-enums
+    -Wnon-virtual-dtor
+    -Wold-style-cast
+    -Woverloaded-virtual
+    -Wzero-as-null-pointer-constant
+    -Wno-unused-local-typedef
+  >
+  $<$<COMPILE_LANG_AND_ID:CXX,GNU>:
+    -Wall
+    -Wextra
+    -Wpedantic
+    -Wdouble-promotion
+    -Wnull-dereference
+    -Wimplicit-fallthrough
+    -Wswitch-default
+    -Wswitch-enum
+    -Wunused-const-variable=2
+    -Wuninitialized
+    -Walloc-zero
+    -Wduplicated-branches
+    -Wduplicated-cond
+    -Wfloat-equal
+    -Wshadow=local
+    -Wcast-qual
+    -Wcast-align
+    -Wconversion
+    -Wdangling-else
+    -Wsign-conversion
+    -Wfloat-conversion
+    -Wlogical-op
+    -fstrict-enums
+    -Wnoexcept
+    -Wnon-virtual-dtor
+    -Wstrict-null-sentinel
+    -Wold-style-cast
+    -Woverloaded-virtual
+    -Wmisleading-indentation
+    -Wzero-as-null-pointer-constant
+    -Wplacement-new=2
+    -Wsuggest-final-types
+    -Wsuggest-final-methods
+    -Wsuggest-override
+    -Wno-unused-local-typedef
+  >
+  $<$<COMPILE_LANG_AND_ID:CXX,MSVC>:
+    /permissive-
+    /W4
+    /w44242
+    /w44263
+    /w44265
+    /w44287
+    /w44289
+    /w44296
+    /w44311
+    /w44545
+    /w44546
+    /w44547
+    /w44549
+    /w44555
+    /w44619
+    /w44640
+    /w44826
+    /w44928
+  >
+)
+
+install(
+  TARGETS pcp-algorithm-benchmarks
   LIBRARY DESTINATION ${CMAKE_INSTALL_LIBDIR}
   ARCHIVE DESTINATION ${CMAKE_INSTALL_LIBDIR}
   RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR}
