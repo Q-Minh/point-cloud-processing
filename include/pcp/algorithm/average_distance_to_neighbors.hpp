@@ -19,6 +19,7 @@ namespace algorithm {
  * @ingroup algorithm
  * @brief
  * Computes every point's mean distance to their k neighbors in [begin, end).
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam RandomAccessIter
  * @tparam PointMap Type satisfying PointMap concept
  * @tparam KnnMap Type satisfying KnnMap concept
@@ -30,6 +31,7 @@ namespace algorithm {
  * @return Mean distances to neighbors for every point in [begin, end)
  */
 template <
+    class ExecutionPolicy,
     class RandomAccessIter,
     class PointMap,
     class KnnMap,
@@ -37,6 +39,7 @@ template <
         PointMap,
         typename std::iterator_traits<RandomAccessIter>::value_type>::coordinate_type>
 std::vector<ScalarType> average_distances_to_neighbors(
+    ExecutionPolicy&& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     PointMap const& point_map,
@@ -49,7 +52,7 @@ std::vector<ScalarType> average_distances_to_neighbors(
     std::size_t const n = static_cast<std::size_t>(std::distance(begin, end));
     std::vector<scalar_type> mean_distances(n);
     std::transform(
-        std::execution::par,
+        policy,
         begin,
         end,
         mean_distances.begin(),
@@ -76,6 +79,7 @@ std::vector<ScalarType> average_distances_to_neighbors(
  * @ingroup algorithm
  * @brief
  * Computes the average of all mean distances to neighbors of all points.
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam PointMap Type satisfying PointMap concept
  * @tparam KnnMap Type satisfying KnnMap concept
  * @tparam ScalarType Numeric type, usually float/double
@@ -87,6 +91,7 @@ std::vector<ScalarType> average_distances_to_neighbors(
  * @return Average of all mean distances to neighbors of every point in [begin, end)
  */
 template <
+    class ExecutionPolicy,
     class RandomAccessIter,
     class PointMap,
     class KnnMap,
@@ -94,6 +99,7 @@ template <
         PointMap,
         typename std::iterator_traits<RandomAccessIter>::value_type>::coordinate_type>
 ScalarType average_distance_to_neighbors(
+    ExecutionPolicy&& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     PointMap const& point_map,
@@ -104,7 +110,7 @@ ScalarType average_distance_to_neighbors(
     using point_type   = std::invoke_result_t<PointMap, element_type>;
 
     std::vector<scalar_type> mean_distances =
-        average_distances_to_neighbors(begin, end, point_map, knn_map);
+        average_distances_to_neighbors(policy, begin, end, point_map, knn_map);
 
     float const sum =
         std::reduce(mean_distances.begin(), mean_distances.end(), static_cast<scalar_type>(0.));

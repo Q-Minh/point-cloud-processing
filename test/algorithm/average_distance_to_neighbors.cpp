@@ -67,6 +67,7 @@ SCENARIO("Computing average distances to neighbors in a point cloud", "[algorith
             };
 
             float const mu = pcp::algorithm::average_distance_to_neighbors(
+                std::execution::seq,
                 points.begin(),
                 points.end(),
                 point_map,

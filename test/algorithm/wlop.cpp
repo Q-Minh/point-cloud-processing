@@ -42,6 +42,7 @@ SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][wlop]")
                 return kdtree.nearest_neighbours(i, 15u);
             };
             return pcp::algorithm::average_distance_to_neighbors(
+                std::execution::seq,
                 indices.begin(),
                 indices.end(),
                 point_map,
@@ -58,6 +59,7 @@ SCENARIO("WLOP downsampling point cloud", "[resampling][downsampling][wlop]")
 
             std::vector<pcp::point_t> downsampled_points{};
             pcp::algorithm::wlop::wlop(
+                std::execution::seq,
                 indices.begin(),
                 indices.end(),
                 std::back_inserter(downsampled_points),

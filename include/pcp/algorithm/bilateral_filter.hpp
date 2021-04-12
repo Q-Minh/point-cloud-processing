@@ -286,6 +286,7 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
  * The transformation F (the bilateral filter) over our points P is done in parallel at each
  * iteration k.
  *
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
  * @tparam OutputIter Iterator type dereferenceable to a type satisfying Point concept
  * @tparam PointMap Type satisfying PointMap concept
@@ -298,8 +299,9 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <class ExecutionPolicy, class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
 OutputIter bilateral_filter_points(
+    ExecutionPolicy&& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -396,7 +398,7 @@ OutputIter bilateral_filter_points(
             kdtree_params};
 
         std::transform(
-            std::execution::par,
+            policy,
             indices.begin(),
             indices.end(),
             temporary_points.begin(),
@@ -437,6 +439,7 @@ OutputIter bilateral_filter_points(
  * 'Huang, Hui, et al. "Edge-aware point set resampling." ACM transactions on graphics (TOG) 32.1
  * (2013): 1-12.'
  *
+ * @tparam ExecutionPolicy The execution policy type
  * @tparam RandomAccessIter Iterator type satisfying Random Access requirements
  * @tparam OutputIter Iterator type dereferenceable to a type satisfying Normal concept
  * @tparam PointMap Type satisfying PointMap concept
@@ -449,8 +452,9 @@ OutputIter bilateral_filter_points(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <class ExecutionPolicy, class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
 OutputIter bilateral_filter_normals(
+    ExecutionPolicy const& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -548,7 +552,7 @@ OutputIter bilateral_filter_normals(
     for (std::size_t k = 0u; k < K; ++k)
     {
         std::transform(
-            std::execution::par,
+            policy,
             indices.begin(),
             indices.end(),
             temporary_normals.begin(),

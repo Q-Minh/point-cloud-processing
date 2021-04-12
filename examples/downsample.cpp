@@ -161,6 +161,7 @@ int main(int argc, char** argv)
                     output_point_cloud.clear();
                     output_point_cloud.reserve(params.I);
                     pcp::algorithm::wlop::wlop(
+                        std::execution::par,
                         indices.begin(),
                         indices.end(),
                         std::back_inserter(output_point_cloud),
@@ -336,6 +337,7 @@ float compute_average_distance_to_neighbors(
     };
 
     float const h = pcp::algorithm::average_distance_to_neighbors(
+        std::execution::par,
         indices.begin(),
         indices.end(),
         point_map,
@@ -394,12 +396,14 @@ std::pair<float, float> compute_mean_distance_variance(
     };
 
     std::vector<float> input_mean_distances = pcp::algorithm::average_distances_to_neighbors(
+        std::execution::par,
         input_indices.begin(),
         input_indices.end(),
         input_point_map,
         input_knn_map);
 
     std::vector<float> output_mean_distances = pcp::algorithm::average_distances_to_neighbors(
+        std::execution::par,
         output_indices.begin(),
         output_indices.end(),
         output_point_map,

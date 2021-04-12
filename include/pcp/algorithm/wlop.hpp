@@ -275,8 +275,9 @@ struct params_t
  * @param params The WLOP algorithm's parameters
  * @returns End iterator of output sequence
  */
-template <class RandomAccessIter, class OutputIter, class PointMap>
+template <class ExecutionPolicy, class RandomAccessIter, class OutputIter, class PointMap>
 OutputIter wlop(
+    ExecutionPolicy&& policy,
     RandomAccessIter begin,
     RandomAccessIter end,
     OutputIter out_begin,
@@ -370,14 +371,9 @@ OutputIter wlop(
 
     if (uniform)
     {
-        std::transform(
-            std::execution::par,
-            js.begin(),
-            js.end(),
-            vj.begin(),
-            [&](std::size_t const j) {
-                return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
-            });
+        std::transform(policy, js.begin(), js.end(), vj.begin(), [&](std::size_t const j) {
+            return detail::compute_vj(j, h, p_kdtree, p_coordinate_map, theta);
+        });
     }
 
     for (std::size_t k = 0u; k < K; ++k)
@@ -390,46 +386,36 @@ OutputIter wlop(
 
         if (uniform)
         {
-            std::transform(
-                std::execution::par,
-                is.begin(),
-                is.end(),
-                wi.begin(),
-                [&](std::size_t const i) {
-                    return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
-                });
+            std::transform(policy, is.begin(), is.end(), wi.begin(), [&](std::size_t const i) {
+                return detail::compute_wi(i, h, q_kdtree, q_coordinate_map, theta);
+            });
         }
 
-        std::transform(
-            std::execution::par,
-            is.begin(),
-            is.end(),
-            xp.begin(),
-            [&](std::size_t const ip) {
-                basic_point_t<scalar_type> const median = detail::solve_first_energy_median(
+        std::transform(policy, is.begin(), is.end(), xp.begin(), [&](std::size_t const ip) {
+            basic_point_t<scalar_type> const median = detail::solve_first_energy_median(
+                ip,
+                h,
+                p_kdtree,
+                p_coordinate_map,
+                q_coordinate_map,
+                vj_map,
+                theta);
+
+            common::basic_vector3d_t<scalar_type> const repulsion =
+                detail::solve_second_energy_repulsion_force(
                     ip,
                     h,
-                    p_kdtree,
-                    p_coordinate_map,
+                    mu,
+                    q_kdtree,
                     q_coordinate_map,
-                    vj_map,
+                    wi_map,
                     theta);
 
-                common::basic_vector3d_t<scalar_type> const repulsion =
-                    detail::solve_second_energy_repulsion_force(
-                        ip,
-                        h,
-                        mu,
-                        q_kdtree,
-                        q_coordinate_map,
-                        wi_map,
-                        theta);
-
-                return output_point_type{
-                    median.x() + repulsion.x(),
-                    median.y() + repulsion.y(),
-                    median.z() + repulsion.z()};
-            });
+            return output_point_type{
+                median.x() + repulsion.x(),
+                median.y() + repulsion.y(),
+                median.z() + repulsion.z()};
+        });
 
         std::copy(xp.begin(), xp.end(), x.begin());
     }
