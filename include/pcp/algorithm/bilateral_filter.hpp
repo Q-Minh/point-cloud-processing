@@ -299,7 +299,12 @@ std::invoke_result_t<NormalMap, std::size_t> compute_ni(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class ExecutionPolicy, class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <
+    class ExecutionPolicy,
+    class RandomAccessIter,
+    class OutputIter,
+    class PointMap,
+    class NormalMap>
 OutputIter bilateral_filter_points(
     ExecutionPolicy&& policy,
     RandomAccessIter begin,
@@ -388,6 +393,7 @@ OutputIter bilateral_filter_points(
     kdtree_params.compute_max_depth     = true;
     kdtree_params.construction          = kdtree::construction_t::nth_element;
     kdtree_params.max_elements_per_leaf = 64u;
+    kdtree_params.min_element_count_for_parallel_exec = indices.size();
 
     for (std::size_t k = 0u; k < K; ++k)
     {
@@ -452,7 +458,12 @@ OutputIter bilateral_filter_points(
  * @param params The bilateral filter algorithm's parameters
  * @return End iterator of output sequence
  */
-template <class ExecutionPolicy, class RandomAccessIter, class OutputIter, class PointMap, class NormalMap>
+template <
+    class ExecutionPolicy,
+    class RandomAccessIter,
+    class OutputIter,
+    class PointMap,
+    class NormalMap>
 OutputIter bilateral_filter_normals(
     ExecutionPolicy const& policy,
     RandomAccessIter begin,
@@ -539,9 +550,10 @@ OutputIter bilateral_filter_normals(
     };
 
     kdtree::construction_params_t kdtree_params;
-    kdtree_params.compute_max_depth     = true;
-    kdtree_params.construction          = kdtree::construction_t::nth_element;
-    kdtree_params.max_elements_per_leaf = 64u;
+    kdtree_params.compute_max_depth                   = true;
+    kdtree_params.construction                        = kdtree::construction_t::nth_element;
+    kdtree_params.max_elements_per_leaf               = 64u;
+    kdtree_params.min_element_count_for_parallel_exec = indices.size();
 
     basic_linked_kdtree_t<input_element_type, 3u, decltype(coordinate_map)> kdtree{
         indices.begin(),
