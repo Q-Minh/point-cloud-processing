@@ -15,16 +15,18 @@ int main(int argc, char** argv)
     }
 
     std::filesystem::path ply_point_cloud = argv[1];
-    auto [points, normals] = pcp::io::read_ply<pcp::point_t, pcp::normal_t>(ply_point_cloud);
+    auto [points, normals, colors] =
+        pcp::io::read_ply<pcp::point_t, pcp::normal_t>(ply_point_cloud);
 
     std::cout << "Read ply point cloud\n"
               << "Vertices: " << std::to_string(points.size()) << "\n"
-              << "Normals: " << std::to_string(normals.size()) << "\n";
+              << "Normals: " << std::to_string(normals.size()) << "\n"
+              << "Colors: " << std::to_string(colors.size()) << "\n";
 
     std::cout << "Writing to " << argv[2] << "\n";
 
     std::filesystem::path out = argv[2];
-    pcp::io::write_ply(out, points, normals, pcp::io::string_to_format(argv[3]));
+    pcp::io::write_ply(out, points, normals, colors, pcp::io::string_to_format(argv[3]));
 
     return 0;
 }

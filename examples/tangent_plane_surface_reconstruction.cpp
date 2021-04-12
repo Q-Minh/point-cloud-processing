@@ -64,7 +64,7 @@ int main(int argc, char** argv)
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [p, _]  = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+                auto [p, n, c]  = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
                 points       = std::move(p);
                 auto const V = from_point_cloud(points);
                 viewer.data().clear();

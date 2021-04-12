@@ -37,7 +37,7 @@ enum class ply_format_t { ascii, binary_little_endian, binary_big_endian };
  * ply point cloud point coordinate types can only be
  * float or double (single precision or double precision).
  */
-enum class ply_coordinate_type_t { single_precision, double_precision };
+enum class ply_property_type_t { single_precision, double_precision, uchar };
 
 /**
  * @ingroup io-ply
@@ -46,11 +46,15 @@ enum class ply_coordinate_type_t { single_precision, double_precision };
  */
 struct ply_parameters_t
 {
-    ply_format_t format                         = ply_format_t::ascii;
-    std::size_t vertex_count                    = 0u;
-    std::size_t normal_count                    = 0u;
-    ply_coordinate_type_t vertex_component_type = ply_coordinate_type_t::single_precision;
-    ply_coordinate_type_t normal_component_type = ply_coordinate_type_t::single_precision;
+    ply_format_t format                       = ply_format_t::ascii;
+    std::size_t vertex_count                  = 0u;
+    std::size_t normal_count                  = 0u;
+    std::size_t color_count                   = 0u;
+    ply_property_type_t vertex_component_type = ply_property_type_t::single_precision;
+    ply_property_type_t normal_component_type = ply_property_type_t::single_precision;
+    ply_property_type_t color_component_type  = ply_property_type_t::uchar;
+    std::size_t color_property_offset         = 0u;
+    std::size_t normal_property_offset        = 0u;
 };
 
 /**
@@ -73,23 +77,36 @@ inline ply_format_t string_to_format(std::string const& s)
 }
 
 template <class Point, class Normal>
-inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>;
+inline auto read_ply(std::istream& is) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>;
 
 template <class Point, class Normal>
-inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
+inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>;
 
 template <class Point, class Normal>
-inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
+inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>;
 
 template <class Point, class Normal>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
+    -> std::tuple<
+        std::vector<Point>,
+        std::vector<Normal>,
+        std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>;
 
 template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>;
+    -> std::tuple<
+        std::vector<Point>,
+        std::vector<Normal>,
+        std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>;
 
 /**
  * @ingroup io-ply
@@ -105,8 +122,10 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
  * @return Returns the point cloud as a tuple of vector of points and vector of normals.
  */
 template <class Point, class Normal>
-inline auto read_ply(std::filesystem::path const& path)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+inline auto read_ply(std::filesystem::path const& path) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>
 {
     if (!path.has_filename())
         return {};
@@ -130,36 +149,42 @@ inline auto read_ply(std::filesystem::path const& path)
  * @brief
  * Reads a ply file into a point cloud (potentially with normals).
  * The function supports ascii, binary little endian, binary big endian.
- * The ply file must have x,y,z properties and nx,ny,nz properties if
- * normals are available and ignores all other properties. The properties
- * must be floats.
+ * The ply file must have x,y,z properties, nx,ny,nz properties if
+ * normals are available, r,g,b properties if colors are available and ignores all other properties.
+ * The properties x,y,z,nx,ny,nz must be float and the properties r,g,b must be uchar.
  * @tparam Point Type of the point cloud's points to return.
  * @tparam Normal Type of the point cloud's normals to return.
  * @param is Input stream in ply format
- * @return Returns the point cloud as a tuple of vector of points and vector of normals.
+ * @return Returns the point cloud as a tuple of vector of points, vector of normals and vector of
+ * colors.
  */
 template <class Point, class Normal>
-inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::vector<Normal>>
+inline auto read_ply(std::istream& is) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>> /* colors */>
 {
     static_assert(traits::is_point_v<Point>, "Point must satisfy Point concept");
     static_assert(traits::is_normal_v<Normal>, "Normal must satisfy Normal concept");
 
     ply_parameters_t ply_params;
 
-    auto const string_to_coordinate_type = [](std::string const& s) -> ply_coordinate_type_t {
-        ply_coordinate_type_t type = ply_coordinate_type_t::single_precision;
+    auto const string_to_property_type = [](std::string const& s) -> ply_property_type_t {
+        ply_property_type_t type = ply_property_type_t::single_precision;
         if (s == "float")
-            type = ply_coordinate_type_t::single_precision;
+            type = ply_property_type_t::single_precision;
         if (s == "double")
-            type = ply_coordinate_type_t::double_precision;
+            type = ply_property_type_t::double_precision;
+        if (s == "uchar")
+            type = ply_property_type_t::uchar;
         return type;
     };
 
-    auto const has_valid_vertex_properties = [string_to_coordinate_type, &is](
+    auto const has_valid_vertex_properties = [string_to_property_type, &is](
                                                  std::array<std::string, 3> const& property_names,
-                                                 ply_coordinate_type_t& coordinate_type) -> bool {
-        std::array<std::string, 3> nxyz;
-        std::array<ply_coordinate_type_t, 3> types;
+                                                 ply_property_type_t& coordinate_type) -> bool {
+        std::array<std::string, 3> props;
+        std::array<ply_property_type_t, 3> types;
         std::string line;
         for (std::uint8_t i = 0; i < 3u; ++i)
         {
@@ -174,25 +199,27 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
             if (tokens.at(1) == "list")
                 return false;
 
-            types[i]        = string_to_coordinate_type(tokens.at(1));
+            types[i]        = string_to_property_type(tokens.at(1));
             coordinate_type = types[i];
-            nxyz[i]         = tokens.back();
+            props[i]        = tokens.back();
         }
 
         bool const are_components_of_same_type = std::all_of(
             std::cbegin(types),
             std::cend(types),
-            [coordinate_type](ply_coordinate_type_t const& t) { return coordinate_type == t; });
+            [coordinate_type](ply_property_type_t const& t) { return coordinate_type == t; });
 
-        bool const are_components_well_named = nxyz[0] == property_names[0] &&
-                                               nxyz[1] == property_names[1] &&
-                                               nxyz[2] == property_names[2];
+        bool const are_components_well_named = props[0] == property_names[0] &&
+                                               props[1] == property_names[1] &&
+                                               props[2] == property_names[2];
 
         return are_components_of_same_type && are_components_well_named;
     };
 
     std::string line;
-    bool is_ply = false;
+    bool is_ply                         = false;
+    std::streampos previous_position    = is.tellg();
+    std::size_t current_property_offset = 0u;
 
     /**
      * Read ply header
@@ -233,18 +260,53 @@ inline auto read_ply(std::istream& is) -> std::tuple<std::vector<Point>, std::ve
             if (!is_vertex_valid)
                 return {};
 
+            previous_position = is.tellg();
+            current_property_offset += 3u;
+
             continue;
         }
 
-        if (tokens.front() == "element" && tokens.at(1) == "normal")
+        if (tokens.front() == "property" && tokens.at(2) == "nx")
         {
-            ply_params.normal_count = std::stoull(tokens.back());
+            is.seekg(previous_position);
+            ply_params.normal_count = ply_params.vertex_count;
 
             bool const is_normal_valid =
                 has_valid_vertex_properties({"nx", "ny", "nz"}, ply_params.normal_component_type);
 
             if (!is_normal_valid)
                 return {};
+
+            ply_params.normal_property_offset = current_property_offset;
+            current_property_offset += 3u;
+            previous_position = is.tellg();
+
+            continue;
+        }
+
+        if (tokens.front() == "property" && (tokens.at(2) == "r" || tokens.at(2) == "red"))
+        {
+            is.seekg(previous_position);
+
+            ply_params.color_count = ply_params.vertex_count;
+
+            bool is_color_valid =
+                has_valid_vertex_properties({"r", "g", "b"}, ply_params.color_component_type);
+
+            if (!is_color_valid)
+            {
+                is.seekg(previous_position);
+                is_color_valid = has_valid_vertex_properties(
+                    {"red", "green", "blue"},
+                    ply_params.color_component_type);
+
+                if (!is_color_valid)
+                    return {};
+            }
+
+            ply_params.color_property_offset = current_property_offset;
+            current_property_offset += 3u;
+            previous_position = is.tellg();
 
             continue;
         }
@@ -281,6 +343,7 @@ inline void write_ply(
     std::filesystem::path const& filepath,
     std::vector<Point> const& vertices,
     std::vector<Normal> const& normals,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>> const& colors,
     ply_format_t format = ply_format_t::ascii)
 {
     if (!filepath.has_extension() || filepath.extension() != ".ply")
@@ -294,7 +357,7 @@ inline void write_ply(
     if (!ofs.is_open())
         return;
 
-    write_ply<Point, Normal>(ofs, vertices, normals, format);
+    write_ply<Point, Normal>(ofs, vertices, normals, colors, format);
 }
 
 /**
@@ -313,18 +376,26 @@ inline void write_ply(
     std::ostream& os,
     std::vector<Point> const& vertices,
     std::vector<Normal> const& normals,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>> const& colors,
     ply_format_t format = ply_format_t::ascii)
 {
     using point_type            = Point;
     using normal_type           = Normal;
+    using color_type            = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
     using vertex_component_type = typename Point::coordinate_type;
     using normal_component_type = typename Normal::component_type;
+    using color_component_type  = std::uint8_t;
 
     std::string const vertex_component_type_str =
         std::is_same_v<vertex_component_type, double> ? "double" : "float";
 
     std::string const normal_component_type_str =
         std::is_same_v<normal_component_type, double> ? "double" : "float";
+
+    std::string const color_component_type_str = "uchar";
+
+    bool const has_normals = normals.size() == vertices.size();
+    bool const has_colors  = colors.size() == vertices.size();
 
     std::ostringstream header_stream{};
     header_stream << "ply\n";
@@ -339,81 +410,126 @@ inline void write_ply(
     header_stream << "element vertex " << vertices.size() << "\n"
                   << "property " << vertex_component_type_str << " x\n"
                   << "property " << vertex_component_type_str << " y\n"
-                  << "property " << vertex_component_type_str << " z\n"
-                  << "element normal " << normals.size() << "\n"
-                  << "property " << normal_component_type_str << " nx\n"
-                  << "property " << normal_component_type_str << " ny\n"
-                  << "property " << normal_component_type_str << " nz\n"
-                  << "end_header\n";
+                  << "property " << vertex_component_type_str << " z\n";
+
+    if (has_normals)
+    {
+        header_stream << "property " << normal_component_type_str << " nx\n"
+                      << "property " << normal_component_type_str << " ny\n"
+                      << "property " << normal_component_type_str << " nz\n";
+    }
+    if (has_colors)
+    {
+        header_stream << "property " << color_component_type_str << " r\n"
+                      << "property " << color_component_type_str << " g\n"
+                      << "property " << color_component_type_str << " b\n";
+    }
+
+    header_stream << "end_header\n";
 
     std::string const header = header_stream.str();
     os << header;
 
     if (format == ply_format_t::ascii)
     {
-        for (point_type const& v : vertices)
+        for (std::size_t i = 0u; i < vertices.size(); ++i)
         {
+            auto const& v = vertices[i];
             std::ostringstream oss{};
             oss << std::to_string(v.x()) << " " << std::to_string(v.y()) << " "
-                << std::to_string(v.z()) << "\n";
-            os << oss.str();
-        }
-        for (normal_type const& n : normals)
-        {
-            std::ostringstream oss{};
-            oss << std::to_string(n.nx()) << " " << std::to_string(n.ny()) << " "
-                << std::to_string(n.nz()) << "\n";
+                << std::to_string(v.z());
+
+            if (has_normals)
+            {
+                auto const& n = normals[i];
+                oss << " ";
+                oss << std::to_string(n.nx()) << " " << std::to_string(n.ny()) << " "
+                    << std::to_string(n.nz());
+            }
+            if (has_colors)
+            {
+                auto const& c = colors[i];
+                oss << " ";
+                oss << std::to_string(std::get<0>(c)) << " " << std::to_string(std::get<1>(c))
+                    << " " << std::to_string(std::get<2>(c));
+            }
+
+            oss << "\n";
             os << oss.str();
         }
     }
 
     // Note: disk I/O writes can be parallelized
-    auto const write_binary_data =
-        [&os](std::vector<point_type> const& p, std::vector<normal_type> const& n) {
-            for (std::size_t i = 0u; i < p.size(); ++i)
-            {
-                auto constexpr size_of_vertex_component_type = sizeof(vertex_component_type);
-                std::array<std::byte, 3u * size_of_vertex_component_type> vertex_storage;
+    auto const write_binary_data = [&os, &has_normals, &has_colors](
+                                       std::vector<point_type> const& p,
+                                       std::vector<normal_type> const& n,
+                                       std::vector<color_type> const& c) {
+        for (std::size_t i = 0u; i < p.size(); ++i)
+        {
+            auto constexpr size_of_vertex_component_type = sizeof(vertex_component_type);
+            std::array<std::byte, 3u * size_of_vertex_component_type> vertex_storage;
 
-                std::byte* const data = vertex_storage.data();
+            std::byte* const pos_data = vertex_storage.data();
 
-                vertex_component_type* const x = reinterpret_cast<float*>(data);
-                vertex_component_type* const y =
-                    reinterpret_cast<float*>(data + (1u * size_of_vertex_component_type));
-                vertex_component_type* const z =
-                    reinterpret_cast<float*>(data + (2u * size_of_vertex_component_type));
-                *x = p[i].x();
-                *y = p[i].y();
-                *z = p[i].z();
+            vertex_component_type* const x = reinterpret_cast<float*>(pos_data);
+            vertex_component_type* const y =
+                reinterpret_cast<float*>(pos_data + (1u * size_of_vertex_component_type));
+            vertex_component_type* const z =
+                reinterpret_cast<float*>(pos_data + (2u * size_of_vertex_component_type));
+            *x = p[i].x();
+            *y = p[i].y();
+            *z = p[i].z();
 
-                os.write(
-                    reinterpret_cast<const char*>(data),
-                    static_cast<std::streamsize>(vertex_storage.size()));
-            }
+            os.write(
+                reinterpret_cast<const char*>(pos_data),
+                static_cast<std::streamsize>(vertex_storage.size()));
 
-            for (std::size_t i = 0u; i < n.size(); ++i)
+            if (has_normals)
             {
                 auto constexpr size_of_normal_component_type = sizeof(normal_component_type);
                 std::array<std::byte, 3u * size_of_normal_component_type> normal_storage;
 
-                std::byte* const data = normal_storage.data();
+                std::byte* const normal_data = normal_storage.data();
 
-                normal_component_type* const nx = reinterpret_cast<float*>(data);
+                normal_component_type* const nx = reinterpret_cast<float*>(normal_data);
                 normal_component_type* const ny =
-                    reinterpret_cast<float*>(data + (1u * size_of_normal_component_type));
+                    reinterpret_cast<float*>(normal_data + (1u * size_of_normal_component_type));
                 normal_component_type* const nz =
-                    reinterpret_cast<float*>(data + (2u * size_of_normal_component_type));
+                    reinterpret_cast<float*>(normal_data + (2u * size_of_normal_component_type));
                 *nx = n[i].nx();
                 *ny = n[i].ny();
                 *nz = n[i].nz();
 
                 os.write(
-                    reinterpret_cast<const char*>(data),
+                    reinterpret_cast<const char*>(normal_data),
                     static_cast<std::streamsize>(normal_storage.size()));
             }
-        };
+            if (has_colors)
+            {
+                auto constexpr size_of_color_component_type = sizeof(color_component_type);
+                std::array<std::byte, 3u * size_of_color_component_type> color_storage;
 
-    auto const transform_endianness = [](std::vector<point_type>& p, std::vector<normal_type>& n) {
+                std::byte* const color_data = color_storage.data();
+
+                color_component_type* const r = reinterpret_cast<color_component_type*>(color_data);
+                color_component_type* const g = reinterpret_cast<color_component_type*>(
+                    color_data + (1u * size_of_color_component_type));
+                color_component_type* const b = reinterpret_cast<color_component_type*>(
+                    color_data + (2u * size_of_color_component_type));
+                *r = std::get<0>(c[i]);
+                *g = std::get<1>(c[i]);
+                *b = std::get<2>(c[i]);
+
+                os.write(
+                    reinterpret_cast<const char*>(color_data),
+                    static_cast<std::streamsize>(color_storage.size()));
+            }
+        }
+    };
+
+    auto const transform_endianness = [](std::vector<point_type>& p,
+                                         std::vector<normal_type>& n,
+                                         std::vector<color_type>& c) {
         std::transform(std::begin(p), std::end(p), std::begin(p), [](point_type const& point) {
             return point_type{
                 reverse_endianness(point.x()),
@@ -426,6 +542,12 @@ inline void write_ply(
                 reverse_endianness(normal.ny()),
                 reverse_endianness(normal.nz())};
         });
+        std::transform(std::begin(c), std::end(c), std::begin(c), [](color_type const& color) {
+            return std::make_tuple(
+                reverse_endianness(std::get<0>(color)),
+                reverse_endianness(std::get<1>(color)),
+                reverse_endianness(std::get<2>(color)));
+        });
     };
 
     if (format == ply_format_t::binary_little_endian)
@@ -434,12 +556,19 @@ inline void write_ply(
         {
             auto endian_correct_vertices = vertices;
             auto endian_correct_normals  = normals;
-            transform_endianness(endian_correct_vertices, endian_correct_normals);
-            write_binary_data(endian_correct_vertices, endian_correct_normals);
+            auto endian_correct_colors   = colors;
+            transform_endianness(
+                endian_correct_vertices,
+                endian_correct_normals,
+                endian_correct_colors);
+            write_binary_data(
+                endian_correct_vertices,
+                endian_correct_normals,
+                endian_correct_colors);
         }
         else
         {
-            write_binary_data(vertices, normals);
+            write_binary_data(vertices, normals, colors);
         }
     }
 
@@ -449,12 +578,19 @@ inline void write_ply(
         {
             auto endian_correct_vertices = vertices;
             auto endian_correct_normals  = normals;
-            transform_endianness(endian_correct_vertices, endian_correct_normals);
-            write_binary_data(endian_correct_vertices, endian_correct_normals);
+            auto endian_correct_colors   = colors;
+            transform_endianness(
+                endian_correct_vertices,
+                endian_correct_normals,
+                endian_correct_colors);
+            write_binary_data(
+                endian_correct_vertices,
+                endian_correct_normals,
+                endian_correct_colors);
         }
         else
         {
-            write_binary_data(vertices, normals);
+            write_binary_data(vertices, normals, colors);
         }
     }
 }
@@ -671,17 +807,25 @@ void write_ply(
  * @return
  */
 template <class Point, class Normal>
-inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>
 {
     using point_type  = Point;
     using normal_type = Normal;
+    using color_type  = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
     std::vector<point_type> vertices;
     std::vector<normal_type> normals;
+    std::vector<color_type> colors;
 
     vertices.reserve(params.vertex_count);
     normals.reserve(params.normal_count);
+    colors.reserve(params.color_count);
+
+    bool const has_normals = params.normal_count == params.vertex_count;
+    bool const has_colors  = params.color_count == params.vertex_count;
 
     std::string line;
 
@@ -697,22 +841,29 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
         auto const z      = std::stof(tokens.at(2));
         point_type const p{x, y, z};
         vertices.push_back(p);
-    }
-    for (std::size_t i = 0; i < params.normal_count; ++i)
-    {
-        std::getline(is, line);
-        if (is.bad())
-            return {};
 
-        auto const tokens = tokenize(line);
-        auto const nx     = std::stof(tokens.at(0));
-        auto const ny     = std::stof(tokens.at(1));
-        auto const nz     = std::stof(tokens.at(2));
-        normal_type const n{nx, ny, nz};
-        normals.push_back(n);
+        if (has_normals)
+        {
+            auto const nx = std::stof(tokens.at(params.normal_property_offset + 0u));
+            auto const ny = std::stof(tokens.at(params.normal_property_offset + 1u));
+            auto const nz = std::stof(tokens.at(params.normal_property_offset + 2u));
+            normal_type const n{nx, ny, nz};
+            normals.push_back(n);
+        }
+        if (has_colors)
+        {
+            auto const r =
+                static_cast<std::uint8_t>(std::stoul(tokens.at(params.color_property_offset + 0u)));
+            auto const g =
+                static_cast<std::uint8_t>(std::stoul(tokens.at(params.color_property_offset + 1u)));
+            auto const b =
+                static_cast<std::uint8_t>(std::stoul(tokens.at(params.color_property_offset + 2u)));
+            color_type const c = std::make_tuple(r, g, b);
+            colors.push_back(c);
+        }
     }
 
-    return std::make_tuple(vertices, normals);
+    return std::make_tuple(vertices, normals, colors);
 }
 
 /**
@@ -726,62 +877,87 @@ inline auto read_ply_ascii(std::istream& is, ply_parameters_t const& params)
  * @return
  */
 template <class Point, class Normal>
-inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params) -> std::tuple<
+    std::vector<Point>,
+    std::vector<Normal>,
+    std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>
 {
     using point_type  = Point;
     using normal_type = Normal;
+    using color_type  = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
     std::vector<point_type> vertices;
     std::vector<normal_type> normals;
+    std::vector<color_type> colors;
 
     vertices.resize(params.vertex_count);
     normals.resize(params.normal_count);
+    colors.resize(params.color_count);
+
+    bool const has_normals = params.normal_count == params.vertex_count;
+    bool const has_colors  = params.color_count == params.vertex_count;
 
     auto const size_of_vertex_component = sizeof(float);
-    auto const size_of_normal_component = sizeof(float);
+    auto const size_of_normal_component = has_normals ? sizeof(float) : 0u;
+    auto const size_of_color_component  = has_colors ? sizeof(std::uint8_t) : 0u;
 
-    std::vector<std::byte> vertex_component_storage;
-    vertex_component_storage.resize(3u * size_of_vertex_component);
-
-    std::vector<std::byte> normal_component_storage;
-    normal_component_storage.resize(3u * size_of_normal_component);
+    std::vector<std::byte> property_storage;
+    property_storage.resize(
+        3u * size_of_vertex_component + 3u * size_of_normal_component +
+        3u * size_of_color_component);
 
     // Note: disk I/O reads could be parallelized, but checkout for memory consumption
     for (std::size_t i = 0; i < vertices.size(); ++i)
     {
-        std::byte* data = vertex_component_storage.data();
+        std::byte* data = property_storage.data();
         is.read(
             reinterpret_cast<char*>(data),
-            static_cast<std::streamsize>(vertex_component_storage.size()));
+            static_cast<std::streamsize>(property_storage.size()));
 
         float const* const x = reinterpret_cast<float const*>(data);
-        float const* const y = reinterpret_cast<float const*>(data + (1u * sizeof(float)));
-        float const* const z = reinterpret_cast<float const*>(data + (2u * sizeof(float)));
+        float const* const y =
+            reinterpret_cast<float const*>(data + (1u * size_of_vertex_component));
+        float const* const z =
+            reinterpret_cast<float const*>(data + (2u * size_of_vertex_component));
         vertices[i].x(*x);
         vertices[i].y(*y);
         vertices[i].z(*z);
-    }
 
-    for (std::size_t i = 0; i < normals.size(); ++i)
-    {
-        std::byte* data = normal_component_storage.data();
-        is.read(
-            reinterpret_cast<char*>(data),
-            static_cast<std::streamsize>(normal_component_storage.size()));
-
-        float const* const nx = reinterpret_cast<float const*>(data);
-        float const* const ny = reinterpret_cast<float const*>(data + (1u * sizeof(float)));
-        float const* const nz = reinterpret_cast<float const*>(data + (2u * sizeof(float)));
-        normals[i].nx(*nx);
-        normals[i].ny(*ny);
-        normals[i].nz(*nz);
+        if (has_normals)
+        {
+            auto const normal_offset =
+                (has_colors && params.normal_property_offset > params.color_property_offset) ?
+                    3u * size_of_vertex_component + 3u * size_of_color_component :
+                    3u * size_of_vertex_component;
+            float const* const nx = reinterpret_cast<float const*>(data + normal_offset);
+            float const* const ny = reinterpret_cast<float const*>(
+                data + normal_offset + (1u * size_of_normal_component));
+            float const* const nz = reinterpret_cast<float const*>(
+                data + normal_offset + (2u * size_of_normal_component));
+            normals[i].nx(*nx);
+            normals[i].ny(*ny);
+            normals[i].nz(*nz);
+        }
+        if (has_colors)
+        {
+            auto const color_offset =
+                (has_normals && params.color_property_offset > params.normal_property_offset) ?
+                    3u * size_of_vertex_component + 3u * size_of_normal_component :
+                    3u * size_of_vertex_component;
+            std::uint8_t const* const r =
+                reinterpret_cast<std::uint8_t const*>(data + color_offset);
+            std::uint8_t const* const g = reinterpret_cast<std::uint8_t const*>(
+                data + color_offset + (1u * size_of_color_component));
+            std::uint8_t const* const b = reinterpret_cast<std::uint8_t const*>(
+                data + color_offset + (2u * size_of_color_component));
+            colors[i] = std::make_tuple(*r, *g, *b);
+        }
     }
 
     if (is.bad())
         return {};
 
-    return std::make_tuple(vertices, normals);
+    return std::make_tuple(vertices, normals, colors);
 }
 
 /**
@@ -796,17 +972,21 @@ inline auto read_ply_binary(std::istream& is, ply_parameters_t const& params)
  */
 template <class Point, class Normal>
 inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+    -> std::tuple<
+        std::vector<Point>,
+        std::vector<Normal>,
+        std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>
 {
     using point_type  = Point;
     using normal_type = Normal;
+    using color_type  = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
     auto point_cloud = read_ply_binary<Point, Normal>(is, params);
 
     if (is_machine_little_endian())
         return point_cloud;
 
-    auto& [vertices, normals] = point_cloud;
+    auto& [vertices, normals, colors] = point_cloud;
 
     std::transform(
         std::begin(vertices),
@@ -828,6 +1008,17 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
                 reverse_endianness(n.nx()),
                 reverse_endianness(n.ny()),
                 reverse_endianness(n.nz())};
+        });
+
+    std::transform(
+        std::begin(colors),
+        std::end(colors),
+        std::begin(colors),
+        [](color_type const& c) {
+            return std::make_tuple(
+                reverse_endianness(std::get<0>(c)),
+                reverse_endianness(std::get<1>(c)),
+                reverse_endianness(std::get<2>(c)));
         });
 
     return point_cloud;
@@ -845,17 +1036,21 @@ inline auto read_ply_binary_little_endian(std::istream& is, ply_parameters_t con
  */
 template <class Point, class Normal>
 inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const& params)
-    -> std::tuple<std::vector<Point>, std::vector<Normal>>
+    -> std::tuple<
+        std::vector<Point>,
+        std::vector<Normal>,
+        std::vector<std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>>>
 {
     using point_type  = Point;
     using normal_type = Normal;
+    using color_type  = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
     auto point_cloud = read_ply_binary<Point, Normal>(is, params);
 
     if (is_machine_big_endian())
         return point_cloud;
 
-    auto& [vertices, normals] = point_cloud;
+    auto& [vertices, normals, colors] = point_cloud;
 
     std::transform(
         std::begin(vertices),
@@ -877,6 +1072,17 @@ inline auto read_ply_binary_big_endian(std::istream& is, ply_parameters_t const&
                 reverse_endianness(n.nx()),
                 reverse_endianness(n.ny()),
                 reverse_endianness(n.nz())};
+        });
+
+    std::transform(
+        std::begin(colors),
+        std::end(colors),
+        std::begin(colors),
+        [](color_type const& c) {
+            return std::make_tuple(
+                reverse_endianness(std::get<0>(c)),
+                reverse_endianness(std::get<1>(c)),
+                reverse_endianness(std::get<2>(c)));
         });
 
     return point_cloud;
