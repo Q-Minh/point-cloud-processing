@@ -24,10 +24,11 @@ void merge(std::vector<pcp::point_t>& ref, std::vector<pcp::point_t>& src);
 
 int main(int argc, char** argv)
 {
-    pcp::point_t shift = pcp::point_t{0.10, 0, 0};
+    pcp::point_t shift = pcp::point_t{0.10f, 0, 0};
 
+    std::vector<std::vector<pcp::point_t>> points_to_stitch;
     std::vector<pcp::point_t> points;
-    std::vector<pcp::point_t> points_B;
+
 
     std::future<void> execution_handle{};
     std::string progress_str{""};
@@ -51,23 +52,34 @@ int main(int argc, char** argv)
         R = matrix_3_type::Identity();
         t = vector_3_type::Zero();
         points.clear();
-        points_B.clear();
+        for (auto& point_cloud : points_to_stitch)
+        {
+            merge(points, point_cloud);
+            point_cloud.clear();
+        }
+        points_to_stitch.clear();
         progress_str = "";
         viewer.data().clear();
     };
     auto const refresh = [&]() {
         auto m_ref = from_point_cloud(points);
-        auto m_src = from_point_cloud(points_B);
+
         viewer.data().clear();
         viewer.data().add_points(m_ref, Eigen::RowVector3d(1.0, 0.5, 0.0));
-        viewer.data().add_points(m_src, Eigen::RowVector3d(1.0, 1.0, 1.0));
+
+        for (auto const& point_cloud : points_to_stitch)
+        {
+            auto m = from_point_cloud(point_cloud);
+            viewer.data().add_points(m, Eigen::RowVector3d(1.0, 1.0, 1.0));
+        }
+
         viewer.data().point_size = 1.f;
         viewer.core().align_camera_center(m_ref);
     };
 
     menu.callback_draw_viewer_window = [&]() {
         ImGui::Begin("Point Cloud Processing");
-        if (ImGui::CollapsingHeader("Filters example", ImGuiTreeNodeFlags_DefaultOpen))
+        if (ImGui::CollapsingHeader("Stitching examples", ImGuiTreeNodeFlags_DefaultOpen))
         {
             ImGui::TreePush();
             float w = ImGui::GetContentRegionAvailWidth();
@@ -80,14 +92,15 @@ int main(int argc, char** argv)
                 std::filesystem::path ply_point_cloud{filename};
                 auto [p, _] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
                 points      = std::move(p);
-                points_B.resize(points.size());
+                refresh();
+            }
 
-                // translate original point_cloud by shift, for now our point cloud to stitch
-                for (auto i = 0; i < points.size(); ++i)
-                {
-                    auto const p = (points[i]);
-                    points_B[i]  = p + shift;
-                }
+            if (ImGui::Button("Add##PointCloud", ImVec2((w - p) / 2.f, 0)) && !is_running())
+            {
+                std::string const filename = igl::file_dialog_open();
+                std::filesystem::path ply_point_cloud{filename};
+                auto [pi, _] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
+                points_to_stitch.push_back(std::move(pi));
 
                 refresh();
             }
@@ -111,12 +124,15 @@ int main(int argc, char** argv)
                     execution_handle = std::async(std::launch::async, [&]() {
                         timer.register_op("icp");
                         timer.start();
-                        if (points_B.size() > 0)
+
+                        for (auto& point_cloud : points_to_stitch)
                         {
-                            step_icp(points, points_B);
-                            timer.stop();
-                            refresh();
+                            if (point_cloud.size() > 0)
+                                step_icp(points, point_cloud);
                         }
+
+                        timer.stop();
+                        refresh();
                     });
                 }
             }
@@ -129,8 +145,13 @@ int main(int argc, char** argv)
                     execution_handle = std::async(std::launch::async, [&]() {
                         timer.register_op("merge");
                         timer.start();
-                        merge(points, points_B);
-                        points_B.clear();
+                        for (auto& point_cloud : points_to_stitch)
+                        {
+                            merge(points, point_cloud);
+                            point_cloud.clear();
+                        }
+                        points_to_stitch.clear();
+
                         timer.stop();
                         refresh();
                     });
@@ -228,8 +249,8 @@ void step_icp(std::vector<pcp::point_t> const& points_ref, std::vector<pcp::poin
         point_map);
 
     std::transform(
-        down_src.begin(),
-        down_src.end(),
+        points_src.begin(),
+        points_src.end(),
         points_src.begin(),
         [&](pcp::point_t const& p) {
             auto const converted_point      = vector_3_type(p.x(), p.y(), p.z());
