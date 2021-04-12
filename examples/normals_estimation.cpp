@@ -44,7 +44,7 @@ int main(int argc, char** argv)
     using point_type  = pcp::point_t;
     using normal_type = pcp::normal_t;
 
-    auto [p, n] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
+    auto [p, n, _] = pcp::io::read_ply<point_type, normal_type>(ply_point_cloud);
 
     std::vector<point_type> points = std::move(p);
     std::vector<normal_type> normals(points.size());
@@ -142,6 +142,7 @@ int main(int argc, char** argv)
         std::filesystem::path(argv[2]),
         points,
         normals,
+        _,
         pcp::io::ply_format_t::binary_little_endian);
 
     return 0;

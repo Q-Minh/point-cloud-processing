@@ -15,7 +15,7 @@ int main(int argc, char** argv)
      * parsed into.
      */
     std::filesystem::path input_ply{argv[1]};
-    auto [points, normals] = pcp::io::read_ply<point_type, normal_type>(input_ply);
+    auto [points, normals, colors] = pcp::io::read_ply<point_type, normal_type>(input_ply);
 
     /**
      * Point views adapt points and store a single pointer.
@@ -26,9 +26,9 @@ int main(int argc, char** argv)
         points | ranges::views::transform([](auto& point) { return point_view_type{&point}; });
 
     /**
-     * This is a type of property map, specifically, a PointViewMap. 
-     * In this case, the map takes in a pcp::point_view_t and simply 
-     * returns it. In other cases, the map could take any other type 
+     * This is a type of property map, specifically, a PointViewMap.
+     * In this case, the map takes in a pcp::point_view_t and simply
+     * returns it. In other cases, the map could take any other type
      * and return another type of point from it.
      */
     auto const point_view_map = [](point_view_type const& p) {
@@ -105,6 +105,7 @@ int main(int argc, char** argv)
         std::filesystem::path{argv[2]},
         points,
         normals,
+        colors,
         pcp::io::ply_format_t::binary_little_endian);
 
     return 0;
