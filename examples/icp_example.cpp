@@ -15,20 +15,30 @@ using normal_type   = pcp::normal_t;
 using kdtree_type   = pcp::basic_linked_kdtree_t<pcp::point_t, 3u, decltype(coordinate_map)>;
 using matrix_3_type = Eigen::Matrix<float, 3, 3>;
 using vector_3_type = Eigen::Matrix<float, 3, 1>;
+using color_type = std::tuple<std::uint8_t, std::uint8_t, std::uint8_t>;
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points);
+
+Eigen::MatrixXd colors_from_vector(std::vector<color_type> const& colors);
 
 void step_icp(std::vector<pcp::point_t> const& points_ref, std::vector<pcp::point_t>& points_src);
 
 void merge(std::vector<pcp::point_t>& ref, std::vector<pcp::point_t>& src);
+
+matrix_3_type get_rotation(float rotation[]);
+
+vector_3_type get_translation(float translation[]);
 
 int main(int argc, char** argv)
 {
     pcp::point_t shift = pcp::point_t{0.10f, 0, 0};
 
     std::vector<std::vector<pcp::point_t>> points_to_stitch;
+    std::vector<std::vector<color_type>> colors_to_stitch;
     std::vector<pcp::point_t> points;
-
+    std::vector<color_type> colors;
+    float translation[3] = {0, 0, 0};
+    float rotation[3]    = {0, 0, 0};
 
     std::future<void> execution_handle{};
     std::string progress_str{""};
@@ -54,23 +64,33 @@ int main(int argc, char** argv)
         points.clear();
         for (auto& point_cloud : points_to_stitch)
         {
-            merge(points, point_cloud);
             point_cloud.clear();
         }
+
         points_to_stitch.clear();
+        colors_to_stitch.clear();
+
         progress_str = "";
         viewer.data().clear();
     };
+
     auto const refresh = [&]() {
+        viewer.data().clear();
+
         auto m_ref = from_point_cloud(points);
 
-        viewer.data().clear();
-        viewer.data().add_points(m_ref, Eigen::RowVector3d(1.0, 0.5, 0.0));
+        if (colors.size() > 0)
+            viewer.data().add_points(m_ref, colors_from_vector(colors));
+        else
+            viewer.data().add_points(m_ref, Eigen::RowVector3d(1.0, 1.0, 1.0));        
 
-        for (auto const& point_cloud : points_to_stitch)
+        for (std::size_t i = 0u; i < points_to_stitch.size(); ++i)
         {
-            auto m = from_point_cloud(point_cloud);
-            viewer.data().add_points(m, Eigen::RowVector3d(1.0, 1.0, 1.0));
+            auto m = from_point_cloud(points_to_stitch[i]);
+            if (colors_to_stitch[i].size() > 0)
+                viewer.data().add_points(m, colors_from_vector(colors_to_stitch[i]));
+            else
+                viewer.data().add_points(m, Eigen::RowVector3d(1.0, 0.5, 0.0));
         }
 
         viewer.data().point_size = 1.f;
@@ -90,17 +110,58 @@ int main(int argc, char** argv)
                 reset();
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [p, _] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
-                points      = std::move(p);
+                auto [p, n, c] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
+                points         = std::move(p);
+                colors         = std::move(c);
                 refresh();
+            }
+
+            if (ImGui::CollapsingHeader("Transformations", ImGuiTreeNodeFlags_DefaultOpen))
+            {
+                if (ImGui::CollapsingHeader("Translation", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::PushItemWidth(50);
+                    ImGui::InputFloat("tx", &translation[0], 0, 0, "%0.3f"), ImGui::SameLine();
+                    ImGui::InputFloat("ty", &translation[1], 0, 0, "%0.3f"), ImGui::SameLine();
+                    ImGui::InputFloat("tz", &translation[2], 0, 0, "%0.3f");
+                    ImGui::PopItemWidth();
+                }
+
+                if (ImGui::CollapsingHeader("Rotation", ImGuiTreeNodeFlags_DefaultOpen))
+                {
+                    ImGui::PushItemWidth(50);
+                    ImGui::InputFloat("rx", &rotation[0], 0, 0, "%0.4f"), ImGui::SameLine();
+                    ImGui::InputFloat("ry", &rotation[1], 0, 0, "%0.4f"), ImGui::SameLine();
+                    ImGui::InputFloat("rz", &rotation[2], 0, 0, "%0.4f");
+                    ImGui::PopItemWidth();
+                }
             }
 
             if (ImGui::Button("Add##PointCloud", ImVec2((w - p) / 2.f, 0)) && !is_running())
             {
                 std::string const filename = igl::file_dialog_open();
                 std::filesystem::path ply_point_cloud{filename};
-                auto [pi, _] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
-                points_to_stitch.push_back(std::move(pi));
+                auto [p, n, c] = pcp::io::read_ply<pcp::point_t, normal_type>(ply_point_cloud);
+                
+                auto R = get_rotation(rotation);
+                auto t = get_translation(translation);
+
+                std::transform(
+                    p.begin(),
+                    p.end(),
+                    p.begin(),
+                    [&](pcp::point_t const& p) {
+                        auto const converted_point      = vector_3_type(p.x(), p.y(), p.z());
+                        vector_3_type transformed_point = R * converted_point;
+                        transformed_point += t; // translation
+                        return pcp::point_t{
+                            transformed_point(0),
+                            transformed_point(1),
+                            transformed_point(2)};
+                    });
+
+                points_to_stitch.push_back(std::move(p));
+                colors_to_stitch.push_back(std::move(c));
 
                 refresh();
             }
@@ -124,11 +185,11 @@ int main(int argc, char** argv)
                     execution_handle = std::async(std::launch::async, [&]() {
                         timer.register_op("icp");
                         timer.start();
-
+                        auto pa = points;
                         for (auto& point_cloud : points_to_stitch)
                         {
-                            if (point_cloud.size() > 0)
-                                step_icp(points, point_cloud);
+                            step_icp(pa, point_cloud);
+                            pa = point_cloud;
                         }
 
                         timer.stop();
@@ -260,11 +321,41 @@ void step_icp(std::vector<pcp::point_t> const& points_ref, std::vector<pcp::poin
         });
 }
 
+matrix_3_type get_rotation(float rotation[]) {
+    Eigen::AngleAxis roll(rotation[2], vector_3_type::UnitZ());
+    Eigen::AngleAxis yaw(rotation[1], vector_3_type::UnitY());
+    Eigen::AngleAxis pitch(rotation[0], vector_3_type::UnitX());
+
+    Eigen::Quaternion<float> q = roll * yaw * pitch;
+
+    matrix_3_type Rotation = q.matrix();
+
+    return Rotation;
+}
+
+vector_3_type get_translation(float translation[]) {
+    return vector_3_type(translation[0], translation[1], translation[2]);
+}
+
 void merge(std::vector<pcp::point_t>& ref, std::vector<pcp::point_t>& src)
 {
     std::transform(src.begin(), src.end(), std::back_inserter(ref), [&](pcp::point_t const& p) {
         return p;
     });
+}
+
+Eigen::MatrixXd
+    colors_from_vector(std::vector<color_type> const& colors)
+{
+    Eigen::MatrixXd C;
+    C.resize(colors.size(), 3u);
+    for (std::size_t i = 0u; i < colors.size(); ++i)
+    {
+        C(i, 0) = std::get<0>(colors[i]);
+        C(i, 1) = std::get<1>(colors[i]);
+        C(i, 2) = std::get<2>(colors[i]);
+    }
+    return C;
 }
 
 Eigen::MatrixXd from_point_cloud(std::vector<pcp::point_t> const& points)
